@@ -1,0 +1,11 @@
+* Start GPX Point
+* End GPX Point
+* Find Closest possible start
+* Find Closest possible end
+* n Closest track GPX Track
+* Drive along Track
+* Search MIN_GAP_DIS for other tracks
+* If in closest track set, skip
+* If not, add to closest track set
+* Finish if one is within closest possible end + MIN_GAP_DIS
+* Continue others until distance > MAX_DETOUR

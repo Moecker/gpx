@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 /bikeline
 /Bikeline GPS Tracks.zip
+/output
