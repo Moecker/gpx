@@ -127,6 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Other
 /bikeline
-/Bikeline GPS Tracks.zip
+*.zip
 /output
+*.geojson
+*.p

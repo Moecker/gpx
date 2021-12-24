@@ -1,9 +1,6 @@
 import gpxpy
 import gpxpy.gpx
 
-# Parsing an existing file:
-# -------------------------
-
 gpx_file = open("data/example.gpx", "r")
 
 gpx = gpxpy.parse(gpx_file)
