@@ -17,12 +17,12 @@ def determine_start():
 
 
 def determine_end():
-    enschau_gps = gpxpy.gpx.GPXTrackPoint(47.31107, 13.00691)
-    return enschau_gps
+    dachau_gps = gpxpy.gpx.GPXTrackPoint(48.26299, 11.43390)
+    return dachau_gps
 
 
 def determine_reduction_threshold():
-    return 500.0
+    return config.REDUCTION_DISTANCE
 
 
 def try_load_pickle(pickle_path):
@@ -43,7 +43,7 @@ def compute_distances(start_gps, segments_dict):
             dis = distance.haversine_gpx(point, start_gps)
             if dis < min_distance:
                 min_distance = dis
-        logging.debug(f"Minimum Distance: {min_distance:.2f} km")
+        logging.debug(f"Minimum Distance: {min_distance:.2f} km.")
         distances[name] = min_distance
     return distances
 
@@ -55,7 +55,7 @@ def load_and_reduce_gpxs(track_file_names, threshold, pickle_path):
     for track_file_name in track_file_names:
         threshold_string = str(int(threshold))
         track_file_name_reduced = os.path.join(
-            "output", threshold_string, threshold_string + "_" + track_file_name.replace("/", "_")
+            "output", threshold_string, threshold_string + "_" + track_file_name.replace(os.path.sep, "_")
         )
 
         if config.ALWAYS_REDUCE or not os.path.isfile(track_file_name_reduced):
@@ -63,7 +63,7 @@ def load_and_reduce_gpxs(track_file_names, threshold, pickle_path):
             try:
                 reducer.reduce(track_file_name, threshold, track_file_name_reduced)
             except:
-                logging.error(f"Error while reducing {track_file_name} to create {track_file_name_reduced}")
+                logging.error(f"Error while reducing {track_file_name} to create {track_file_name_reduced}.")
                 continue
         else:
             logging.info(f"{track_file_name_reduced} exists, using it.")
@@ -78,29 +78,32 @@ def load_and_reduce_gpxs(track_file_names, threshold, pickle_path):
     return segments_dict
 
 
-def walk_gpx(segment):
-    for point in segment.points:
-        pass
+def walk_gpx(walk_segment_name, segments_dict, min_end_distance, route, routes):
+    if walk_segment_name in segments_dict.keys():
+        walk_segment = segments_dict[walk_segment_name]
+        route.append(walk_segment_name)
+    else:
+        return
 
+    segments_dict.pop(walk_segment_name)
 
-def main():
-    start_gps = determine_start()
-    end_gps = determine_end()
-    reduction_threshold = determine_reduction_threshold()
+    logging.debug(f"Walking {len(walk_segment.points)} points on {walk_segment_name}.")
 
-    pickle_path = os.path.join("pickle", "segments.p")
-    segments_dict = try_load_pickle(pickle_path)
+    for walk_point in walk_segment.points:
+        for name, segment in segments_dict.copy().items():
+            if name != walk_segment_name:
+                for point in segment.points:
+                    dist = distance.haversine_gpx(walk_point, point)
 
-    if not segments_dict:
-        track_file_names = glob.glob("bikeline/at/*1.gpx")
-        segments_dict = load_and_reduce_gpxs(track_file_names, reduction_threshold, pickle_path)
-        pickle.dump(segments_dict, open(pickle_path, "wb"))
-    logging.info(f"Found {len(segments_dict)} segments")
+                    if dist < config.MIN_GAP_DIS:
+                        logging.info(f"Switch from {walk_segment_name} to {name} possible distanced by {dist} km.")
+                        walk_gpx(name, segments_dict, min_end_distance, route, routes)
+                        break
 
-    distances_start, distances_end = determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict)
-
-    walk_gpx(segments_dict[distances_start[0][0]])
-    walk_gpx(segments_dict[distances_end[0][0]])
+                    if dist < (min_end_distance + config.MAX_END_DISTANCE):
+                        logging.debug(f"Route found following {pformat(route)}.")
+                        routes.add(tuple(route))
+                        return
 
 
 def determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict):
@@ -110,12 +113,36 @@ def determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict)
     distances_start = sorted(distances_start.items(), key=lambda x: x[1])
     distances_end = sorted(distances_end.items(), key=lambda x: x[1])
 
-    logging.debug("\n" + pformat(distances_start, width=240))
-    logging.debug("\n" + pformat(distances_end, width=240))
+    logging.debug("Start distances \n" + pformat(distances_start, width=240))
+    logging.debug("End distances \n" + pformat(distances_end, width=240))
 
     logging.info(f"Closest possible start {distances_start[0][1]:.2f} km")
     logging.info(f"Closest possible end {distances_end[0][1]:.2f} km")
     return distances_start, distances_end
+
+
+def main():
+    start_gps = determine_start()
+    end_gps = determine_end()
+    reduction_threshold = determine_reduction_threshold()
+
+    country = "de"
+    pickle_path = os.path.join("pickle", country + "_" + str(int(reduction_threshold)) + "_" + "segments.p")
+    segments_dict = try_load_pickle(pickle_path)
+
+    if not segments_dict:
+        track_file_names = glob.glob(os.path.join("bikeline", country, config.GPX_FILE_PATTERN))
+        segments_dict = load_and_reduce_gpxs(track_file_names, reduction_threshold, pickle_path)
+        pickle.dump(segments_dict, open(pickle_path, "wb"))
+    logging.info(f"Found {len(segments_dict)} segments")
+
+    distances_start, distances_end = determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict)
+
+    routes = set(tuple())
+    route = list()
+    walk_gpx(distances_start[0][0], segments_dict, distances_start[0][1], route, routes)
+    logging.info(f"Found {len(routes)} routes")
+    logging.info(f"Found those routes \n{pformat(routes)}")
 
 
 if __name__ == "__main__":

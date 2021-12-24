@@ -15,5 +15,13 @@ def haversine(coord1, coord2):
     return 2 * R * math.atan2(math.sqrt(a), math.sqrt(1 - a)) / 1000
 
 
+def fast_haversine(coord1, coord2):
+    lat1, lon1 = coord1
+    lat2, lon2 = coord2
+    x = lat2 - lat1
+    y = (lon2 - lon1) * math.cos((lat2 + lat1) * 0.00872664626)
+    return 111.319 * math.sqrt(x * x + y * y)
+
+
 def haversine_gpx(gps1, gps2):
-    return haversine((gps1.latitude, gps1.longitude), (gps2.latitude, gps2.longitude))
+    return fast_haversine((gps1.latitude, gps1.longitude), (gps2.latitude, gps2.longitude))

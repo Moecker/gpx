@@ -134,3 +134,6 @@ dmypy.json
 /output
 *.geojson
 *.p
+_map.html
+/._.DS_Store
+*/._map.html
