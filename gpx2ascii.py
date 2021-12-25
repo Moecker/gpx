@@ -4,8 +4,8 @@ import distance
 import glob
 import config
 import os
-import reducer
 import copy
+import math
 
 RESOLUTION = 20
 
@@ -17,27 +17,33 @@ def determine_index(point, edges):
     return w, h
 
 
-def create_map(file_name, map=None, character="x"):
-    bottom_left = (47.2, 5.8)
-    top_right = (54.9, 15.1)
-    bottom_right = (bottom_left[0], top_right[1])
-    top_left = (top_right[0], bottom_left[1])
-
+def determine_bounding_box(map):
+    min_lat, min_lon = math.inf, math.inf
+    max_lat, max_lon = 0, 0
     edges = [[0 for x in range(2)] for y in range(2)]
-    edges[0][0] = top_left
-    edges[0][1] = top_right
-    edges[1][0] = bottom_right
-    edges[1][1] = bottom_left
+    for track in map.tracks:
+        for segment in track.segments:
+            for point in segment.points:
+                max_lat = max(max_lat, point.latitude)
+                max_lon = max(max_lon, point.longitude)
+                min_lat = min(min_lat, point.latitude)
+                min_lon = min(min_lon, point.longitude)
+    print(f"Bounding box: {min_lat}:{min_lon}:{max_lat}{max_lon}")
 
-    distance_w = distance.haversine(bottom_left, bottom_right)
-    distance_h = distance.haversine(bottom_left, top_left)
-    w, h = int(distance_w / RESOLUTION + 1), int(distance_h / RESOLUTION + 1)
-    
-    if not map:
-        map = [[" " for x in range(w)] for y in range(h)]
+    edges[0][0] = (max_lat, min_lon)  # top left
+    edges[0][1] = (max_lat, max_lon)  # top right
+    edges[1][0] = (min_lat, max_lon)  # bottom right
+    edges[1][1] = (min_lat, min_lon)  # bottom left
+    return edges
 
+
+def create_map(file_name, map=None, character="x"):
     with open(file_name, "r") as f:
         gpx = gpxpy.parse(f)
+
+    _, edges = default_bounding_box()
+    if not map:
+        map, edges = default_bounding_box()
 
     for track in gpx.tracks:
         for segment in track.segments:
@@ -46,6 +52,26 @@ def create_map(file_name, map=None, character="x"):
                 map[idx_w][idx_h] = character
 
     return map
+
+
+def default_bounding_box():
+    # Set Germany as boundaries
+    bottom_left = (47.2, 5.8)
+    top_right = (54.9, 15.1)
+    bottom_right = (bottom_left[0], top_right[1])
+    top_left = (top_right[0], bottom_left[1])
+
+    distance_w = distance.haversine(bottom_left, bottom_right)
+    distance_h = distance.haversine(bottom_left, top_left)
+    w, h = int(distance_w / RESOLUTION + 1), int(distance_h / RESOLUTION + 1)
+    map = [[" " for x in range(w)] for y in range(h)]
+
+    edges = [[0 for x in range(2)] for y in range(2)]
+    edges[0][0] = top_left
+    edges[0][1] = top_right
+    edges[1][0] = bottom_right
+    edges[1][1] = bottom_left
+    return map, edges
 
 
 def print_edges(bottom_left, top_right, bottom_right, top_left, edges, map):
@@ -66,6 +92,7 @@ def display(map):
         for line in lines:
             display_string += str(f"{line} ")
         display_string += "\n"
+
     print(display_string)
 
 
@@ -77,7 +104,9 @@ if __name__ == "__main__":
     display(germany)
 
     for track in track_file_names:
+        if not "Koenigssee" in track:
+            continue
+
         print(track)
-        # map = create_map(track, copy.deepcopy(germany))
-        map = create_map(track, germany)
+        map = create_map(track, copy.deepcopy(germany))
         display(map)
