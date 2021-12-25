@@ -7,7 +7,7 @@ import os
 import reducer
 import copy
 
-RESOLUTION = 10
+RESOLUTION = 20
 
 
 def determine_index(point, edges):
@@ -74,6 +74,7 @@ if __name__ == "__main__":
     track_file_names = glob.glob(os.path.join("adfc", "", config.GPX_FILE_PATTERN))
 
     germany = create_map(os.path.join("germany", "1000_germany.gpx"), None, ".")
+    display(germany)
 
     for track in track_file_names:
         print(track)
