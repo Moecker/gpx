@@ -21,7 +21,7 @@ def determine_start():
 
 def determine_end():
     dachau_gps = gpxpy.gpx.GPXTrackPoint(48.26299, 11.43390)
-    berlin_gps =  gpxpy.gpx.GPXTrackPoint(52.520007, 13.404954)
+    berlin_gps = gpxpy.gpx.GPXTrackPoint(52.520007, 13.404954)
     return dachau_gps
 
 
@@ -97,7 +97,7 @@ def determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict)
     return distances_start, distances_end
 
 
-def walk_gpx(walk_segment_name, segments_dict, min_end_distance, end_gps, route, routes):
+def walk_gpx(walk_segment_name, segments_dict, min_end_distance, end_gps, route, routes, current_distance):
     if len(routes) >= config.ROUTES_FOUND_END:
         return
 
@@ -122,7 +122,7 @@ def walk_gpx(walk_segment_name, segments_dict, min_end_distance, end_gps, route,
                         logging.debug(
                             f"Switch from {utils.simple_name(walk_segment_name)} to {utils.simple_name(name)} at point id {idx} possible distanced by {dist} km."
                         )
-                        walk_gpx(name, segments_dict, min_end_distance, end_gps, route, routes)
+                        walk_gpx(name, segments_dict, min_end_distance, end_gps, route, routes, current_distance)
                         break
 
         to_end_dist = distance.haversine_gpx(walk_point, end_gps)
@@ -131,6 +131,13 @@ def walk_gpx(walk_segment_name, segments_dict, min_end_distance, end_gps, route,
             if not tupled in routes:
                 routes.add(tuple(route))
                 logging.info(f"New route found following {pformat(route)}.")
+
+        if to_end_dist < current_distance:
+            current_distance = to_end_dist
+
+        if to_end_dist > (current_distance + config.MAX_DETOUR):
+            logging.debug(f"Detour of {to_end_dist} km to end, skipping.")
+            return
 
 
 def main():
@@ -152,13 +159,14 @@ def main():
 
     routes = set(tuple())
     route = list()
+    current_distance = math.inf
 
-    walk_gpx(distances_start[0][0], segments_dict, distances_start[0][1], end_gps, route, routes)
+    walk_gpx(distances_start[0][0], segments_dict, distances_start[0][1], end_gps, route, routes, current_distance)
 
     logging.info(f"Found {len(routes)} routes")
     logging.info(f"Found those routes \n{pformat(routes)}")
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     main()
