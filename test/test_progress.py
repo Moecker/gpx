@@ -1,6 +1,6 @@
-
 from tqdm import tqdm
 import time
+
 n = 5
 m = 300
 with tqdm(total=n * m) as pbar:
