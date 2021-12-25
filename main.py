@@ -1,14 +1,17 @@
-import gpxpy
-import gpxpy.gpx
-import distance
+import glob
+import logging
 import math
 import os
-import reducer
-import logging
-from pprint import pformat
-import glob
 import pickle
+from pprint import pformat
+
+import gpxpy
+import gpxpy.gpx
+
 import config
+import distance
+import reducer
+import utils
 
 
 def determine_start():
@@ -18,6 +21,7 @@ def determine_start():
 
 def determine_end():
     dachau_gps = gpxpy.gpx.GPXTrackPoint(48.26299, 11.43390)
+    berlin_gps =  gpxpy.gpx.GPXTrackPoint(52.520007, 13.404954)
     return dachau_gps
 
 
@@ -70,40 +74,12 @@ def load_and_reduce_gpxs(track_file_names, threshold, pickle_path):
 
         with open(track_file_name_reduced, "r") as f:
             gpx = gpxpy.parse(f)
-            segment_id = 0
             for track in gpx.tracks:
+                segment_id = 0
                 for segment in track.segments:
                     segments_dict[track_file_name_reduced + ":" + track.name + ":" + str(segment_id)] = segment
                     segment_id += 1
     return segments_dict
-
-
-def walk_gpx(walk_segment_name, segments_dict, min_end_distance, route, routes):
-    if walk_segment_name in segments_dict.keys():
-        walk_segment = segments_dict[walk_segment_name]
-        route.append(walk_segment_name)
-    else:
-        return
-
-    segments_dict.pop(walk_segment_name)
-
-    logging.debug(f"Walking {len(walk_segment.points)} points on {walk_segment_name}.")
-
-    for walk_point in walk_segment.points:
-        for name, segment in segments_dict.copy().items():
-            if name != walk_segment_name:
-                for point in segment.points:
-                    dist = distance.haversine_gpx(walk_point, point)
-
-                    if dist < config.MIN_GAP_DIS:
-                        logging.info(f"Switch from {walk_segment_name} to {name} possible distanced by {dist} km.")
-                        walk_gpx(name, segments_dict, min_end_distance, route, routes)
-                        break
-
-                    if dist < (min_end_distance + config.MAX_END_DISTANCE):
-                        logging.debug(f"Route found following {pformat(route)}.")
-                        routes.add(tuple(route))
-                        return
 
 
 def determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict):
@@ -119,6 +95,42 @@ def determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict)
     logging.info(f"Closest possible start {distances_start[0][1]:.2f} km")
     logging.info(f"Closest possible end {distances_end[0][1]:.2f} km")
     return distances_start, distances_end
+
+
+def walk_gpx(walk_segment_name, segments_dict, min_end_distance, end_gps, route, routes):
+    if len(routes) >= config.ROUTES_FOUND_END:
+        return
+
+    if walk_segment_name in segments_dict.keys():
+        walk_segment = segments_dict[walk_segment_name]
+        route.append(walk_segment_name)
+    else:
+        logging.debug(f"Skipping {utils.simple_name(walk_segment_name)}, has been seen before.")
+        return
+
+    segments_dict.pop(walk_segment_name)
+
+    logging.debug(f"Walking {len(walk_segment.points)} points on {walk_segment_name}.")
+
+    for walk_point in walk_segment.points[:: config.POINTS_ITERATOR_GAP]:
+        for name, segment in segments_dict.copy().items():
+            if name != walk_segment_name:
+                for idx, point in enumerate(segment.points[:: config.POINTS_ITERATOR_GAP]):
+                    dist = distance.haversine_gpx(walk_point, point)
+
+                    if dist < config.MIN_GAP_DIS:
+                        logging.debug(
+                            f"Switch from {utils.simple_name(walk_segment_name)} to {utils.simple_name(name)} at point id {idx} possible distanced by {dist} km."
+                        )
+                        walk_gpx(name, segments_dict, min_end_distance, end_gps, route, routes)
+                        break
+
+        to_end_dist = distance.haversine_gpx(walk_point, end_gps)
+        if to_end_dist < (min_end_distance + config.MAX_END_DISTANCE):
+            tupled = tuple(route)
+            if not tupled in routes:
+                routes.add(tuple(route))
+                logging.info(f"New route found following {pformat(route)}.")
 
 
 def main():
@@ -140,11 +152,13 @@ def main():
 
     routes = set(tuple())
     route = list()
-    walk_gpx(distances_start[0][0], segments_dict, distances_start[0][1], route, routes)
+
+    walk_gpx(distances_start[0][0], segments_dict, distances_start[0][1], end_gps, route, routes)
+
     logging.info(f"Found {len(routes)} routes")
     logging.info(f"Found those routes \n{pformat(routes)}")
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     main()
