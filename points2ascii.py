@@ -1,6 +1,7 @@
 import math
 import distance
 import gpx2ascii
+import config
 
 
 def determine_bounding_box(points):
@@ -24,6 +25,6 @@ def determine_bounding_box(points):
 def create_map(edges):
     distance_w = distance.haversine(edges[1][1], edges[1][0])
     distance_h = distance.haversine(edges[1][1], edges[0][0])
-    w, h = int(distance_w / gpx2ascii.RESOLUTION + 1), int(distance_h / gpx2ascii.RESOLUTION + 1)
+    w, h = int(distance_w / config.RESOLUTION + 1), int(distance_h / config.RESOLUTION + 1)
     map = [["." for x in range(w)] for y in range(h)]
     return map

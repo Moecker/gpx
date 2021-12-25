@@ -1,10 +1,31 @@
 import os
 import main
 import graph
-import pprint
 import gpx2ascii
 import points2ascii
 import distance
+import config
+from tqdm import tqdm
+
+def build_map_right(segments_dict, first, last):
+    map = graph.Graph([])
+    for _, segment in tqdm(segments_dict.items()):
+        if len(segment.points):
+            prev_point = None
+            segment_points_iteratable = segment.points[::config.PRECISION] + [first] + [last]
+            for point in segment_points_iteratable:
+                # Direct, inter segment connection  
+                if prev_point:
+                    map.add(prev_point, point)
+                prev_point = point
+
+                for _, other_segment in segments_dict.items():
+                    for other_point in other_segment.points[::config.PRECISION]:
+                        if point != other_point:
+                            dis = distance.haversine_gpx(point, other_point)
+                            if dis < 100:
+                                map.add(point, other_point)
+    return map
 
 
 def build_map(segments_dict, first, last):
@@ -45,11 +66,15 @@ def run():
     last = list(segments_dict.values())[-1].points[-1]
 
     map, all_points = build_map(segments_dict, first, last)
-
     path = map.find_path(first, last)
     print(f"Length of path: {len(path)}")
 
+    map_right = build_map_right(segments_dict, first, last)
+    path_right = map_right.find_path(first, last)
+    print(f"Length of path right: {len(path_right)}")
+
     create_and_display_map(path)
+    create_and_display_map(path_right)
     create_and_display_map(all_points)
 
 

@@ -7,13 +7,10 @@ import os
 import copy
 import math
 
-RESOLUTION = 20
-
-
 def determine_index(point, edges):
     distance_w = distance.haversine((edges[1][1][0], point[1]), point)
     distance_h = distance.haversine((point[0], edges[1][1][1]), point)
-    w, h = int(distance_w / RESOLUTION), int(distance_h / RESOLUTION)
+    w, h = int(distance_w / config.RESOLUTION), int(distance_h / config.RESOLUTION)
     return w, h
 
 
@@ -47,7 +44,7 @@ def create_map(file_name, map=None, character="x"):
 
     for track in gpx.tracks:
         for segment in track.segments:
-            for point in segment.points[::RESOLUTION]:
+            for point in segment.points[::config.RESOLUTION]:
                 idx_w, idx_h = determine_index((point.latitude, point.longitude), edges)
                 map[idx_w][idx_h] = character
 
@@ -63,7 +60,7 @@ def default_bounding_box():
 
     distance_w = distance.haversine(bottom_left, bottom_right)
     distance_h = distance.haversine(bottom_left, top_left)
-    w, h = int(distance_w / RESOLUTION + 1), int(distance_h / RESOLUTION + 1)
+    w, h = int(distance_w / config.RESOLUTION + 1), int(distance_h / config.RESOLUTION + 1)
     map = [[" " for x in range(w)] for y in range(h)]
 
     edges = [[0 for x in range(2)] for y in range(2)]
