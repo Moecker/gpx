@@ -145,7 +145,7 @@ def main():
     end_gps = determine_end()
     reduction_threshold = determine_reduction_threshold()
 
-    country = "de"
+    country = "at"
     pickle_path = os.path.join("pickle", country + "_" + str(int(reduction_threshold)) + "_" + "segments.p")
     segments_dict = try_load_pickle(pickle_path)
 
