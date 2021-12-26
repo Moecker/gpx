@@ -13,7 +13,8 @@ def determine_bounding_box(points):
         max_lon = max(max_lon, point.longitude)
         min_lat = min(min_lat, point.latitude)
         min_lon = min(min_lon, point.longitude)
-    print(f"Bounding box: {min_lat}:{min_lon}:{max_lat}{max_lon}")
+
+    print(f"Bounding box: MIN_LAT: {min_lat}, MIN_LON:{min_lon}, MAX_LAT:{max_lat}, MAX_LON{max_lon}")
 
     edges[0][0] = (max_lat, min_lon)  # top left
     edges[0][1] = (max_lat, max_lon)  # top right

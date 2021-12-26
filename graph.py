@@ -1,5 +1,10 @@
 import pprint
 from collections import defaultdict
+from collections import deque
+import sys
+import itertools
+
+from tqdm import tqdm
 
 
 class Graph(object):
@@ -42,6 +47,41 @@ class Graph(object):
         return node1 in self._graph and node2 in self._graph[node1]
 
     def find_path(self, node1, node2, path=[]):
+        path_iter = self.find_path_iterative(node1, node2, path=[])
+        return path_iter
+
+    def find_path_iterative(self, node1, node2, path=[]):
+        print("In find_path_iterative")
+        stack = []
+        stack.append((node1, node2))
+        cur_path = []
+
+        with tqdm(total=len(self._graph.values()) ** 2 / 4) as pbar:
+            while stack:
+                # print("stack: " + str(len(stack)))
+                args = stack.pop()
+                # print("popped " + str(args))
+                (node1, node2) = args
+
+                cur_path += [node1]
+
+                if node1 == node2:
+                    # print("node1 == node2")
+                    return cur_path
+
+                if node1 not in self._graph:
+                    # print("node1 not in self._graph")
+                    break
+
+                for node in self._graph[node1]:
+                    if node not in cur_path:
+                        args = (node, node2)
+                        # print("pushed " + str(args))
+                        stack.append(args)
+                    pbar.update(1)
+        return None
+
+    def find_path_recursive(self, node1, node2, path=[]):
         """Find any path between node1 and node2 (may not be shortest)"""
 
         path = path + [node1]
@@ -51,10 +91,39 @@ class Graph(object):
             return None
         for node in self._graph[node1]:
             if node not in path:
-                new_path = self.find_path(node, node2, path)
+                new_path = self.find_path_recursive(node, node2, path)
                 if new_path:
                     return new_path
         return None
+
+    def find_all_paths(self, start, end, path=[]):
+        path = path + [start]
+        if start == end:
+            return [path]
+        if not start in self._graph.keys():
+            return []
+        paths = []
+        for node in self._graph[start]:
+            if node not in path:
+                newpaths = self.find_all_paths(node, end, path)
+                for newpath in newpaths:
+                    paths.append(newpath)
+                    if len(paths) >= 1:
+                        return paths
+        return paths
+
+    def find_shortest_path(self, start, end):
+        # https://www.python.org/doc/essays/graphs/
+        dist = {start: [start]}
+        q = deque([start])
+        while len(q):
+            at = q.popleft()
+            for next in self._graph[at]:
+                if next not in dist:
+                    # dist[next] = [dist[at], next]
+                    dist[next] = dist[at] + [next]
+                    q.append(next)
+        return dist.get(end)
 
     def nodes(self):
         return len(self._graph)
