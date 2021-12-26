@@ -129,13 +129,11 @@ dmypy.json
 .pyre/
 
 # Other
-/bikeline
 *.zip
-/output
 *.geojson
 *.p
-_map.html
-/._.DS_Store
-*/._map.html
-/adfc
-/tmp
+
+/output/**/*.gpx
+/adfc/**/*.gpx
+/bikeline/**/*.gpx
+/tmp/**/*.gpx

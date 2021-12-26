@@ -2,7 +2,6 @@ import logging
 import math
 import os
 import pickle
-import sys
 
 import gpxpy.gpx
 from tqdm import tqdm
@@ -14,8 +13,6 @@ import gpx2ascii
 import graph
 import points2ascii
 
-sys.setrecursionlimit(2000)
-
 
 def build_map(segments_dict):
     map = graph.Graph([])
@@ -24,18 +21,21 @@ def build_map(segments_dict):
             prev_point = None
             segment_points_iteratable = segment.points[:: config.PRECISION]
             for point in segment_points_iteratable:
-                # Direct, inter segment connection
+                # Direct, inter segment connection is always possible, without checking the distance
                 if prev_point:
                     map.add(prev_point, point)
                 prev_point = point
-
-                for _, other_segment in segments_dict.items():
-                    for other_point in other_segment.points[:: config.PRECISION]:
-                        if point != other_point:
-                            dis = distance.haversine_gpx(point, other_point)
-                            if dis < config.GRAPH_CONNECTION_DISTANCE:  # in km
-                                map.add(point, other_point)
+                update_segments_dict(segments_dict, map, point)
     return map
+
+
+def update_segments_dict(segments_dict, map, point):
+    for _, other_segment in segments_dict.items():
+        for other_point in other_segment.points[:: config.PRECISION]:
+            if point != other_point:
+                dis = distance.haversine_gpx(point, other_point)
+                if dis < config.GRAPH_CONNECTION_DISTANCE:  # in km
+                    map.add(point, other_point)
 
 
 def add_waypoints(map, path, edges, character):
@@ -54,45 +54,9 @@ def create_and_display_map(path, name, background=[]):
 
     add_waypoints(map, path, edges, "x")
     add_waypoints(map, background, edges, ".")
+
     logging.info(f"Displaying map name: {name}")
     gpx2ascii.display(map)
-
-
-def run():
-    start = (46, 10)
-    end = (48, 15)
-
-    print("Loading segments")
-    reduction = str(int(config.REDUCTION_DISTANCE))
-    pickle_path_segments = os.path.join("pickle", "_".join([config.COUNTRY, reduction, "segments.p"]))
-    segments_dict = build_segments.try_load_pickle(pickle_path_segments)
-
-    if not segments_dict:
-        logging.error("Could not load segments")
-
-    all_points = get_all_points(segments_dict)
-    create_and_display_map(all_points, "All Points")
-
-    connection = str(int(config.GRAPH_CONNECTION_DISTANCE))
-    precision = str(int(config.PRECISION))
-    map = load_or_build_map(
-        segments_dict, "_".join([config.COUNTRY, "R" + reduction, "C" + connection, "P" + precision, "map.p"]), "pickle"
-    )
-
-    print("Finding random paths")
-    random_path = find_path(map, start, end, map.find_path)
-    create_and_display_map(random_path, "Random Path")
-
-    print("Finding shortest path")
-    shortest = find_path(map, start, end, map.find_shortest_path)
-    create_and_display_map(shortest, "Shortest Path")
-
-    if False:
-        print("Finding multipath")
-        all_paths = find_path(map, start, end, map.find_all_paths)
-        for i, path in enumerate(all_paths):
-            print(f"Length of path: {len(path)}")
-            create_and_display_map(path, str(i) + ". Path ")
 
 
 def compute_min_dis(map, start_gpx):
@@ -110,8 +74,8 @@ def get_closest_start_and_end(map, start, end):
     start_gpx = gpxpy.gpx.GPXTrackPoint(start[0], start[1])
     end_gpx = gpxpy.gpx.GPXTrackPoint(end[0], end[1])
 
-    logging.info(f"Desired start: {str(start_gpx)}")
-    logging.info(f"Desired end: {str(end_gpx)}")
+    logging.info(f"Desired start GPS: {str(start_gpx)}")
+    logging.info(f"Desired end GPS: {str(end_gpx)}")
 
     min_dis_start, first = compute_min_dis(map, start_gpx)
     min_dis_end, last = compute_min_dis(map, end_gpx)
@@ -119,8 +83,8 @@ def get_closest_start_and_end(map, start, end):
     logging.info(f"Min distance start: {str(min_dis_start)}")
     logging.info(f"Min distance end: {str(min_dis_end)}")
 
-    logging.info(f"Min node start: {str(first)}")
-    logging.info(f"Min node end: {str(last)}")
+    logging.info(f"Min node start GPS: {str(first)}")
+    logging.info(f"Min node end GPS: {str(last)}")
     return first, last
 
 
@@ -129,14 +93,14 @@ def find_path(map, start, end, strategy):
 
     path = strategy(first, last)
     if not path:
-        print("No path found")
-        return
+        logging.error(f"No path found from {first} to {last}")
+        return None
 
-    logging.info(f"Length of path(s): {len(path)}")
+    logging.info(f"Path(s) found, length of path(s): {len(path)}")
     return path
 
 
-def get_all_points(segments_dict):
+def collect_all_points(segments_dict):
     all_points = []
     for _, segment in segments_dict.items():
         for point in segment.points:
@@ -159,6 +123,42 @@ def load_or_build_map(segments_dict, name, output_dir):
     return map
 
 
+def standalone_example():
+    start = (46, 10)
+    end = (48, 15)
+
+    print("Loading segments")
+    reduction = str(int(config.REDUCTION_DISTANCE))
+    pickle_path_segments = os.path.join("pickle", "_".join([config.COUNTRY, reduction, "segments.p"]))
+    segments_dict = build_segments.try_load_pickle(pickle_path_segments)
+
+    if not segments_dict:
+        logging.error("Could not load segments")
+
+    all_points = collect_all_points(segments_dict)
+    create_and_display_map(all_points, "All Points")
+
+    connection = str(int(config.GRAPH_CONNECTION_DISTANCE))
+    precision = str(int(config.PRECISION))
+    map = load_or_build_map(
+        segments_dict, "_".join([config.COUNTRY, "R" + reduction, "C" + connection, "P" + precision, "map.p"]), "pickle"
+    )
+
+    print("Finding random paths")
+    random_path = find_path(map, start, end, map.find_path)
+    create_and_display_map(random_path, "Random Path")
+
+    print("Finding shortest path")
+    shortest = find_path(map, start, end, map.find_shortest_path)
+    create_and_display_map(shortest, "Shortest Path")
+
+    print("Finding multipath")
+    all_paths = find_path(map, start, end, map.find_all_paths)
+    for i, path in enumerate(all_paths):
+        print(f"Length of path: {len(path)}")
+        create_and_display_map(path, str(i) + ". Path ")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    run()
+    standalone_example()

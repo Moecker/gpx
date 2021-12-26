@@ -24,9 +24,12 @@ def overlay_gpx(gpxData, zoom):
     folium.PolyLine(points, color="red", weight=2.5, opacity=1).add_to(map)
     return map
 
+def standalone_example():
+    file_name = "germany.gpx"
+    file_path = os.path.join("germany", file_name)
 
-file_name = "example.gpx"
-file_path = os.path.join("data", file_name)
+    map = overlay_gpx(file_path, 14)
+    map.save(os.path.join("output", "map.html"))
 
-map = overlay_gpx(file_path, 14)
-map.save(os.path.join("output", "map.html"))
+if __name__ == "__main__":
+    standalone_example()

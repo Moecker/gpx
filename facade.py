@@ -28,7 +28,7 @@ def main():
         config.REDUCTION_DISTANCE, pickle_path, glob_search_pattern, STORAGE_TEMP_DIR
     )
 
-    all_points = build_graph.get_all_points(segments_dict)
+    all_points = build_graph.collect_all_points(segments_dict)
     build_graph.create_and_display_map(all_points, "All Points")
 
     logging.info(f"Number of points in segments {str(len(all_points))}")

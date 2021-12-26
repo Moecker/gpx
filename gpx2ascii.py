@@ -100,7 +100,7 @@ def display(map):
 def load_all_points(gpx_file_name):
     with open(gpx_file_name, "r") as f:
         gpx = gpxpy.parse(f)
-        
+
     all_points = []
     for track in gpx.tracks:
         for segment in track.segments:
