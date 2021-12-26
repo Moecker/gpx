@@ -8,8 +8,8 @@ import utils
 import gpx2ascii
 
 # User Inputs
-GPX_PATH = os.path.join("bikeline", "at")
-START_GPS, END_GPS = (45.678227, 9.694688), (49.19087056, 19.12519889)
+GPX_PATH = os.path.join("bikeline", "ch")
+START_GPS, END_GPS = (48.2, 11.4), (51.1, 6.4)
 
 # Internal configs
 STORAGE_TEMP_DIR = "tmp"
@@ -37,7 +37,7 @@ def main():
     logging.info(f"Glob search pattern: {glob_search_pattern}.")
 
     segments_dict = build_segments.build_segments_dict(
-        config.REDUCTION_DISTANCE, pickle_path, glob_search_pattern, os.path.join(STORAGE_TEMP_DIR, "segments")
+        config.REDUCTION_DISTANCE, pickle_path, glob_search_pattern, STORAGE_TEMP_DIR
     )
 
     background = with_background()
@@ -67,5 +67,5 @@ def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     main()

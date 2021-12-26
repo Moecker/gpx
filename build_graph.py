@@ -110,7 +110,7 @@ def collect_all_points(segments_dict):
 
 def load_or_build_map(segments_dict, name, output_dir):
     pickle_path = os.path.join(output_dir, name)
-    if not os.path.isfile(pickle_path):
+    if config.ALWAYS_GRAPH or not os.path.isfile(pickle_path):
         logging.info(f"Pickle {pickle_path} does not exist, creating map")
         map = build_map(segments_dict)
 
