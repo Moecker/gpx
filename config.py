@@ -7,7 +7,7 @@ ROUTES_FOUND_END = 1  # Max number of requested routes
 REDUCTION_DISTANCE = 100.0  # in meter
 
 # DISPLAY
-SCALE_FACTOR = 20  # How "big" the map is, the larger the more downsacling takes place.
+SCALE_FACTOR = 25  # How "big" the map is, the larger the more downsacling takes place.
 
 # GRAPH
 GRAPH_CONNECTION_DISTANCE = 5  # When a point to another point is considered connected

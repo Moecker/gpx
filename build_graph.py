@@ -34,7 +34,7 @@ def update_segments_dict(segments_dict, map, point):
         for other_point in other_segment.points[:: config.PRECISION]:
             if point != other_point:
                 dis = distance.haversine_gpx(point, other_point)
-                if dis < config.GRAPH_CONNECTION_DISTANCE:  # in km
+                if dis < config.GRAPH_CONNECTION_DISTANCE:
                     map.add(point, other_point)
 
 
@@ -52,8 +52,8 @@ def create_and_display_map(path, name, background=[]):
     edges = points2ascii.determine_bounding_box(path + background)
     map = points2ascii.create_map(edges, " ")
 
-    add_waypoints(map, path, edges, "x")
     add_waypoints(map, background, edges, ".")
+    add_waypoints(map, path, edges, "x")
 
     logging.info(f"Displaying map name: {name}")
     gpx2ascii.display(map)

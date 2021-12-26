@@ -126,7 +126,7 @@ def standalone_example():
     root = os.path.join("bikeline", config.COUNTRY, config.GPX_FILE_PATTERN)
     segments_dict = build_segments_dict(reduction_threshold, pickle_path, root, "output")
 
-    distances_start, distances_end = determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict)
+    distances_start, _ = determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict)
 
     routes = set(tuple())
     route = list()
