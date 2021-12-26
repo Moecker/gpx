@@ -25,9 +25,9 @@ def determine_bounding_box(points):
     return edges
 
 
-def create_map(edges):
+def create_map(edges, default_character):
     distance_w = distance.haversine(edges[1][1], edges[1][0])
     distance_h = distance.haversine(edges[1][1], edges[0][0])
     w, h = int(distance_w / config.SCALE_FACTOR + 1), int(distance_h / config.SCALE_FACTOR + 1)
-    map = [["." for x in range(w)] for y in range(h)]
+    map = [[default_character for x in range(w)] for y in range(h)]
     return map

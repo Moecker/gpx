@@ -38,20 +38,23 @@ def build_map(segments_dict):
     return map
 
 
-def add_waypoints(map, path, edges):
+def add_waypoints(map, path, edges, character):
     for point in path:
         idx_w, idx_h = gpx2ascii.determine_index((point.latitude, point.longitude), edges)
-        map[idx_w][idx_h] = "x"
+        map[idx_w][idx_h] = character
 
 
-def create_and_display_map(path, name):
+def create_and_display_map(path, name, background=[]):
     if not path:
         logging.warning("Nothing to display")
         return
-    edges = points2ascii.determine_bounding_box(path)
-    map = points2ascii.create_map(edges)
-    add_waypoints(map, path, edges)
-    logging.info(f"Map name: {name}")
+
+    edges = points2ascii.determine_bounding_box(path + background)
+    map = points2ascii.create_map(edges, " ")
+
+    add_waypoints(map, path, edges, "x")
+    add_waypoints(map, background, edges, ".")
+    logging.info(f"Displaying map name: {name}")
     gpx2ascii.display(map)
 
 
@@ -104,8 +107,6 @@ def compute_min_dis(map, start_gpx):
 
 
 def get_closest_start_and_end(map, start, end):
-    logging.info(f"Number of nodes in graph {str(len(map._graph.values()))}")
-
     start_gpx = gpxpy.gpx.GPXTrackPoint(start[0], start[1])
     end_gpx = gpxpy.gpx.GPXTrackPoint(end[0], end[1])
 

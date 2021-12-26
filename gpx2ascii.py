@@ -1,9 +1,8 @@
 import copy
 import glob
-import logging
 import math
 from pprint import pformat
-
+import os
 import gpxpy
 
 import config
@@ -96,6 +95,18 @@ def display(map):
 
     print()
     print(display_string)
+
+
+def load_all_points(gpx_file_name):
+    with open(gpx_file_name, "r") as f:
+        gpx = gpxpy.parse(f)
+        
+    all_points = []
+    for track in gpx.tracks:
+        for segment in track.segments:
+            for point in segment.points:
+                all_points.append(point)
+    return all_points
 
 
 if __name__ == "__main__":

@@ -106,6 +106,8 @@ class Graph(object):
         return paths
 
     def find_shortest_path(self, start, end):
+        logging.info("Searching shortest path")
+
         # From https://www.python.org/doc/essays/graphs/
         dist = {start: [start]}
         q = deque([start])
@@ -113,6 +115,7 @@ class Graph(object):
             at = q.popleft()
             for next in self._graph[at]:
                 if next not in dist:
+                    # Optimal solution would be:
                     # dist[next] = [dist[at], next]
                     dist[next] = dist[at] + [next]
                     q.append(next)
