@@ -2,7 +2,7 @@ import math
 
 
 def haversine(coord1, coord2):
-    """ Distance in KM between two coordinates """
+    """Distance in KM between two coordinates"""
     R = 6372800  # Earth radius in meters
     lat1, lon1 = coord1
     lat2, lon2 = coord2
@@ -17,7 +17,7 @@ def haversine(coord1, coord2):
 
 
 def fast_haversine(coord1, coord2):
-    """ Distance in KM between two coordinates """
+    """Distance in KM between two coordinates"""
     lat1, lon1 = coord1
     lat2, lon2 = coord2
     x = lat2 - lat1
@@ -26,5 +26,5 @@ def fast_haversine(coord1, coord2):
 
 
 def haversine_gpx(gps1, gps2):
-    """ Distance in KM between two GPS points """
+    """Distance in KM between two GPS points"""
     return fast_haversine((gps1.latitude, gps1.longitude), (gps2.latitude, gps2.longitude))

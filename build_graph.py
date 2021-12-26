@@ -3,16 +3,15 @@ import math
 import os
 import pickle
 
-import gpxpy.gpx
 from tqdm import tqdm
 
 import build_segments
 import config
 import distance
 import gpx2ascii
+import gpx_tools
 import graph
 import points2ascii
-import gpx_tools
 
 
 def build_map(segments_dict):
@@ -20,23 +19,27 @@ def build_map(segments_dict):
     for _, segment in tqdm(segments_dict.items()):
         if len(segment.points):
             prev_point = None
-            segment_points_iteratable = segment.points[:: config.PRECISION]
-            for point in segment_points_iteratable:
+            for point in segment.points[:: config.PRECISION]:
                 # Direct, inter segment connection is always possible, without checking the distance
                 if prev_point:
                     map.add(prev_point, point)
                 prev_point = point
-                update_segments_dict(segments_dict, map, point)
+                find_and_add_adjacent_nodes(map, segments_dict, segment, point)
     return map
 
 
-def update_segments_dict(segments_dict, map, point):
+def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_point):
     for _, other_segment in segments_dict.items():
+        # Do no connect points which would skip intermediate, intra segment points
+        if other_segment == current_segment:
+            continue
         for other_point in other_segment.points[:: config.PRECISION]:
-            if point != other_point:
-                dis = distance.haversine_gpx(point, other_point)
-                if dis < config.GRAPH_CONNECTION_DISTANCE:
-                    map.add(point, other_point)
+            # Self connection does not make sense
+            if current_point == other_point:
+                continue
+            dis = distance.haversine_gpx(current_point, other_point)
+            if dis < config.GRAPH_CONNECTION_DISTANCE:
+                map.add(current_point, other_point)
 
 
 def add_waypoints(map, path, edges, character):
@@ -63,7 +66,7 @@ def create_and_display_map(path, name, background=[]):
 def compute_min_dis(map, start_gpx):
     min_dis = math.inf
     min_node = None
-    for k, v in map._graph.items():
+    for k, _ in map._graph.items():
         dis = distance.haversine_gpx(k, start_gpx)
         if dis < min_dis:
             min_dis = dis
@@ -116,7 +119,7 @@ def collect_all_points(segments_dict):
 def load_or_build_map(segments_dict, name, output_dir):
     pickle_path = os.path.join(output_dir, name)
     if config.ALWAYS_GRAPH or not os.path.isfile(pickle_path):
-        logging.info(f"Pickle {pickle_path} does not exist, creating map.")
+        logging.info(f"Pickle {pickle_path} does not exist or is forced ignored, creating map.")
         map = build_map(segments_dict)
 
         logging.info(f"Saving pickle file to {pickle_path}.")

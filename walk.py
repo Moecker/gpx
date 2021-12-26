@@ -1,8 +1,9 @@
-import config
 import logging
+from pprint import pformat
+
+import config
 import distance
 import utils
-from pprint import pformat
 
 
 def walk_gpx(walk_segment_name, segments_dict, min_end_distance, end_gps, route, routes, current_distance):

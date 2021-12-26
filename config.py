@@ -1,5 +1,5 @@
 # STORAGE
-ALWAYS_GRAPH = False  # Always re-create the graph
+ALWAYS_GRAPH = True  # Always re-create the graph
 ALWAYS_PARSE = False  # Always re-create cached segments dicts
 ALWAYS_REDUCE = False  # Always re-create reduced gpx files
 
@@ -11,13 +11,13 @@ REDUCTION_DISTANCE = 100.0  # in meter
 ROUTES_FOUND_END = 1  # Max number of requested routes
 
 # GRAPH
-GRAPH_CONNECTION_DISTANCE = 1  # In km, When a point to another point is considered connected
+GRAPH_CONNECTION_DISTANCE = 1.0  # In km, When a point to another point is considered connected
 PRECISION = 1  # Every nth point is part of the graph
 
 # OLD APPROACH
 COUNTRY = "at"
 GPX_FILE_PATTERN = "*.gpx"  # Glob pattern
-MAX_DETOUR = 5  # in km
+MAX_DETOUR = 5.0  # in km
 MAX_END_DISTANCE = 10.0  # in km
 MIN_GAP_DIS = 5.0  # in km
-POINTS_ITERATOR_GAP = 10  # in km
+POINTS_ITERATOR_GAP = 10.0  # in km

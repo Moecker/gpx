@@ -1,6 +1,8 @@
-import gpxpy
 import logging
 import os
+
+import gpxpy
+
 
 class SimplePoint:
     def __init__(self, point):
@@ -36,7 +38,7 @@ def save_as_gpx_file(points, dir, file_name):
     gpx_segment = gpxpy.gpx.GPXTrackSegment()
     gpx_track.segments.append(gpx_segment)
 
-    file_path =  os.path.join(dir, file_name)
+    file_path = os.path.join(dir, file_name)
     logging.info(f"Saving {len(points)} points to {file_path}.")
     for point in points:
         gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(point.latitude, point.longitude))

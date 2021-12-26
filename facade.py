@@ -4,9 +4,9 @@ import os
 import build_graph
 import build_segments
 import config
-import utils
 import gpx2ascii
 import gpx_tools
+import utils
 
 # User Inputs
 GPX_PATH = os.path.join("bikeline", "ch")

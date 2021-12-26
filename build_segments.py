@@ -5,13 +5,13 @@ import os
 import pickle
 from pathlib import Path
 from pprint import pformat
-import gpx_tools
 
 import gpxpy
 import gpxpy.gpx
 
 import config
 import distance
+import gpx_tools
 import reducer
 import walk
 

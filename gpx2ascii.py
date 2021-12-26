@@ -1,8 +1,8 @@
 import copy
 import glob
-import math
-from pprint import pformat
 import os
+from pprint import pformat
+
 import gpxpy
 
 import config
