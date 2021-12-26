@@ -6,9 +6,10 @@ import build_segments
 import config
 import utils
 import gpx2ascii
+import gpx_tools
 
 # User Inputs
-GPX_PATH = os.path.join("bikeline", "de")
+GPX_PATH = os.path.join("bikeline", "ch")
 START_GPS, END_GPS = (48.2, 11.4), (51.1, 6.4)
 
 # Internal configs
@@ -64,6 +65,10 @@ def main():
     shortest = build_graph.find_path(map, START_GPS, END_GPS, map.find_shortest_path)
 
     build_graph.create_and_display_map(shortest, "Shortest path", background)
+
+    result_folder = "results"
+    gpx_tools.save_as_gpx_file(all_points, result_folder, "all_points.gpx")
+    gpx_tools.save_as_gpx_file(shortest, result_folder, "shortest_path.gpx")
 
 
 if __name__ == "__main__":

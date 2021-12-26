@@ -137,3 +137,4 @@ dmypy.json
 /adfc/**/*.gpx
 /bikeline/**/*.gpx
 /tmp/**/*.gpx
+/results/*.gpx

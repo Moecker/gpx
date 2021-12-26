@@ -1,3 +1,7 @@
+import gpxpy
+import logging
+import os
+
 class SimplePoint:
     def __init__(self, point):
         self.latitude = point[0]
@@ -21,3 +25,21 @@ class SimpleSegment:
 def simplify_segment(segment):
     new_segment = SimpleSegment(segment)
     return new_segment
+
+
+def save_as_gpx_file(points, dir, file_name):
+    gpx = gpxpy.gpx.GPX()
+
+    gpx_track = gpxpy.gpx.GPXTrack()
+    gpx.tracks.append(gpx_track)
+
+    gpx_segment = gpxpy.gpx.GPXTrackSegment()
+    gpx_track.segments.append(gpx_segment)
+
+    file_path =  os.path.join(dir, file_name)
+    logging.info(f"Saving {len(points)} points to {file_path}.")
+    for point in points:
+        gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(point.latitude, point.longitude))
+
+    with open(file_path, "w") as f:
+        f.write(gpx.to_xml())
