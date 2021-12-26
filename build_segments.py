@@ -5,6 +5,7 @@ import os
 import pickle
 from pathlib import Path
 from pprint import pformat
+import gpx_tools
 
 import gpxpy
 import gpxpy.gpx
@@ -39,8 +40,8 @@ def determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict)
     logging.debug("Start distances \n" + pformat(distances_start, width=240))
     logging.debug("End distances \n" + pformat(distances_end, width=240))
 
-    logging.info(f"Closest possible start {distances_start[0][1]:.2f} km")
-    logging.info(f"Closest possible end {distances_end[0][1]:.2f} km")
+    logging.info(f"Closest possible start {distances_start[0][1]:.2f} km.")
+    logging.info(f"Closest possible end {distances_end[0][1]:.2f} km.")
     return distances_start, distances_end
 
 
@@ -99,7 +100,8 @@ def setup_segments_dict(segments_dict, track_file_name_reduced):
         for track in gpx.tracks:
             segment_id = 0
             for segment in track.segments:
-                segments_dict[track_file_name_reduced + ":" + track.name + ":" + str(segment_id)] = segment
+                key = track_file_name_reduced + ":" + track.name + ":" + str(segment_id)
+                segments_dict[key] = gpx_tools.simplify_segment(segment)
                 segment_id += 1
 
 
@@ -108,11 +110,11 @@ def build_segments_dict(reduction_threshold, pickle_path, root, output_dir):
 
     if not segments_dict:
         track_file_names = glob.glob(root)
-        logging.info(f"Globing found {len(track_file_names)} files")
+        logging.info(f"Globing found {len(track_file_names)} files.")
         segments_dict = load_and_reduce_gpxs(track_file_names, reduction_threshold, pickle_path, output_dir)
-        logging.info(f"Saving pickle file to {pickle_path}")
+        logging.info(f"Saving pickle file to {pickle_path}.")
         pickle.dump(segments_dict, open(pickle_path, "wb"))
-    logging.info(f"Found {len(segments_dict)} segment(s)")
+    logging.info(f"Found {len(segments_dict)} segment(s).")
     return segments_dict
 
 
@@ -134,8 +136,8 @@ def standalone_example():
 
     walk.walk_gpx(distances_start[0][0], segments_dict, distances_start[0][1], end_gps, route, routes, current_distance)
 
-    logging.info(f"Found {len(routes)} routes")
-    logging.info(f"Found those routes \n{pformat(routes)}")
+    logging.info(f"Found {len(routes)} routes.")
+    logging.info(f"Found those routes \n{pformat(routes)}.")
 
 
 if __name__ == "__main__":

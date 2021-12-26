@@ -52,7 +52,7 @@ class Graph(object):
     def find_path_iterative(self, node1, node2, path=[]):
         """Find any path between node1 and node2 iteratively (may not be shortest)"""
 
-        logging.info("Searching a path iteratively")
+        logging.info("Searching a path iteratively.")
         stack = []
         stack.append((node1, node2))
         cur_path = []
@@ -106,7 +106,7 @@ class Graph(object):
         return paths
 
     def find_shortest_path(self, start, end):
-        logging.info("Searching shortest path")
+        logging.info("Searching shortest path.")
 
         # From https://www.python.org/doc/essays/graphs/
         dist = {start: [start]}

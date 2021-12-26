@@ -12,6 +12,7 @@ import distance
 import gpx2ascii
 import graph
 import points2ascii
+import gpx_tools
 
 
 def build_map(segments_dict):
@@ -46,7 +47,7 @@ def add_waypoints(map, path, edges, character):
 
 def create_and_display_map(path, name, background=[]):
     if not path:
-        logging.warning("Nothing to display")
+        logging.warning(f"Nothing to display for '{name}', no valid points.")
         return
 
     edges = points2ascii.determine_bounding_box(path + background)
@@ -55,7 +56,7 @@ def create_and_display_map(path, name, background=[]):
     add_waypoints(map, background, edges, ".")
     add_waypoints(map, path, edges, "x")
 
-    logging.info(f"Displaying map name: {name}")
+    logging.info(f"Displaying map name: {name}.")
     gpx2ascii.display(map)
 
 
@@ -71,32 +72,36 @@ def compute_min_dis(map, start_gpx):
 
 
 def get_closest_start_and_end(map, start, end):
-    start_gpx = gpxpy.gpx.GPXTrackPoint(start[0], start[1])
-    end_gpx = gpxpy.gpx.GPXTrackPoint(end[0], end[1])
+    start_gpx = gpx_tools.SimplePoint(start)
+    end_gpx = gpx_tools.SimplePoint(end)
 
-    logging.info(f"Desired start GPS: {str(start_gpx)}")
-    logging.info(f"Desired end GPS: {str(end_gpx)}")
+    logging.info(f"Desired start GPS: {start_gpx}.")
+    logging.info(f"Desired end GPS: {end_gpx}.")
 
     min_dis_start, first = compute_min_dis(map, start_gpx)
     min_dis_end, last = compute_min_dis(map, end_gpx)
 
-    logging.info(f"Min distance start: {str(min_dis_start)}")
-    logging.info(f"Min distance end: {str(min_dis_end)}")
+    logging.info(f"Min distance start: {min_dis_start:.2f} km.")
+    logging.info(f"Min distance end: {min_dis_end:.2f} km.")
 
-    logging.info(f"Min node start GPS: {str(first)}")
-    logging.info(f"Min node end GPS: {str(last)}")
+    logging.info(f"Min node start GPS: {first}.")
+    logging.info(f"Min node end GPS: {last}.")
     return first, last
 
 
 def find_path(map, start, end, strategy):
     first, last = get_closest_start_and_end(map, start, end)
 
-    path = strategy(first, last)
-    if not path:
-        logging.error(f"No path found from {first} to {last}")
+    if not first or not last:
+        logging.error(f"Start and/or End GPX positions are invalid.")
         return None
 
-    logging.info(f"Path(s) found, length of path(s): {len(path)}")
+    path = strategy(first, last)
+    if not path:
+        logging.error(f"No path found from {first} to {last}.")
+        return None
+
+    logging.info(f"Path(s) found, length of path(s): {len(path)}.")
     return path
 
 
@@ -111,13 +116,13 @@ def collect_all_points(segments_dict):
 def load_or_build_map(segments_dict, name, output_dir):
     pickle_path = os.path.join(output_dir, name)
     if config.ALWAYS_GRAPH or not os.path.isfile(pickle_path):
-        logging.info(f"Pickle {pickle_path} does not exist, creating map")
+        logging.info(f"Pickle {pickle_path} does not exist, creating map.")
         map = build_map(segments_dict)
 
-        logging.info(f"Saving pickle file to {pickle_path}")
+        logging.info(f"Saving pickle file to {pickle_path}.")
         pickle.dump(map, open(pickle_path, "wb"))
 
-    logging.info(f"Loading {pickle_path}")
+    logging.info(f"Loading {pickle_path}.")
     map = pickle.load(open(pickle_path, "rb"))
 
     return map
@@ -133,7 +138,7 @@ def standalone_example():
     segments_dict = build_segments.try_load_pickle(pickle_path_segments)
 
     if not segments_dict:
-        logging.error("Could not load segments")
+        logging.error("Could not load segments.")
 
     all_points = collect_all_points(segments_dict)
     create_and_display_map(all_points, "All Points")

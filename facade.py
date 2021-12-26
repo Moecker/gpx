@@ -8,7 +8,7 @@ import utils
 import gpx2ascii
 
 # User Inputs
-GPX_PATH = os.path.join("bikeline", "ch")
+GPX_PATH = os.path.join("bikeline", "de")
 START_GPS, END_GPS = (48.2, 11.4), (51.1, 6.4)
 
 # Internal configs
@@ -45,7 +45,7 @@ def main():
     all_points = build_graph.collect_all_points(segments_dict)
     build_graph.create_and_display_map(all_points, "All Points", background)
 
-    logging.info(f"Number of points in segments {str(len(all_points))}")
+    logging.info(f"Number of points in segments {str(len(all_points))}.")
 
     map_file_name = "_".join(
         [
@@ -58,9 +58,9 @@ def main():
     )
     map = build_graph.load_or_build_map(segments_dict, map_file_name, os.path.join(STORAGE_TEMP_DIR, "maps"))
 
-    logging.info(f"Number of nodes in graph {str(len(map._graph.values()))}")
+    logging.info(f"Number of nodes in graph {str(len(map._graph.values()))}.")
 
-    logging.info("Finding shortest path")
+    logging.info("Finding shortest path.")
     shortest = build_graph.find_path(map, START_GPS, END_GPS, map.find_shortest_path)
 
     build_graph.create_and_display_map(shortest, "Shortest path", background)

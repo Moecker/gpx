@@ -15,8 +15,10 @@ def determine_bounding_box(points):
         min_lat = min(min_lat, point.latitude)
         min_lon = min(min_lon, point.longitude)
 
-    logging.info(f"Bounding box: MIN_LAT: {min_lat}, MIN_LON: {min_lon}, MAX_LAT: {max_lat}, MAX_LON: {max_lon}")
-    logging.info(f"Bounding box: ({min_lat},{min_lon}), ({max_lat},{max_lon})")
+    logging.info(
+        f"Bounding box: MIN_LAT: {min_lat:.2f}, MIN_LON: {min_lon:.2f}, MAX_LAT: {max_lat:.2f}, MAX_LON: {max_lon:.2f}."
+    )
+    logging.info(f"Bounding box: ({min_lat:.2f}, {min_lon:.2f}), ({max_lat:.2f}, {max_lon:.2f}).")
 
     edges[0][0] = (max_lat, min_lon)  # top left
     edges[0][1] = (max_lat, max_lon)  # top right
