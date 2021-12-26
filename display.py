@@ -1,6 +1,7 @@
+import os
+
 import folium
 import gpxpy
-import os
 
 
 def overlay_gpx(gpxData, zoom):

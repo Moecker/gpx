@@ -15,7 +15,7 @@ MIN_GAP_DIS = 5.0  # in km
 MAX_END_DISTANCE = 10.0  # in km
 
 # DISPLAY
-RESOLUTION = 15  # How "big" the map is
+SCALE_FACTOR = 5  # How "big" the map is
 
 # GRAPH
 PRECISION = 5  # Every nth point is part of the graph

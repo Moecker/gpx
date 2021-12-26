@@ -1,11 +1,9 @@
-import pprint
-from collections import defaultdict
-from collections import deque
-import sys
-import itertools
-import config
+import logging
+from collections import defaultdict, deque
 
 from tqdm import tqdm
+
+import config
 
 
 class Graph(object):
@@ -52,7 +50,9 @@ class Graph(object):
         return path_iter
 
     def find_path_iterative(self, node1, node2, path=[]):
-        print("In find_path_iterative")
+        """Find any path between node1 and node2 iteratively (may not be shortest)"""
+
+        logging.info("Searching a path iteratively")
         stack = []
         stack.append((node1, node2))
         cur_path = []
@@ -61,15 +61,12 @@ class Graph(object):
             while stack:
                 args = stack.pop()
                 (node1, node2) = args
-
                 cur_path += [node1]
 
                 if node1 == node2:
                     return cur_path
-
                 if node1 not in self._graph:
                     break
-
                 for node in self._graph[node1]:
                     if node not in cur_path:
                         args = (node, node2)
@@ -78,7 +75,7 @@ class Graph(object):
         return None
 
     def find_path_recursive(self, node1, node2, path=[]):
-        """Find any path between node1 and node2 (may not be shortest)"""
+        """Find any path between node1 and node2 recursively (may not be shortest)"""
 
         path = path + [node1]
         if node1 == node2:
@@ -109,7 +106,7 @@ class Graph(object):
         return paths
 
     def find_shortest_path(self, start, end):
-        # https://www.python.org/doc/essays/graphs/
+        # From https://www.python.org/doc/essays/graphs/
         dist = {start: [start]}
         q = deque([start])
         while len(q):
@@ -120,9 +117,6 @@ class Graph(object):
                     dist[next] = dist[at] + [next]
                     q.append(next)
         return dist.get(end)
-
-    def nodes(self):
-        return len(self._graph)
 
     def __str__(self):
         return "{}({})".format(self.__class__.__name__, dict(self._graph))

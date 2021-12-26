@@ -1,17 +1,19 @@
-import gpxpy
-from pprint import pformat
-import distance
-import glob
-import config
-import os
 import copy
+import glob
+import logging
 import math
+from pprint import pformat
+
+import gpxpy
+
+import config
+import distance
 
 
 def determine_index(point, edges):
     distance_w = distance.haversine((edges[1][1][0], point[1]), point)
     distance_h = distance.haversine((point[0], edges[1][1][1]), point)
-    w, h = int(distance_w / config.RESOLUTION), int(distance_h / config.RESOLUTION)
+    w, h = int(distance_w / config.SCALE_FACTOR), int(distance_h / config.SCALE_FACTOR)
     return w, h
 
 
@@ -26,6 +28,7 @@ def determine_bounding_box(map):
                 max_lon = max(max_lon, point.longitude)
                 min_lat = min(min_lat, point.latitude)
                 min_lon = min(min_lon, point.longitude)
+
     print(f"Bounding box: MIN_LAT: {min_lat}, MIN_LON:{min_lon}, MAX_LA:{max_lat}, MAX_LON{max_lon}")
 
     edges[0][0] = (max_lat, min_lon)  # top left
@@ -45,7 +48,7 @@ def create_map(file_name, map=None, character="x"):
 
     for track in gpx.tracks:
         for segment in track.segments:
-            for point in segment.points[:: config.RESOLUTION]:
+            for point in segment.points[:: config.SCALE_FACTOR]:
                 idx_w, idx_h = determine_index((point.latitude, point.longitude), edges)
                 map[idx_w][idx_h] = character
 
@@ -61,7 +64,7 @@ def default_bounding_box():
 
     distance_w = distance.haversine(bottom_left, bottom_right)
     distance_h = distance.haversine(bottom_left, top_left)
-    w, h = int(distance_w / config.RESOLUTION + 1), int(distance_h / config.RESOLUTION + 1)
+    w, h = int(distance_w / config.SCALE_FACTOR + 1), int(distance_h / config.SCALE_FACTOR + 1)
     map = [[" " for x in range(w)] for y in range(h)]
 
     edges = [[0 for x in range(2)] for y in range(2)]
@@ -91,6 +94,7 @@ def display(map):
             display_string += str(f"{line} ")
         display_string += "\n"
 
+    print()
     print(display_string)
 
 

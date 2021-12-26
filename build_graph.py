@@ -1,16 +1,18 @@
-import math
-import gpxpy.gpx
-import os
-import main
-import graph
-import gpx2ascii
-import points2ascii
-import distance
-import config
-from tqdm import tqdm
-import pickle
 import logging
+import math
+import os
+import pickle
 import sys
+
+import gpxpy.gpx
+from tqdm import tqdm
+
+import build_segments
+import config
+import distance
+import gpx2ascii
+import graph
+import points2ascii
 
 sys.setrecursionlimit(2000)
 
@@ -44,12 +46,12 @@ def add_waypoints(map, path, edges):
 
 def create_and_display_map(path, name):
     if not path:
-        print("Nothing to display")
+        logging.warning("Nothing to display")
         return
     edges = points2ascii.determine_bounding_box(path)
     map = points2ascii.create_map(edges)
     add_waypoints(map, path, edges)
-    print("Name: " + name)
+    logging.info(f"Map name: {name}")
     gpx2ascii.display(map)
 
 
@@ -60,7 +62,7 @@ def run():
     print("Loading segments")
     reduction = str(int(config.REDUCTION_DISTANCE))
     pickle_path_segments = os.path.join("pickle", "_".join([config.COUNTRY, reduction, "segments.p"]))
-    segments_dict = main.try_load_pickle(pickle_path_segments)
+    segments_dict = build_segments.try_load_pickle(pickle_path_segments)
 
     if not segments_dict:
         logging.error("Could not load segments")
@@ -71,7 +73,7 @@ def run():
     connection = str(int(config.GRAPH_CONNECTION_DISTANCE))
     precision = str(int(config.PRECISION))
     map = load_or_build_map(
-        segments_dict, "_".join([config.COUNTRY, "R" + reduction, "C" + connection, "P" + precision, "map.p"])
+        segments_dict, "_".join([config.COUNTRY, "R" + reduction, "C" + connection, "P" + precision, "map.p"]), "pickle"
     )
 
     print("Finding random paths")
@@ -102,22 +104,22 @@ def compute_min_dis(map, start_gpx):
 
 
 def get_closest_start_and_end(map, start, end):
-    print("Number of nodes in graph " + str(len(map._graph.values())))
+    logging.info(f"Number of nodes in graph {str(len(map._graph.values()))}")
 
     start_gpx = gpxpy.gpx.GPXTrackPoint(start[0], start[1])
     end_gpx = gpxpy.gpx.GPXTrackPoint(end[0], end[1])
 
-    print("Desired start: " + str(start_gpx))
-    print("Desired end: " + str(end_gpx))
+    logging.info(f"Desired start: {str(start_gpx)}")
+    logging.info(f"Desired end: {str(end_gpx)}")
 
     min_dis_start, first = compute_min_dis(map, start_gpx)
     min_dis_end, last = compute_min_dis(map, end_gpx)
 
-    print("Min distance start: " + str(min_dis_start))
-    print("Min distance end: " + str(min_dis_end))
+    logging.info(f"Min distance start: {str(min_dis_start)}")
+    logging.info(f"Min distance end: {str(min_dis_end)}")
 
-    print("Min node start: " + str(first))
-    print("Min node end: " + str(last))
+    logging.info(f"Min node start: {str(first)}")
+    logging.info(f"Min node end: {str(last)}")
     return first, last
 
 
@@ -129,7 +131,7 @@ def find_path(map, start, end, strategy):
         print("No path found")
         return
 
-    print(f"Length of path(s): {len(path)}")
+    logging.info(f"Length of path(s): {len(path)}")
     return path
 
 
@@ -141,14 +143,18 @@ def get_all_points(segments_dict):
     return all_points
 
 
-def load_or_build_map(segments_dict, name):
-    pickle_path = os.path.join("pickle", name)
+def load_or_build_map(segments_dict, name, output_dir):
+    pickle_path = os.path.join(output_dir, name)
     if not os.path.isfile(pickle_path):
-        print("Pickle " + pickle_path + " does not exist")
+        logging.info(f"Pickle {pickle_path} does not exist, creating map")
         map = build_map(segments_dict)
+
+        logging.info(f"Saving pickle file to {pickle_path}")
         pickle.dump(map, open(pickle_path, "wb"))
-    print("Loading " + pickle_path)
+
+    logging.info(f"Loading {pickle_path}")
     map = pickle.load(open(pickle_path, "rb"))
+
     return map
 
 

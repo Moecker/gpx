@@ -3,6 +3,7 @@ import logging
 import math
 import os
 import pickle
+from pathlib import Path
 from pprint import pformat
 
 import gpxpy
@@ -35,7 +36,6 @@ def try_load_pickle(pickle_path):
         segments_dict = pickle.load(open(pickle_path, "rb"))
         return segments_dict
     else:
-        logging.info(f"{pickle_path} dos not exist.")
         return None
 
 
@@ -52,18 +52,21 @@ def compute_distances(start_gps, segments_dict):
     return distances
 
 
-def load_and_reduce_gpxs(track_file_names, threshold, pickle_path):
-    logging.warning(f"{pickle_path} does not exist or is forced ignored, creating it.")
+def load_and_reduce_gpxs(track_file_names, threshold, pickle_path, output_dir):
+    logging.info(f"{pickle_path} does not exist or is forced ignored, creating it.")
 
     segments_dict = dict()
+    threshold_string = str(int(threshold))
+    dir_name = os.path.join(output_dir, threshold_string)
+    Path(dir_name).mkdir(parents=True, exist_ok=True)
+
     for track_file_name in track_file_names:
-        threshold_string = str(int(threshold))
         track_file_name_reduced = os.path.join(
-            "output", threshold_string, threshold_string + "_" + track_file_name.replace(os.path.sep, "_")
+            dir_name, threshold_string + "_" + track_file_name.replace(os.path.sep, "_")
         )
 
         if config.ALWAYS_REDUCE or not os.path.isfile(track_file_name_reduced):
-            logging.warning(f"{track_file_name_reduced} does not exist or is forced ignored, creating it.")
+            logging.info(f"{track_file_name_reduced} does not exist or is forced ignored, creating it.")
             try:
                 reducer.reduce(track_file_name, threshold, track_file_name_reduced)
             except:
@@ -72,14 +75,18 @@ def load_and_reduce_gpxs(track_file_names, threshold, pickle_path):
         else:
             logging.info(f"{track_file_name_reduced} exists, using it.")
 
-        with open(track_file_name_reduced, "r") as f:
-            gpx = gpxpy.parse(f)
-            for track in gpx.tracks:
-                segment_id = 0
-                for segment in track.segments:
-                    segments_dict[track_file_name_reduced + ":" + track.name + ":" + str(segment_id)] = segment
-                    segment_id += 1
+        setup_segments_dict(segments_dict, track_file_name_reduced)
     return segments_dict
+
+
+def setup_segments_dict(segments_dict, track_file_name_reduced):
+    with open(track_file_name_reduced, "r") as f:
+        gpx = gpxpy.parse(f)
+        for track in gpx.tracks:
+            segment_id = 0
+            for segment in track.segments:
+                segments_dict[track_file_name_reduced + ":" + track.name + ":" + str(segment_id)] = segment
+                segment_id += 1
 
 
 def determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict):
@@ -146,13 +153,9 @@ def main():
     reduction_threshold = determine_reduction_threshold()
 
     pickle_path = os.path.join("pickle", config.COUNTRY + "_" + str(int(reduction_threshold)) + "_" + "segments.p")
-    segments_dict = try_load_pickle(pickle_path)
 
-    if not segments_dict:
-        track_file_names = glob.glob(os.path.join("bikeline", config.COUNTRY, config.GPX_FILE_PATTERN))
-        segments_dict = load_and_reduce_gpxs(track_file_names, reduction_threshold, pickle_path)
-        pickle.dump(segments_dict, open(pickle_path, "wb"))
-    logging.info(f"Found {len(segments_dict)} segments")
+    root = os.path.join("bikeline", config.COUNTRY, config.GPX_FILE_PATTERN)
+    segments_dict = build_segments_dict(reduction_threshold, pickle_path, root, "output")
 
     distances_start, distances_end = determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict)
 
@@ -164,6 +167,18 @@ def main():
 
     logging.info(f"Found {len(routes)} routes")
     logging.info(f"Found those routes \n{pformat(routes)}")
+
+
+def build_segments_dict(reduction_threshold, pickle_path, root, output_dir):
+    segments_dict = try_load_pickle(pickle_path)
+
+    if not segments_dict:
+        track_file_names = glob.glob(root)
+        segments_dict = load_and_reduce_gpxs(track_file_names, reduction_threshold, pickle_path, output_dir)
+        logging.info(f"Saving pickle file to {pickle_path}")
+        pickle.dump(segments_dict, open(pickle_path, "wb"))
+    logging.info(f"Found {len(segments_dict)} segment(s)")
+    return segments_dict
 
 
 if __name__ == "__main__":
