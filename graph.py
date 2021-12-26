@@ -3,6 +3,7 @@ from collections import defaultdict
 from collections import deque
 import sys
 import itertools
+import config
 
 from tqdm import tqdm
 
@@ -31,7 +32,7 @@ class Graph(object):
     def remove(self, node):
         """Remove all references to node"""
 
-        for n, cxns in self._graph.items():  # python3: items(); python2: iteritems()
+        for n, cxns in self._graph.items():
             try:
                 cxns.remove(node)
             except KeyError:
@@ -56,27 +57,22 @@ class Graph(object):
         stack.append((node1, node2))
         cur_path = []
 
-        with tqdm(total=len(self._graph.values()) ** 2 / 4) as pbar:
+        with tqdm(total=len(self._graph.keys()) * len(self._graph.values())) as pbar:
             while stack:
-                # print("stack: " + str(len(stack)))
                 args = stack.pop()
-                # print("popped " + str(args))
                 (node1, node2) = args
 
                 cur_path += [node1]
 
                 if node1 == node2:
-                    # print("node1 == node2")
                     return cur_path
 
                 if node1 not in self._graph:
-                    # print("node1 not in self._graph")
                     break
 
                 for node in self._graph[node1]:
                     if node not in cur_path:
                         args = (node, node2)
-                        # print("pushed " + str(args))
                         stack.append(args)
                     pbar.update(1)
         return None
@@ -108,7 +104,7 @@ class Graph(object):
                 newpaths = self.find_all_paths(node, end, path)
                 for newpath in newpaths:
                     paths.append(newpath)
-                    if len(paths) >= 1:
+                    if len(paths) >= config.ROUTES_FOUND_END:
                         return paths
         return paths
 

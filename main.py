@@ -35,7 +35,7 @@ def try_load_pickle(pickle_path):
         segments_dict = pickle.load(open(pickle_path, "rb"))
         return segments_dict
     else:
-        logging.info(f"{pickle_path} exists, using it.")
+        logging.info(f"{pickle_path} dos not exist.")
         return None
 
 
@@ -145,12 +145,11 @@ def main():
     end_gps = determine_end()
     reduction_threshold = determine_reduction_threshold()
 
-    country = "at"
-    pickle_path = os.path.join("pickle", country + "_" + str(int(reduction_threshold)) + "_" + "segments.p")
+    pickle_path = os.path.join("pickle", config.COUNTRY + "_" + str(int(reduction_threshold)) + "_" + "segments.p")
     segments_dict = try_load_pickle(pickle_path)
 
     if not segments_dict:
-        track_file_names = glob.glob(os.path.join("bikeline", country, config.GPX_FILE_PATTERN))
+        track_file_names = glob.glob(os.path.join("bikeline", config.COUNTRY, config.GPX_FILE_PATTERN))
         segments_dict = load_and_reduce_gpxs(track_file_names, reduction_threshold, pickle_path)
         pickle.dump(segments_dict, open(pickle_path, "wb"))
     logging.info(f"Found {len(segments_dict)} segments")
