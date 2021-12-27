@@ -28,3 +28,7 @@ def fast_haversine(coord1, coord2):
 def haversine_gpx(gps1, gps2):
     """Distance in KM between two GPS points"""
     return fast_haversine((gps1.latitude, gps1.longitude), (gps2.latitude, gps2.longitude))
+
+
+def simple_distance(gps1, gps2):
+    return abs(gps1.latitude - gps2.latitude) + abs(gps1.longitude - gps2.longitude)

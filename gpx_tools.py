@@ -14,10 +14,10 @@ class SimplePoint:
         return cls((gpx_point.latitude, gpx_point.longitude))
 
     def __str__(self):
-        return self.__repr__()
+        return f"GPS:({self.latitude:.8f},{self.longitude:.8f}):{hex(id(self))}"
 
     def __repr__(self):
-        return f"GPS:({self.latitude:.8f},{self.longitude:.8f}):{hex(id(self))}"
+        return f"GPS:({self.latitude:.4f},{self.longitude:.4f})"
 
 
 class SimpleSegment:

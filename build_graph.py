@@ -5,18 +5,15 @@ import pickle
 
 from tqdm import tqdm
 
-import build_segments
 import config
 import distance
 import gpx2ascii
 import gpx_tools
-import graph
-import astar
 import points2ascii
 
 
 def build_map(segments_dict):
-    map = astar.Graph()
+    map = config.GRAPH_MODUL.Graph()
     pbar = tqdm(segments_dict.items())
     for name, segment in pbar:
         pbar.set_description(f"INFO: Processing {name} with {len(segment.points)} points.")
@@ -78,14 +75,15 @@ def create_and_display_map(path, name, background=[]):
     add_waypoints(map, background, edges, ".")
     add_waypoints(map, path, edges, "x")
 
-    logging.info(f"Displaying map name: {name}.")
+    logging.info(f"Displaying map name: '{name}'.")
     gpx2ascii.display(map)
 
 
 def compute_min_dis(map, start_gpx):
     min_dis = math.inf
     min_node = None
-    for k in map.nodes():
+    nodes = map.keys()
+    for k in nodes:
         dis = distance.haversine_gpx(k, start_gpx)
         if dis < min_dis:
             min_dis = dis
@@ -114,6 +112,7 @@ def find_path(map, start, end, strategy):
         logging.error(f"Start and/or End GPX positions are invalid.")
         return None
 
+    logging.info(f"Starting search strategy using {strategy}...")
     path = strategy(first, last)
     if not path:
         logging.error(f"No path found from {first} to {last}.")

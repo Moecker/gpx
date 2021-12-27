@@ -19,6 +19,9 @@ class Graph:
     def nodes(self):
         return list(itertools.chain.from_iterable(self.edges.values()))
 
+    def keys(self):
+        return self.edges.keys()
+
     def add(self, from_node, to_node, cost):
         # Note: assumes edges are bi-directional
         self.edges[from_node].append(to_node)
