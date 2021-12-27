@@ -1,6 +1,6 @@
 import itertools
 from collections import defaultdict, deque
-
+from queue import PriorityQueue
 import distance
 
 
@@ -38,7 +38,7 @@ class Graph:
         return self.a_star_algorithm(start, stop)
 
     def a_star_algorithm(self, start, stop):
-        """ From https://www.pythonpool.com/a-star-algorithm-python/ """
+        """From https://www.pythonpool.com/a-star-algorithm-python/"""
         # In this open_lst is a list of nodes which have been visited, but who's
         # neighbors haven't all been always inspected, It starts off with the start node
         # And closed_lst is a list of nodes which have been visited
@@ -122,6 +122,30 @@ class Graph:
                     dist[next] = dist[at] + [next]
                     q.append(next)
         return dist.get(end)
+
+    def find_shortest_path_prio_queue(self, start, end):
+        """ From https://stackoverflow.com/questions/48313993/uniform-cost-search-algorithm-with-python """
+        visited = set()  # set of visited nodes
+        q = PriorityQueue()  # we store vertices in the (priority) queue as tuples
+        # (f, n, path), with
+        # f: the cumulative cost,
+        # n: the current node,
+        # path: the path that led to the expansion of the current node
+        q.put((0, start, [start]))  # add the starting node, this has zero *cumulative* cost
+        # and it's path contains only itself.
+        while not q.empty():  # while the queue is nonempty
+            f, current_node, path = q.get()
+            visited.add(current_node)  # mark node visited on expansion,
+            # only now we know we are on the cheapest path to
+            # the current node.
+
+            if current_node == end:  # if the current node is a goal
+                return path  # return its path
+            else:
+                for edge in self.friends[current_node]:
+                    child = edge[0]
+                    if child not in visited:
+                        q.put((f + edge[1], child, path + [child]))
 
     def __str__(self):
         return "{}({})".format(self.__class__.__name__, dict(self.friends))

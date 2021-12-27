@@ -11,6 +11,7 @@ import utils
 from pprint import pprint
 import statistics
 
+
 def with_background():
     germany_gpx_path = os.path.join("maps", "1000_germany.gpx")
     germany_points = gpx2ascii.load_all_points(germany_gpx_path)
@@ -67,7 +68,6 @@ def main():
     logging.info(f"Median weights {str(statistics.median(weights))}.")
     logging.info(f"Mean weights {str(statistics.mean(weights))}.")
     logging.info(f"Quantiles weights {str(statistics.quantiles(weights, n=20))}.")
-
 
     logging.info("Finding shortest path...")
     shortest = build_graph.find_path(map, config.START_GPS, config.END_GPS, map.find_shortest_path)

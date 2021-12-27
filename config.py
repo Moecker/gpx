@@ -13,7 +13,7 @@ RESULTS_FOLDER = "results"
 
 # USER INPUTS
 GPX_PATH = os.path.join("adfc")
-START_GPS, END_GPS = (46.3695817,6.006102), (54.5237462,13.4666073)
+START_GPS, END_GPS = (46.3695817, 6.006102), (54.5237462, 13.4666073)
 
 # DISPLAY
 SCALE_FACTOR = 40  # How "big" the map is, the larger the more downsacling takes place.
