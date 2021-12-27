@@ -9,6 +9,8 @@ from pprint import pformat
 import gpxpy
 import gpxpy.gpx
 
+from tqdm import tqdm
+
 import config
 import distance
 import gpx_tools
@@ -75,23 +77,22 @@ def load_and_reduce_gpxs(track_file_names, threshold, pickle_path, output_dir):
     dir_name = os.path.join(output_dir, threshold_string)
     Path(dir_name).mkdir(parents=True, exist_ok=True)
 
-    for track_file_name in track_file_names:
+    pbar = tqdm(track_file_names)
+    for track_file_name in pbar:
         track_file_name_reduced = os.path.join(
             dir_name, threshold_string + "_" + track_file_name.replace(os.path.sep, "_")
         )
 
         if config.ALWAYS_REDUCE or not os.path.isfile(track_file_name_reduced):
-            logging.info(f"{track_file_name_reduced} does not exist or is forced ignored, creating it.")
-            try:
-                reducer.reduce(track_file_name, threshold, track_file_name_reduced)
-            except:
-                logging.error(f"Error while reducing {track_file_name} to create {track_file_name_reduced}.")
+            pbar.set_description(f"INFO: {track_file_name_reduced} does not exist or is forced ignored, creating it.")
+            success = reducer.reduce(track_file_name, threshold, track_file_name_reduced)
+            if not success:
                 continue
         else:
-            logging.info(f"{track_file_name_reduced} exists, using it.")
+            pbar.set_description(f"INFO: {track_file_name_reduced} exists, using it.")
 
         setup_segments_dict(segments_dict, track_file_name_reduced)
-    return segments_dict
+    return sorted(segments_dict)
 
 
 def setup_segments_dict(segments_dict, track_file_name_reduced):
@@ -119,13 +120,16 @@ def build_segments_dict(reduction_threshold, pickle_path, root, output_dir):
 
 
 def standalone_example():
+    COUNTRY = "at"
+    GPX_FILE_PATTERN = "*.gpx"  # Glob pattern
+
     start_gps = determine_start()
     end_gps = determine_end()
     reduction_threshold = determine_reduction_threshold()
 
-    pickle_path = os.path.join("pickle", config.COUNTRY + "_" + str(int(reduction_threshold)) + "_" + "segments.p")
+    pickle_path = os.path.join("pickle", COUNTRY + "_" + str(int(reduction_threshold)) + "_" + "segments.p")
 
-    root = os.path.join("bikeline", config.COUNTRY, config.GPX_FILE_PATTERN)
+    root = os.path.join("bikeline", COUNTRY, GPX_FILE_PATTERN)
     segments_dict = build_segments_dict(reduction_threshold, pickle_path, root, "output")
 
     distances_start, _ = determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict)

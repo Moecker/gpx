@@ -16,7 +16,9 @@ import points2ascii
 
 def build_map(segments_dict):
     map = graph.Graph([])
-    for _, segment in tqdm(segments_dict.items()):
+    pbar = tqdm(segments_dict.items())
+    for name, segment in pbar:
+        pbar.set_description(f"INFO: Processing {name} with {len(segment.points)} points.")
         if len(segment.points):
             prev_point = None
             for point in segment.points[:: config.PRECISION]:
@@ -78,17 +80,13 @@ def get_closest_start_and_end(map, start, end):
     start_gpx = gpx_tools.SimplePoint(start)
     end_gpx = gpx_tools.SimplePoint(end)
 
-    logging.info(f"Desired start GPS: {start_gpx}.")
-    logging.info(f"Desired end GPS: {end_gpx}.")
-
     min_dis_start, first = compute_min_dis(map, start_gpx)
     min_dis_end, last = compute_min_dis(map, end_gpx)
 
-    logging.info(f"Min distance start: {min_dis_start:.2f} km.")
-    logging.info(f"Min distance end: {min_dis_end:.2f} km.")
+    logging.info(f"Desired GPS start: {start_gpx} and end: {end_gpx}.")
+    logging.info(f"Minimum distance to start: {min_dis_start:.2f} km, and end: {min_dis_end:.2f} km")
+    logging.info(f"Closest GPS node for start: {first} and end: {last}.")
 
-    logging.info(f"Min node start GPS: {first}.")
-    logging.info(f"Min node end GPS: {last}.")
     return first, last
 
 

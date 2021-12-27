@@ -1,23 +1,26 @@
+import os
+
 # STORAGE
-ALWAYS_GRAPH = True  # Always re-create the graph
+ALWAYS_GRAPH = False  # Always re-create the graph
 ALWAYS_PARSE = False  # Always re-create cached segments dicts
 ALWAYS_REDUCE = False  # Always re-create reduced gpx files
+
+# DIRECTORIES
+STORAGE_TEMP_DIR = "tmp"
+RESULTS_FOLDER = "results"
+
+# USER INPUTS
+GPX_PATH = os.path.join("bikeline", "ch")
+GPX_PATH = os.path.join("adfc")
+START_GPS, END_GPS = (48.2, 11.4), (51.1, 6.4)
+
 
 # DISPLAY
 SCALE_FACTOR = 20  # How "big" the map is, the larger the more downsacling takes place.
 
 # COMMON
-REDUCTION_DISTANCE = 100.0  # in meter
-ROUTES_FOUND_END = 1  # Max number of requested routes
+REDUCTION_DISTANCE = 500.0  # The distance betwen two GPS points during reduction phase, in meter.
 
 # GRAPH
-GRAPH_CONNECTION_DISTANCE = 1.0  # In km, When a point to another point is considered connected
-PRECISION = 1  # Every nth point is part of the graph
-
-# OLD APPROACH
-COUNTRY = "at"
-GPX_FILE_PATTERN = "*.gpx"  # Glob pattern
-MAX_DETOUR = 5.0  # in km
-MAX_END_DISTANCE = 10.0  # in km
-MIN_GAP_DIS = 5.0  # in km
-POINTS_ITERATOR_GAP = 10.0  # in km
+GRAPH_CONNECTION_DISTANCE = 10.0  # In km, When a point to another point is considered connected.
+PRECISION = 10  # Every nth point is part of the graph or evaluated as a adjacent point.

@@ -132,8 +132,9 @@ dmypy.json
 *.zip
 *.geojson
 *.p
+*.html
 
-/output/**/*.gpx
+/playground/**/*.gpx
 /adfc/**/*.gpx
 /bikeline/**/*.gpx
 /tmp/**/*.gpx

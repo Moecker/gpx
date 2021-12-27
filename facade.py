@@ -4,16 +4,10 @@ import os
 import build_graph
 import build_segments
 import config
+import display
 import gpx2ascii
 import gpx_tools
 import utils
-
-# User Inputs
-GPX_PATH = os.path.join("bikeline", "ch")
-START_GPS, END_GPS = (48.2, 11.4), (51.1, 6.4)
-
-# Internal configs
-STORAGE_TEMP_DIR = "tmp"
 
 
 def with_background():
@@ -28,17 +22,17 @@ def with_background():
 
 def main():
     pickle_file_name = "_".join(
-        [str(int(config.REDUCTION_DISTANCE)), utils.replace_os_seperator(GPX_PATH), "segments.p"]
+        [str(int(config.REDUCTION_DISTANCE)), utils.replace_os_seperator(config.GPX_PATH), "segments.p"]
     )
 
-    pickle_path = os.path.join(STORAGE_TEMP_DIR, "segments", pickle_file_name)
+    pickle_path = os.path.join(config.STORAGE_TEMP_DIR, "segments", pickle_file_name)
     logging.info(f"Storage path: {pickle_path}.")
 
-    glob_search_pattern = os.path.join(GPX_PATH, "*.gpx")
+    glob_search_pattern = os.path.join(config.GPX_PATH, "*.gpx")
     logging.info(f"Glob search pattern: {glob_search_pattern}.")
 
     segments_dict = build_segments.build_segments_dict(
-        config.REDUCTION_DISTANCE, pickle_path, glob_search_pattern, STORAGE_TEMP_DIR
+        config.REDUCTION_DISTANCE, pickle_path, glob_search_pattern, config.STORAGE_TEMP_DIR
     )
 
     background = with_background()
@@ -51,24 +45,26 @@ def main():
     map_file_name = "_".join(
         [
             str(int(config.REDUCTION_DISTANCE)),
-            utils.replace_os_seperator(GPX_PATH),
+            utils.replace_os_seperator(config.GPX_PATH),
             str(int(config.GRAPH_CONNECTION_DISTANCE)),
             str(int(config.PRECISION)),
             "map.p",
         ]
     )
-    map = build_graph.load_or_build_map(segments_dict, map_file_name, os.path.join(STORAGE_TEMP_DIR, "maps"))
+    map = build_graph.load_or_build_map(segments_dict, map_file_name, os.path.join(config.STORAGE_TEMP_DIR, "maps"))
 
     logging.info(f"Number of nodes in graph {str(len(map._graph.values()))}.")
 
     logging.info("Finding shortest path.")
-    shortest = build_graph.find_path(map, START_GPS, END_GPS, map.find_shortest_path)
+    shortest = build_graph.find_path(map, config.START_GPS, config.END_GPS, map.find_shortest_path)
 
     build_graph.create_and_display_map(shortest, "Shortest path", background)
 
-    result_folder = "results"
-    gpx_tools.save_as_gpx_file(all_points, result_folder, "all_points.gpx")
-    gpx_tools.save_as_gpx_file(shortest, result_folder, "shortest_path.gpx")
+    gpx_tools.save_as_gpx_file(all_points, config.RESULTS_FOLDER, "all_points.gpx")
+    gpx_tools.save_as_gpx_file(shortest, config.RESULTS_FOLDER, "shortest_path.gpx")
+
+    display.save_gpx_as_html("all_points", config.RESULTS_FOLDER)
+    display.save_gpx_as_html("shortest_path", config.RESULTS_FOLDER)
 
 
 if __name__ == "__main__":

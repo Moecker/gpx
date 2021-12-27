@@ -46,13 +46,13 @@ class Graph(object):
         return node1 in self._graph and node2 in self._graph[node1]
 
     def find_path(self, node1, node2, path=[]):
+        """ Delegates to the best version """
         path_iter = self.find_path_iterative(node1, node2, path=[])
         return path_iter
 
     def find_path_iterative(self, node1, node2, path=[]):
         """Find any path between node1 and node2 iteratively (may not be shortest)"""
 
-        logging.info("Searching a path iteratively.")
         stack = []
         stack.append((node1, node2))
         cur_path = []
@@ -90,6 +90,7 @@ class Graph(object):
         return None
 
     def find_all_paths(self, start, end, path=[]):
+        """Find all path between node1 and node2 recursively, very slow though """
         path = path + [start]
         if start == end:
             return [path]
@@ -106,9 +107,9 @@ class Graph(object):
         return paths
 
     def find_shortest_path(self, start, end):
-        logging.info("Searching shortest path.")
-
-        # From https://www.python.org/doc/essays/graphs/
+        """ Finds shortest path efficiently """
+        #  From https://www.python.org/doc/essays/graphs/
+        
         dist = {start: [start]}
         q = deque([start])
         while len(q):
