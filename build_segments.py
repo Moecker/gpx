@@ -117,33 +117,3 @@ def build_segments_dict(reduction_threshold, pickle_path, root, output_dir):
         pickle.dump(segments_dict, open(pickle_path, "wb"))
     logging.info(f"Found {len(segments_dict)} segment(s).")
     return segments_dict
-
-
-def standalone_example():
-    COUNTRY = "at"
-    GPX_FILE_PATTERN = "*.gpx"  # Glob pattern
-
-    start_gps = determine_start()
-    end_gps = determine_end()
-    reduction_threshold = determine_reduction_threshold()
-
-    pickle_path = os.path.join("pickle", COUNTRY + "_" + str(int(reduction_threshold)) + "_" + "segments.p")
-
-    root = os.path.join("bikeline", COUNTRY, GPX_FILE_PATTERN)
-    segments_dict = build_segments_dict(reduction_threshold, pickle_path, root, "output")
-
-    distances_start, _ = determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict)
-
-    routes = set(tuple())
-    route = list()
-    current_distance = math.inf
-
-    walk.walk_gpx(distances_start[0][0], segments_dict, distances_start[0][1], end_gps, route, routes, current_distance)
-
-    logging.info(f"Found {len(routes)} routes.")
-    logging.info(f"Found those routes \n{pformat(routes)}.")
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    standalone_example()

@@ -1,5 +1,4 @@
 import gpxpy
-import logging
 
 
 def reduce(file_name, min_dis, file_name_reduced):

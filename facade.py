@@ -54,7 +54,7 @@ def main():
     )
     map = build_graph.load_or_build_map(segments_dict, map_file_name, os.path.join(config.STORAGE_TEMP_DIR, "maps"))
 
-    logging.info(f"Number of nodes in graph {str(len(map._graph.values()))}.")
+    logging.info(f"Number of nodes in graph {str(len(map.edges.values()))}.")
 
     logging.info("Finding shortest path.")
     shortest = build_graph.find_path(map, config.START_GPS, config.END_GPS, map.find_shortest_path)

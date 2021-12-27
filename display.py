@@ -36,16 +36,3 @@ def save_gpx_as_html(map_name, dir):
 
     map = overlay_gpx(gpx_file_path, zoom=10)
     map.save(f"{html_file_path}")
-
-
-def standalone_example():
-    name = "switzerland"
-    file_name = f"{name}.gpx"
-    file_path = os.path.join(name, file_name)
-
-    map = overlay_gpx(file_path, 14)
-    map.save(os.path.join("html", f"{name}.html"))
-
-
-if __name__ == "__main__":
-    standalone_example()

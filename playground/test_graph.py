@@ -1,6 +1,6 @@
-import graph
+import graph_simple
 
-g = graph.Graph([])
+g = graph_simple.Graph([])
 
 n1 = 1
 n2 = 2

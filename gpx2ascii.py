@@ -86,19 +86,3 @@ def load_all_points(gpx_file_name):
             for point in segment.points:
                 all_points.append(point)
     return all_points
-
-
-if __name__ == "__main__":
-    track_file_names = glob.glob(os.path.join("bikeline", "de", config.GPX_FILE_PATTERN))
-    track_file_names = glob.glob(os.path.join("adfc", "", config.GPX_FILE_PATTERN))
-
-    germany = create_map(os.path.join("maps", "1000_germany.gpx"), None, ".")
-    display(germany)
-
-    for track in track_file_names:
-        if not "Koenigssee" in track:
-            continue
-
-        print(track)
-        map = create_map(track, copy.deepcopy(germany))
-        display(map)

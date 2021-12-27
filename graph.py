@@ -1,119 +1,38 @@
+import logging
 from collections import defaultdict, deque
-
+import math
 from tqdm import tqdm
+import queue
 
-import config
+class Graph:
+    def __init__(self):
+        """
+        self.edges is a dict of all possible next nodes
+        e.g. {'X': ['A', 'B', 'C', 'E'], ...}
+        self.costs has all the costs between two nodes,
+        with the two nodes as a tuple as the key
+        e.g. {('X', 'A'): 7, ('X', 'B'): 2, ...}
+        """
+        self.edges = defaultdict(list)
+        self.costs = {}
 
+    def add(self, from_node, to_node, cost):
+        # Note: assumes edges are bi-directional
+        self.edges[from_node].append(to_node)
+        self.edges[to_node].append(from_node)
+        self.costs[(from_node, to_node)] = cost
+        self.costs[(to_node, from_node)] = cost
 
-class Graph(object):
-    """Graph data structure, undirected by default."""
-
-    def __init__(self, connections, directed=False):
-        self._graph = defaultdict(set)
-        self._directed = directed
-        self.add_connections(connections)
-
-    def add_connections(self, connections):
-        """Add connections (list of tuple pairs) to graph"""
-
-        for node1, node2 in connections:
-            self.add(node1, node2)
-
-    def add(self, node1, node2, cost=1):
-        """Add connection between node1 and node2"""
-
-        self._graph[node1].add(node2)
-        if not self._directed:
-            self._graph[node2].add(node1)
-
-    def remove(self, node):
-        """Remove all references to node"""
-
-        for n, cxns in self._graph.items():
-            try:
-                cxns.remove(node)
-            except KeyError:
-                pass
-        try:
-            del self._graph[node]
-        except KeyError:
-            pass
-
-    def is_connected(self, node1, node2):
-        """Is node1 directly connected to node2"""
-
-        return node1 in self._graph and node2 in self._graph[node1]
-
-    def find_path(self, node1, node2, path=[]):
-        """Delegates to the best version"""
-        path_iter = self.find_path_iterative(node1, node2, path=[])
-        return path_iter
-
-    def find_path_iterative(self, node1, node2, path=[]):
-        """Find any path between node1 and node2 iteratively (may not be shortest)"""
-
-        stack = []
-        stack.append((node1, node2))
-        cur_path = []
-
-        with tqdm(total=len(self._graph.keys()) * len(self._graph.values())) as pbar:
-            while stack:
-                args = stack.pop()
-                (node1, node2) = args
-                cur_path += [node1]
-
-                if node1 == node2:
-                    return cur_path
-                if node1 not in self._graph:
-                    break
-                for node in self._graph[node1]:
-                    if node not in cur_path:
-                        args = (node, node2)
-                        stack.append(args)
-                    pbar.update(1)
-        return None
-
-    def find_path_recursive(self, node1, node2, path=[]):
-        """Find any path between node1 and node2 recursively (may not be shortest)"""
-
-        path = path + [node1]
-        if node1 == node2:
-            return path
-        if node1 not in self._graph:
-            return None
-        for node in self._graph[node1]:
-            if node not in path:
-                new_path = self.find_path_recursive(node, node2, path)
-                if new_path:
-                    return new_path
-        return None
-
-    def find_all_paths(self, start, end, path=[]):
-        """Find all path between node1 and node2 recursively, very slow though"""
-        path = path + [start]
-        if start == end:
-            return [path]
-        if not start in self._graph.keys():
-            return []
-        paths = []
-        for node in self._graph[start]:
-            if node not in path:
-                newpaths = self.find_all_paths(node, end, path)
-                for newpath in newpaths:
-                    paths.append(newpath)
-                    if len(paths) >= config.ROUTES_FOUND_END:
-                        return paths
-        return paths
+    def find_shortest_path(self, initial, end):
+        return self.dijkstra(initial, end)
 
     def find_shortest_path(self, start, end):
-        """Finds shortest path efficiently"""
-        #  From https://www.python.org/doc/essays/graphs/
-
+        """From https://www.python.org/doc/essays/graphs/"""
         dist = {start: [start]}
         q = deque([start])
         while len(q):
             at = q.popleft()
-            for next in self._graph[at]:
+            for next in self.edges[at]:
                 if next not in dist:
                     # Optimal solution would be:
                     # dist[next] = [dist[at], next]
@@ -121,5 +40,76 @@ class Graph(object):
                     q.append(next)
         return dist.get(end)
 
-    def __str__(self):
-        return "{}({})".format(self.__class__.__name__, dict(self._graph))
+    def dijkstra(self, initial, end):
+        """From https://www.bogotobogo.com/python/python_Dijkstras_Shortest_Path_Algorithm.php"""
+        # Shortest paths is a dict of nodes whose value is a tuple of (previous node, cost)
+        shortest_paths = {initial: (None, 0)}
+        current_node = initial
+        visited = set()
+
+        with tqdm(total=len(self.edges)) as pbar:
+            while current_node != end:
+                visited.add(current_node)
+                destinations = self.edges[current_node]
+                cost_to_current_node = shortest_paths[current_node][1]
+
+                for next_node in destinations:
+                    cost = self.costs[(current_node, next_node)] + cost_to_current_node
+                    if next_node not in shortest_paths:
+                        shortest_paths[next_node] = (current_node, cost)
+                    else:
+                        current_shortest_cost = shortest_paths[next_node][1]
+                        if current_shortest_cost > cost:
+                            shortest_paths[next_node] = (current_node, cost)
+
+                next_destinations = {node: shortest_paths[node] for node in shortest_paths if node not in visited}
+                if not next_destinations:
+                    return None
+                # The next node is the destination with the lowest cost
+                current_node = min(next_destinations, key=lambda k: next_destinations[k][1])
+                pbar.update(1)
+
+            pbar.n = len(self.edges)
+            pbar.refresh()
+
+        # Work back through destinations in shortest path
+        path = []
+        while current_node is not None:
+            path.append(current_node)
+            next_node = shortest_paths[current_node][0]
+            current_node = next_node
+
+        # Reverse path
+        path = path[::-1]
+        logging.info(f"Dijksra found a path of length {len(path)}.")
+        return path
+
+
+    def heuristic(self, a, b):
+        (x1, y1) = a
+        (x2, y2) = b
+        return abs(x1 - x2) + abs(y1 - y2)
+
+    def a_star_search(self, start, goal):
+        frontier = queue.PriorityQueue()
+        frontier.put(start, 0)
+        came_from: Dict[Location, Optional[Location]] = {}
+        cost_so_far: Dict[Location, float] = {}
+        came_from[start] = None
+        cost_so_far[start] = 0
+        
+        while not frontier.empty():
+            current: Location = frontier.get()
+            
+            if current == goal:
+                break
+            
+            for next in graph.neighbors(current):
+                new_cost = cost_so_far[current] + graph.cost(current, next)
+                if next not in cost_so_far or new_cost < cost_so_far[next]:
+                    cost_so_far[next] = new_cost
+                    priority = new_cost + heuristic(next, goal)
+                    frontier.put(next, priority)
+                    came_from[next] = current
+        
+        return came_from, cost_so_far

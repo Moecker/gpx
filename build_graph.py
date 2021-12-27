@@ -11,12 +11,11 @@ import distance
 import gpx2ascii
 import gpx_tools
 import graph
-import cost_graph
 import points2ascii
 
 
 def build_map(segments_dict):
-    map = cost_graph.CostGraph([])
+    map = graph.Graph()
     pbar = tqdm(segments_dict.items())
     for name, segment in pbar:
         pbar.set_description(f"INFO: Processing {name} with {len(segment.points)} points.")
@@ -31,7 +30,7 @@ def build_map(segments_dict):
                     ), f"Distance {dis:.2f} greater than {config.TOLERATION_DISTANCE}"
 
                     assert dis > 0, f"Distance between {prev_point} and {point} should not be zero"
-                    map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_FACTOR))
+                    map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_PENALTY))
 
                 prev_point = point
                 find_and_add_adjacent_nodes(map, segments_dict, segment, point)
@@ -49,9 +48,8 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
                 continue
             dis = distance.haversine_gpx(current_point, other_point)
             if dis < config.GRAPH_CONNECTION_DISTANCE:
-                # TODO assert (dis > 0), f"Distance between {current_point} and {other_point} should not be zero"
-                map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_FACTOR))
-                pass
+                # assert dis > 0, f"Distance between {current_point} and {other_point} should not be zero"
+                map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_PENALTY))
 
 
 def add_waypoints(map, path, edges, character):
@@ -78,7 +76,7 @@ def create_and_display_map(path, name, background=[]):
 def compute_min_dis(map, start_gpx):
     min_dis = math.inf
     min_node = None
-    for k, _ in map._graph.items():
+    for k, _ in map.edges.items():
         dis = distance.haversine_gpx(k, start_gpx)
         if dis < min_dis:
             min_dis = dis
@@ -137,44 +135,3 @@ def load_or_build_map(segments_dict, name, output_dir):
     map = pickle.load(open(pickle_path, "rb"))
 
     return map
-
-
-def standalone_example():
-    start = (46, 10)
-    end = (48, 15)
-
-    print("Loading segments")
-    reduction = str(int(config.REDUCTION_DISTANCE))
-    pickle_path_segments = os.path.join("pickle", "_".join([config.COUNTRY, reduction, "segments.p"]))
-    segments_dict = build_segments.try_load_pickle(pickle_path_segments)
-
-    if not segments_dict:
-        logging.error("Could not load segments.")
-
-    all_points = collect_all_points(segments_dict)
-    create_and_display_map(all_points, "All Points")
-
-    connection = str(int(config.GRAPH_CONNECTION_DISTANCE))
-    precision = str(int(config.PRECISION))
-    map = load_or_build_map(
-        segments_dict, "_".join([config.COUNTRY, "R" + reduction, "C" + connection, "P" + precision, "map.p"]), "pickle"
-    )
-
-    print("Finding random paths")
-    random_path = find_path(map, start, end, map.find_path)
-    create_and_display_map(random_path, "Random Path")
-
-    print("Finding shortest path")
-    shortest = find_path(map, start, end, map.find_shortest_path)
-    create_and_display_map(shortest, "Shortest Path")
-
-    print("Finding multipath")
-    all_paths = find_path(map, start, end, map.find_all_paths)
-    for i, path in enumerate(all_paths):
-        print(f"Length of path: {len(path)}")
-        create_and_display_map(path, str(i) + ". Path ")
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    standalone_example()
