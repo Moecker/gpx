@@ -28,7 +28,7 @@ def main():
         logging.warning("Option config.ALWAYS_PARSE is active")
     if config.ALWAYS_GRAPH:
         logging.warning("Option config.ALWAYS_GRAPH is active")
-        
+
     pickle_file_name = "_".join(
         [str(int(config.REDUCTION_DISTANCE)), utils.replace_os_seperator(config.GPX_PATH), "segments.p"]
     )
@@ -46,9 +46,8 @@ def main():
     background = with_background()
 
     all_points = build_graph.collect_all_points(segments_dict)
-    build_graph.create_and_display_map(all_points, "All Points", background)
-
     logging.info(f"Number of points in segments {str(len(all_points))}.")
+    build_graph.create_and_display_map(all_points, "All Points", background)
 
     map_file_name = "_".join(
         [

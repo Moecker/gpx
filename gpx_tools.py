@@ -17,7 +17,7 @@ class SimplePoint:
         return self.__repr__()
 
     def __repr__(self):
-        return f"GPS:{hex(id(self))}:({self.latitude:.8f},{self.longitude:.8f})"
+        return f"GPS:({self.latitude:.8f},{self.longitude:.8f}):{hex(id(self))}"
 
 
 class SimpleSegment:

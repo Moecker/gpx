@@ -24,7 +24,9 @@ GRAPH_CONNECTION_DISTANCE = 2.0  # In km, When a point to another point is consi
 PRECISION = 5  # Every nth point is part of the graph or evaluated as a adjacent point.
 COST_NORMAL_PENALTY = 1  # Cost for normal next points.
 COST_SWITCH_SEGMENT_PENALTY = 50  # Cost for switching segments.
-PRECISION_OTHER_SEGMENT = 100  # Every nth point is part of the graph or evaluated as a adjacent point on other segments.
+PRECISION_OTHER_SEGMENT = (
+    10  # Every nth point is part of the graph or evaluated as a adjacent point on other segments.
+)
 
 # ASSERTIONS
 TOLERATION_FACTOR = 100.0

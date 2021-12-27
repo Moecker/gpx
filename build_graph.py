@@ -34,7 +34,7 @@ def build_map(segments_dict):
                     map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_PENALTY))
 
                 prev_point = point
-                find_and_add_adjacent_nodes(map, segments_dict, segment, point)
+                # find_and_add_adjacent_nodes(map, segments_dict, segment, point)
     return map
 
 
@@ -63,6 +63,7 @@ def create_and_display_map(path, name, background=[]):
         logging.warning(f"Nothing to display for '{name}', no valid points.")
         return
 
+    logging.info(f"Creating map '{name}'...")
     edges = points2ascii.determine_bounding_box(path + background)
     map = points2ascii.create_map(edges, " ")
 

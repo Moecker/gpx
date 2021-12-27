@@ -4,6 +4,7 @@ import math
 from tqdm import tqdm
 import queue
 
+
 class Graph:
     def __init__(self):
         """
@@ -85,7 +86,6 @@ class Graph:
         logging.info(f"Dijksra found a path of length {len(path)}.")
         return path
 
-
     def heuristic(self, a, b):
         (x1, y1) = a
         (x2, y2) = b
@@ -98,13 +98,13 @@ class Graph:
         cost_so_far: Dict[Location, float] = {}
         came_from[start] = None
         cost_so_far[start] = 0
-        
+
         while not frontier.empty():
             current: Location = frontier.get()
-            
+
             if current == goal:
                 break
-            
+
             for next in graph.neighbors(current):
                 new_cost = cost_so_far[current] + graph.cost(current, next)
                 if next not in cost_so_far or new_cost < cost_so_far[next]:
@@ -112,5 +112,5 @@ class Graph:
                     priority = new_cost + heuristic(next, goal)
                     frontier.put(next, priority)
                     came_from[next] = current
-        
+
         return came_from, cost_so_far
