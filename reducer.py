@@ -1,6 +1,7 @@
 import gpxpy
 import logging
 
+
 def reduce(file_name, min_dis, file_name_reduced):
     with open(file_name, "r") as f:
         try:

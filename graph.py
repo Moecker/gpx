@@ -20,7 +20,7 @@ class Graph(object):
         for node1, node2 in connections:
             self.add(node1, node2)
 
-    def add(self, node1, node2):
+    def add(self, node1, node2, cost=None):
         """Add connection between node1 and node2"""
 
         self._graph[node1].add(node2)
@@ -46,7 +46,7 @@ class Graph(object):
         return node1 in self._graph and node2 in self._graph[node1]
 
     def find_path(self, node1, node2, path=[]):
-        """ Delegates to the best version """
+        """Delegates to the best version"""
         path_iter = self.find_path_iterative(node1, node2, path=[])
         return path_iter
 
@@ -90,7 +90,7 @@ class Graph(object):
         return None
 
     def find_all_paths(self, start, end, path=[]):
-        """Find all path between node1 and node2 recursively, very slow though """
+        """Find all path between node1 and node2 recursively, very slow though"""
         path = path + [start]
         if start == end:
             return [path]
@@ -107,9 +107,9 @@ class Graph(object):
         return paths
 
     def find_shortest_path(self, start, end):
-        """ Finds shortest path efficiently """
+        """Finds shortest path efficiently"""
         #  From https://www.python.org/doc/essays/graphs/
-        
+
         dist = {start: [start]}
         q = deque([start])
         while len(q):
@@ -124,3 +124,33 @@ class Graph(object):
 
     def __str__(self):
         return "{}({})".format(self.__class__.__name__, dict(self._graph))
+
+
+class CostGraphInheritance(Graph):
+    def __init__(self, connections, directed=False):
+        # Always start freshly
+        super().__init__(connections, directed=False)
+
+    def add(self, node1, node2, _):
+        super().add(node1, node2)
+
+
+class CostGraph(Graph):
+    def __init__(self):
+        self._graph = defaultdict(set)
+
+    def add(self, node1, node2, cost):
+        self._graph[node1].add((node2, cost))
+        self._graph[node2].add((node1, cost))
+
+    def find_shortest_path(self, start, end):
+        dist = {start: [start]}
+        q = deque([start])
+        while len(q):
+            at = q.popleft()
+            for next in self._graph[at]:
+                next_key = next[0]
+                if next_key not in dist:
+                    dist[next_key] = dist[at] + [next_key]
+                    q.append(next_key)
+        return dist.get(end)

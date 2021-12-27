@@ -32,5 +32,5 @@ def create_map(edges, default_character):
 
     w, h = int(distance_w / config.SCALE_FACTOR + 1), int(distance_h / config.SCALE_FACTOR + 1)
     map = [[default_character for x in range(w)] for y in range(h)]
-    
+
     return map
