@@ -10,7 +10,7 @@ def determine_bounding_box(points):
     max_lat, max_lon = 0, 0
     edges = [[0 for x in range(2)] for y in range(2)]
 
-    for point in points:
+    for point in points[:: config.SCALE_FACTOR]:
         max_lat = max(max_lat, point.latitude)
         max_lon = max(max_lon, point.longitude)
         min_lat = min(min_lat, point.latitude)

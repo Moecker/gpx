@@ -25,16 +25,10 @@ def build_map(segments_dict):
                 # Direct, inter segment connection is always possible, without checking the distance
                 if prev_point:
                     dis = distance.haversine_gpx(prev_point, point)
-                    assert (
-                        dis < config.TOLERATION_DISTANCE
-                    ), f"Distance {dis:.2f} greater than {config.TOLERATION_DISTANCE}"
-
-                    assert dis > 0, f"Distance between {prev_point} and {point} should not be zero"
-
                     map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_PENALTY))
 
                 prev_point = point
-                # find_and_add_adjacent_nodes(map, segments_dict, segment, point)
+                find_and_add_adjacent_nodes(map, segments_dict, segment, point)
     return map
 
 
@@ -43,17 +37,31 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
         # Do no connect points which would skip intermediate, intra segment points
         if other_segment == current_segment:
             continue
-        for other_point in other_segment.points[:: config.PRECISION * config.PRECISION_OTHER_SEGMENT]:
-            # Self connection does not make sense
-            if current_point == other_point:
-                continue
-            dis = distance.haversine_gpx(current_point, other_point)
-            if dis < config.GRAPH_CONNECTION_DISTANCE:
-                map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_PENALTY))
+
+        if config.USE_SMART_ALGO:
+            idx = 0
+            while idx < len(other_segment.points):
+                other_point = other_segment.points[idx]
+                dis = distance.haversine_gpx(current_point, other_point)
+
+                step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
+                idx = idx + max(1, step_distance)
+
+                if dis < config.GRAPH_CONNECTION_DISTANCE:
+                    map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_PENALTY))
+        else:
+            for other_point in other_segment.points[:: config.PRECISION_OTHER_SEGMENT]:
+                # Self connection does not make sense
+                if current_point == other_point:
+                    continue
+                dis = distance.haversine_gpx(current_point, other_point)
+                if dis < config.GRAPH_CONNECTION_DISTANCE:
+                    map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_PENALTY))
+        
 
 
 def add_waypoints(map, path, edges, character):
-    for point in path:
+    for point in path[:: config.SCALE_FACTOR]:
         idx_w, idx_h = gpx2ascii.determine_index((point.latitude, point.longitude), edges)
         map[idx_w][idx_h] = character
 
