@@ -30,6 +30,7 @@ def build_map(segments_dict):
                     ), f"Distance {dis:.2f} greater than {config.TOLERATION_DISTANCE}"
 
                     assert dis > 0, f"Distance between {prev_point} and {point} should not be zero"
+
                     map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_PENALTY))
 
                 prev_point = point
@@ -42,13 +43,12 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
         # Do no connect points which would skip intermediate, intra segment points
         if other_segment == current_segment:
             continue
-        for other_point in other_segment.points[:: config.PRECISION]:
+        for other_point in other_segment.points[:: config.PRECISION * config.PRECISION_OTHER_SEGMENT]:
             # Self connection does not make sense
             if current_point == other_point:
                 continue
             dis = distance.haversine_gpx(current_point, other_point)
             if dis < config.GRAPH_CONNECTION_DISTANCE:
-                # assert dis > 0, f"Distance between {current_point} and {other_point} should not be zero"
                 map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_PENALTY))
 
 
@@ -131,7 +131,8 @@ def load_or_build_map(segments_dict, name, output_dir):
         logging.info(f"Saving pickle file to {pickle_path}.")
         pickle.dump(map, open(pickle_path, "wb"))
 
-    logging.info(f"Loading {pickle_path}.")
+    logging.info(f"Pickle {pickle_path} exist, using it.")
+    logging.info(f"Loading {pickle_path}...")
     map = pickle.load(open(pickle_path, "rb"))
 
     return map

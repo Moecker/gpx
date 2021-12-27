@@ -50,6 +50,7 @@ def determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict)
 def try_load_pickle(pickle_path):
     if not config.ALWAYS_PARSE and os.path.isfile(pickle_path):
         logging.info(f"{pickle_path} exists, using it.")
+        logging.info(f"Loading {pickle_path}...")
         segments_dict = pickle.load(open(pickle_path, "rb"))
         return segments_dict
     else:

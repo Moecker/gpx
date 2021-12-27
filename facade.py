@@ -22,6 +22,13 @@ def with_background():
 
 
 def main():
+    if config.ALWAYS_REDUCE:
+        logging.warning("Option config.ALWAYS_REDUCE is active")
+    if config.ALWAYS_PARSE:
+        logging.warning("Option config.ALWAYS_PARSE is active")
+    if config.ALWAYS_GRAPH:
+        logging.warning("Option config.ALWAYS_GRAPH is active")
+        
     pickle_file_name = "_".join(
         [str(int(config.REDUCTION_DISTANCE)), utils.replace_os_seperator(config.GPX_PATH), "segments.p"]
     )
@@ -64,11 +71,9 @@ def main():
     dijkstra = build_graph.find_path(map, config.START_GPS, config.END_GPS, map.dijkstra)
     build_graph.create_and_display_map(dijkstra, "Dijkstra path", background)
 
-    gpx_tools.save_as_gpx_file(all_points, config.RESULTS_FOLDER, "all_points.gpx")
     gpx_tools.save_as_gpx_file(shortest, config.RESULTS_FOLDER, "shortest_path.gpx")
     gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, "dijkstra.gpx")
 
-    display.save_gpx_as_html("all_points", config.RESULTS_FOLDER)
     display.save_gpx_as_html("shortest_path", config.RESULTS_FOLDER)
     display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
 

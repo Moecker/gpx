@@ -64,6 +64,7 @@ class Graph:
 
                 next_destinations = {node: shortest_paths[node] for node in shortest_paths if node not in visited}
                 if not next_destinations:
+                    pbar.n = len(self.edges)
                     return None
                 # The next node is the destination with the lowest cost
                 current_node = min(next_destinations, key=lambda k: next_destinations[k][1])
