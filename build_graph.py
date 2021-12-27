@@ -11,11 +11,12 @@ import distance
 import gpx2ascii
 import gpx_tools
 import graph
+import cost_graph
 import points2ascii
 
 
 def build_map(segments_dict):
-    map = graph.CostGraph([])
+    map = cost_graph.CostGraph([])
     pbar = tqdm(segments_dict.items())
     for name, segment in pbar:
         pbar.set_description(f"INFO: Processing {name} with {len(segment.points)} points.")

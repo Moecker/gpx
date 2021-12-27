@@ -1,7 +1,4 @@
-import logging
-import math
 from collections import defaultdict, deque
-from functools import partial
 
 from tqdm import tqdm
 
@@ -125,63 +122,4 @@ class Graph(object):
         return dist.get(end)
 
     def __str__(self):
-        return "{}({})".format(self.__class__.__name__, dict(self._graph))
-
-
-class CostGraph(Graph):
-    def __init__(self, _):
-        self._graph = defaultdict(partial(defaultdict, int))
-
-    def add(self, node1, node2, cost=1):
-        self._graph[node1].update({node2: cost})
-        self._graph[node2].update({node1: cost})
-
-    def dijkstra(self, start, end):
-        D = {}
-        P = {}
-        minimum_costs = math.inf
-
-        for node in self._graph.keys():
-            D[node] = -1
-            P[node] = ""
-
-        D[start] = 0
-        unseen_nodes = list(self._graph.keys())
-
-        while len(unseen_nodes) > 0:
-            shortest = None
-            node = ""
-            for temp_node in unseen_nodes:
-                if shortest == None:
-                    shortest = D[temp_node]
-                    node = temp_node
-                elif D[temp_node] < shortest:
-                    shortest = D[temp_node]
-                    node = temp_node
-            unseen_nodes.remove(node)
-            for child_node, child_value in self._graph[node].items():
-                current_costs = D[node] + child_value
-                if D[child_node] < current_costs:
-                    minimum_costs = current_costs
-                    D[child_node] = current_costs
-                    P[child_node] = node
-
-        path = []
-        node = end
-
-        while not (node == start):
-            if path.count(node) == 0:
-                path.insert(0, node)
-                node = P[node]
-            else:
-                break
-
-        path.insert(0, start)
-        logging.info(f"Dijksra found a path with costs {minimum_costs}")
-        return path
-
-    def __str__(self):
-        return "{}({})".format(self.__class__.__name__, dict(self._graph))
-
-    def __repr__(self):
         return "{}({})".format(self.__class__.__name__, dict(self._graph))

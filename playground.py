@@ -1,29 +1,26 @@
 import graph
+import cost_graph
+import logging
 
 
-cost_graph = graph.CostGraph()
-normal_graph = graph.Graph([])
-graphs = [cost_graph, normal_graph]
+def main():
+    g = cost_graph.CostGraph([])
 
-print(cost_graph)
-print(cost_graph._graph["A"])
-print(cost_graph._graph["A"]["B"])
+    g.add("A", "B", 2)
 
-cost_graph.add("A", "B", 2)
+    foo = "Foo"
+    bar = "Bar"
+    ohm = "Ohm"
 
-print(cost_graph)
-print(cost_graph._graph["A"])
-print(cost_graph._graph["A"]["B"])
+    g.add(foo, bar, 1)
+    g.add(bar, ohm, 10)
+    g.add(foo, ohm, 1)
 
-foo = "Foo"
-bar = "Bar"
-ohm = "Ohm"
+    print(g)
+    print(g.find_shortest_path(foo, ohm))
+    print(g.dijkstra(foo, ohm))
 
-for g in graphs:
-    g.add(foo, bar, 2)
-    g.add(bar, ohm, 30)
-    g.add(foo, ohm, 10)
 
-print(cost_graph)
-print(cost_graph.find_shortest_path(foo, ohm))
-print(cost_graph.dijkstra(foo, ohm))
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    main()
