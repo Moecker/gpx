@@ -15,7 +15,7 @@ import points2ascii
 
 
 def build_map(segments_dict):
-    map = graph.Graph([])
+    map = graph.CostGraph([])
     pbar = tqdm(segments_dict.items())
     for name, segment in pbar:
         pbar.set_description(f"INFO: Processing {name} with {len(segment.points)} points.")
@@ -24,7 +24,7 @@ def build_map(segments_dict):
             for point in segment.points[:: config.PRECISION]:
                 # Direct, inter segment connection is always possible, without checking the distance
                 if prev_point:
-                    map.add(prev_point, point)
+                    map.add(prev_point, point, cost=config.COST_NORMAL)
                 prev_point = point
                 find_and_add_adjacent_nodes(map, segments_dict, segment, point)
     return map
@@ -41,7 +41,7 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
                 continue
             dis = distance.haversine_gpx(current_point, other_point)
             if dis < config.GRAPH_CONNECTION_DISTANCE:
-                map.add(current_point, other_point)
+                map.add(current_point, other_point, cost=config.COST_SWITCH_SEGMENT)
 
 
 def add_waypoints(map, path, edges, character):

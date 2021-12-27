@@ -57,14 +57,19 @@ def main():
 
     logging.info("Finding shortest path.")
     shortest = build_graph.find_path(map, config.START_GPS, config.END_GPS, map.find_shortest_path)
-
     build_graph.create_and_display_map(shortest, "Shortest path", background)
+
+    logging.info("Finding dijkstra path.")
+    dijkstra = build_graph.find_path(map, config.START_GPS, config.END_GPS, map.dijkstra)
+    build_graph.create_and_display_map(dijkstra, "Dijkstra path", background)
 
     gpx_tools.save_as_gpx_file(all_points, config.RESULTS_FOLDER, "all_points.gpx")
     gpx_tools.save_as_gpx_file(shortest, config.RESULTS_FOLDER, "shortest_path.gpx")
+    gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, "dijkstra.gpx")
 
     display.save_gpx_as_html("all_points", config.RESULTS_FOLDER)
     display.save_gpx_as_html("shortest_path", config.RESULTS_FOLDER)
+    display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
 
 
 if __name__ == "__main__":

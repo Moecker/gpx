@@ -16,6 +16,9 @@ class SimplePoint:
     def __str__(self):
         return f"({self.latitude:.2f}, {self.longitude:.2f})"
 
+    def __repr__(self):
+        return f"GPS({self.latitude:.2f}, {self.longitude:.2f})"
+
 
 class SimpleSegment:
     def __init__(self, segment):

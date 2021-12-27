@@ -1,5 +1,6 @@
 import logging
 from collections import defaultdict, deque
+from functools import partial
 
 from tqdm import tqdm
 
@@ -20,7 +21,7 @@ class Graph(object):
         for node1, node2 in connections:
             self.add(node1, node2)
 
-    def add(self, node1, node2, cost=None):
+    def add(self, node1, node2, cost=1):
         """Add connection between node1 and node2"""
 
         self._graph[node1].add(node2)
@@ -126,31 +127,51 @@ class Graph(object):
         return "{}({})".format(self.__class__.__name__, dict(self._graph))
 
 
-class CostGraphInheritance(Graph):
-    def __init__(self, connections, directed=False):
-        # Always start freshly
-        super().__init__(connections, directed=False)
-
-    def add(self, node1, node2, _):
-        super().add(node1, node2)
-
-
 class CostGraph(Graph):
-    def __init__(self):
-        self._graph = defaultdict(set)
+    def __init__(self, _):
+        self._graph = defaultdict(partial(defaultdict, int))
 
-    def add(self, node1, node2, cost):
-        self._graph[node1].add((node2, cost))
-        self._graph[node2].add((node1, cost))
+    def add(self, node1, node2, cost=1):
+        self._graph[node1].update({node2: cost})
+        self._graph[node2].update({node1: cost})
 
-    def find_shortest_path(self, start, end):
-        dist = {start: [start]}
-        q = deque([start])
-        while len(q):
-            at = q.popleft()
-            for next in self._graph[at]:
-                next_key = next[0]
-                if next_key not in dist:
-                    dist[next_key] = dist[at] + [next_key]
-                    q.append(next_key)
-        return dist.get(end)
+    def dijkstra(self, start, end):
+        D = {}
+        P = {}
+
+        for node in self._graph.keys():
+            D[node] = -1
+            P[node] = ""
+
+        D[start] = 0
+        unseen_nodes = list(self._graph.keys())
+
+        while len(unseen_nodes) > 0:
+            shortest = None
+            node = ""
+            for temp_node in unseen_nodes:
+                if shortest == None:
+                    shortest = D[temp_node]
+                    node = temp_node
+                elif D[temp_node] < shortest:
+                    shortest = D[temp_node]
+                    node = temp_node
+            unseen_nodes.remove(node)
+            for child_node, child_value in self._graph[node].items():
+                if D[child_node] < D[node] + child_value:
+                    D[child_node] = D[node] + child_value
+                    P[child_node] = node
+
+        path = []
+        node = end
+
+        while not (node == start):
+            if path.count(node) == 0:
+                path.insert(0, node)
+                node = P[node]
+            else:
+                break
+
+        path.insert(0, start)
+
+        return path

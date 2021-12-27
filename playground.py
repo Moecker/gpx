@@ -5,18 +5,25 @@ cost_graph = graph.CostGraph()
 normal_graph = graph.Graph([])
 graphs = [cost_graph, normal_graph]
 
-n1 = "Foo"
-n2 = "Bar"
-n3 = "Ohm"
-n4 = "Can"
-n5 = "Kar"
+print(cost_graph)
+print(cost_graph._graph["A"])
+print(cost_graph._graph["A"]["B"])
+
+cost_graph.add("A", "B", 2)
+
+print(cost_graph)
+print(cost_graph._graph["A"])
+print(cost_graph._graph["A"]["B"])
+
+foo = "Foo"
+bar = "Bar"
+ohm = "Ohm"
 
 for g in graphs:
-    g.add(n1, n2, 1)
-    g.add(n2, n3, 1)
-    g.add(n3, n5, 1)
-    g.add(n4, n5, 1)
+    g.add(foo, bar, 2)
+    g.add(bar, ohm, 30)
+    g.add(foo, ohm, 10)
 
-    print(g)
-
-    print(g.find_shortest_path(n1, n3))
+print(cost_graph)
+print(cost_graph.find_shortest_path(foo, ohm))
+print(cost_graph.dijkstra(foo, ohm))

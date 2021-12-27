@@ -92,7 +92,7 @@ def load_and_reduce_gpxs(track_file_names, threshold, pickle_path, output_dir):
             pbar.set_description(f"INFO: {track_file_name_reduced} exists, using it.")
 
         setup_segments_dict(segments_dict, track_file_name_reduced)
-    return sorted(segments_dict)
+    return segments_dict
 
 
 def setup_segments_dict(segments_dict, track_file_name_reduced):
