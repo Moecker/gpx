@@ -14,10 +14,10 @@ class SimplePoint:
         return cls((gpx_point.latitude, gpx_point.longitude))
 
     def __str__(self):
-        return f"({self.latitude:.2f}, {self.longitude:.2f})"
+        return self.__repr__()
 
     def __repr__(self):
-        return f"GPS({self.latitude:.2f}, {self.longitude:.2f})"
+        return f"GPS:{hex(id(self))}:({self.latitude:.8f},{self.longitude:.8f})"
 
 
 class SimpleSegment:
@@ -42,7 +42,12 @@ def save_as_gpx_file(points, dir, file_name):
     gpx_track.segments.append(gpx_segment)
 
     file_path = os.path.join(dir, file_name)
-    logging.info(f"Saving {len(points)} points to {file_path}.")
+    if points:
+        logging.info(f"Saving {len(points)} points to {file_path}.")
+    else:
+        logging.error(f"Cannot save {file_name}, no points found.")
+        return
+
     for point in points:
         gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(point.latitude, point.longitude))
 

@@ -1,4 +1,5 @@
 import logging
+import math
 from collections import defaultdict, deque
 from functools import partial
 
@@ -138,6 +139,7 @@ class CostGraph(Graph):
     def dijkstra(self, start, end):
         D = {}
         P = {}
+        minimum_costs = math.inf
 
         for node in self._graph.keys():
             D[node] = -1
@@ -158,8 +160,10 @@ class CostGraph(Graph):
                     node = temp_node
             unseen_nodes.remove(node)
             for child_node, child_value in self._graph[node].items():
-                if D[child_node] < D[node] + child_value:
-                    D[child_node] = D[node] + child_value
+                current_costs = D[node] + child_value
+                if D[child_node] < current_costs:
+                    minimum_costs = current_costs
+                    D[child_node] = current_costs
                     P[child_node] = node
 
         path = []
@@ -173,5 +177,11 @@ class CostGraph(Graph):
                 break
 
         path.insert(0, start)
-
+        logging.info(f"Dijksra found a path with costs {minimum_costs}")
         return path
+
+    def __str__(self):
+        return "{}({})".format(self.__class__.__name__, dict(self._graph))
+
+    def __repr__(self):
+        return "{}({})".format(self.__class__.__name__, dict(self._graph))

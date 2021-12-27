@@ -8,6 +8,7 @@ import display
 import gpx2ascii
 import gpx_tools
 import utils
+from pprint import pprint
 
 
 def with_background():

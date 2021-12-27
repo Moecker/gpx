@@ -20,7 +20,11 @@ SCALE_FACTOR = 30  # How "big" the map is, the larger the more downsacling takes
 REDUCTION_DISTANCE = 1000.0  # The distance betwen two GPS points during reduction phase, in meter.
 
 # GRAPH
-GRAPH_CONNECTION_DISTANCE = 10.0  # In km, When a point to another point is considered connected.
-PRECISION = 2  # Every nth point is part of the graph or evaluated as a adjacent point.
-COST_NORMAL = 1  # Cost for normal next points
-COST_SWITCH_SEGMENT = 1  # Cost for switching segments
+GRAPH_CONNECTION_DISTANCE = 0.0  # In km, When a point to another point is considered connected.
+PRECISION = 10  # Every nth point is part of the graph or evaluated as a adjacent point.
+COST_NORMAL_FACTOR = 1  # Cost for normal next points
+COST_SWITCH_SEGMENT_FACTOR = 10  # Cost for switching segments
+
+# ASSERTIONS
+TOLERATION_FACTOR = 1.5
+TOLERATION_DISTANCE = REDUCTION_DISTANCE * PRECISION * TOLERATION_FACTOR / 1000

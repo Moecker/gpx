@@ -24,7 +24,14 @@ def build_map(segments_dict):
             for point in segment.points[:: config.PRECISION]:
                 # Direct, inter segment connection is always possible, without checking the distance
                 if prev_point:
-                    map.add(prev_point, point, cost=config.COST_NORMAL)
+                    dis = distance.haversine_gpx(prev_point, point)
+                    assert (
+                        dis < config.TOLERATION_DISTANCE
+                    ), f"Distance {dis:.2f} greater than {config.TOLERATION_DISTANCE}"
+
+                    assert dis > 0, f"Distance between {prev_point} and {point} should not be zero"
+                    map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_FACTOR))
+
                 prev_point = point
                 find_and_add_adjacent_nodes(map, segments_dict, segment, point)
     return map
@@ -41,7 +48,9 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
                 continue
             dis = distance.haversine_gpx(current_point, other_point)
             if dis < config.GRAPH_CONNECTION_DISTANCE:
-                map.add(current_point, other_point, cost=config.COST_SWITCH_SEGMENT)
+                # TODO assert (dis > 0), f"Distance between {current_point} and {other_point} should not be zero"
+                map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_FACTOR))
+                pass
 
 
 def add_waypoints(map, path, edges, character):
