@@ -11,11 +11,12 @@ import distance
 import gpx2ascii
 import gpx_tools
 import graph
+import astar
 import points2ascii
 
 
 def build_map(segments_dict):
-    map = graph.Graph()
+    map = astar.Graph()
     pbar = tqdm(segments_dict.items())
     for name, segment in pbar:
         pbar.set_description(f"INFO: Processing {name} with {len(segment.points)} points.")
@@ -57,7 +58,6 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
                 dis = distance.haversine_gpx(current_point, other_point)
                 if dis < config.GRAPH_CONNECTION_DISTANCE:
                     map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_PENALTY))
-        
 
 
 def add_waypoints(map, path, edges, character):
@@ -85,7 +85,7 @@ def create_and_display_map(path, name, background=[]):
 def compute_min_dis(map, start_gpx):
     min_dis = math.inf
     min_node = None
-    for k, _ in map.edges.items():
+    for k in map.nodes():
         dis = distance.haversine_gpx(k, start_gpx)
         if dis < min_dis:
             min_dis = dis

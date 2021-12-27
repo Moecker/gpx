@@ -1,8 +1,7 @@
 import logging
 from collections import defaultdict, deque
-import math
 from tqdm import tqdm
-import queue
+import itertools
 
 
 class Graph:
@@ -17,15 +16,15 @@ class Graph:
         self.edges = defaultdict(list)
         self.costs = {}
 
+    def nodes(self):
+        return list(itertools.chain.from_iterable(self.edges.values()))
+
     def add(self, from_node, to_node, cost):
         # Note: assumes edges are bi-directional
         self.edges[from_node].append(to_node)
         self.edges[to_node].append(from_node)
         self.costs[(from_node, to_node)] = cost
         self.costs[(to_node, from_node)] = cost
-
-    def find_shortest_path(self, initial, end):
-        return self.dijkstra(initial, end)
 
     def find_shortest_path(self, start, end):
         """From https://www.python.org/doc/essays/graphs/"""
@@ -86,31 +85,5 @@ class Graph:
         logging.info(f"Dijksra found a path of length {len(path)}.")
         return path
 
-    def heuristic(self, a, b):
-        (x1, y1) = a
-        (x2, y2) = b
-        return abs(x1 - x2) + abs(y1 - y2)
-
-    def a_star_search(self, start, goal):
-        frontier = queue.PriorityQueue()
-        frontier.put(start, 0)
-        came_from: Dict[Location, Optional[Location]] = {}
-        cost_so_far: Dict[Location, float] = {}
-        came_from[start] = None
-        cost_so_far[start] = 0
-
-        while not frontier.empty():
-            current: Location = frontier.get()
-
-            if current == goal:
-                break
-
-            for next in graph.neighbors(current):
-                new_cost = cost_so_far[current] + graph.cost(current, next)
-                if next not in cost_so_far or new_cost < cost_so_far[next]:
-                    cost_so_far[next] = new_cost
-                    priority = new_cost + heuristic(next, goal)
-                    frontier.put(next, priority)
-                    came_from[next] = current
-
-        return came_from, cost_so_far
+    def __str__(self):
+        return "{}({})".format(self.__class__.__name__, dict(self.edges))

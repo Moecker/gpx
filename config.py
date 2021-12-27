@@ -17,7 +17,7 @@ START_GPS, END_GPS = (48.2, 11.4), (51.1, 6.4)
 SCALE_FACTOR = 40  # How "big" the map is, the larger the more downsacling takes place.
 
 # COMMON
-REDUCTION_DISTANCE = 10.0  # The distance betwen two GPS points during reduction phase, in meter.
+REDUCTION_DISTANCE = 1000.0  # The distance betwen two GPS points during reduction phase, in meter.
 
 # GRAPH
 GRAPH_CONNECTION_DISTANCE = 5.0  # In km, When a point to another point is considered connected.

@@ -15,6 +15,7 @@ class TestGraph(unittest.TestCase):
         g.add(bar, ohm, 1)
         self.assertEqual(g.find_shortest_path(foo, ohm), [foo, bar, ohm])
         self.assertEqual(g.dijkstra(foo, ohm), [foo, bar, ohm])
+        print(g)
         g.add(foo, ohm, 1)
         self.assertEqual(g.find_shortest_path(foo, ohm), [foo, ohm])
         self.assertEqual(g.dijkstra(foo, ohm), [foo, ohm])
@@ -35,7 +36,15 @@ class TestGraph(unittest.TestCase):
         self.assertEqual(g.dijkstra(foo, ohm), [foo, ohm])
         self.assertEqual(g.dijkstra(bar, ohm), [bar, foo, ohm])
 
-    def test_foo(self):
+    def test_nodes(self):
+        g = graph.Graph()
+        foo = "Foo"
+        bar = "Bar"
+        g.add(foo, bar, 1)
+        self.assertEqual(len(g.nodes()), 2)
+        self.assertEqual(g.nodes(), [bar, foo])
+
+    def test_internet(self):
         g = graph.Graph()
 
         edges = [
