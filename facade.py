@@ -9,7 +9,7 @@ import gpx2ascii
 import gpx_tools
 import utils
 from pprint import pprint
-
+import statistics
 
 def with_background():
     germany_gpx_path = os.path.join("maps", "1000_germany.gpx")
@@ -61,6 +61,13 @@ def main():
     map = build_graph.load_or_build_map(segments_dict, map_file_name, os.path.join(config.STORAGE_TEMP_DIR, "maps"))
 
     logging.info(f"Number of nodes in graph {str(len(map.nodes()))}.")
+    weights = map.weights()
+    logging.info(f"Min weights {str(min(weights))}.")
+    logging.info(f"Max weights {str(max(weights))}.")
+    logging.info(f"Median weights {str(statistics.median(weights))}.")
+    logging.info(f"Mean weights {str(statistics.mean(weights))}.")
+    logging.info(f"Quantiles weights {str(statistics.quantiles(weights, n=20))}.")
+
 
     logging.info("Finding shortest path...")
     shortest = build_graph.find_path(map, config.START_GPS, config.END_GPS, map.find_shortest_path)

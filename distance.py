@@ -31,4 +31,4 @@ def haversine_gpx(gps1, gps2):
 
 
 def simple_distance(gps1, gps2):
-    return abs(gps1.latitude - gps2.latitude) + abs(gps1.longitude - gps2.longitude)
+    return abs(gps1.latitude - gps2.latitude) + abs(gps1.longitude - gps2.longitude) * 100

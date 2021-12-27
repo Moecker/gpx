@@ -27,12 +27,12 @@ class Graph:
     # This is heuristic function which is having equal values for all nodes
     def h(self, n, stop):
         dis = distance.simple_distance(n, stop)
-        return dis
+        return 1
 
-    def get_weights(self):
+    def weights(self):
         all_nodes = [t for t in list(self.friends.items())]
         all_weights = [t[1][0][1] for t in all_nodes]
-        print(all_weights)
+        return all_weights
 
     def dijkstra(self, start, stop):
         return self.a_star_algorithm(start, stop)
