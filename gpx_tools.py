@@ -8,16 +8,17 @@ class SimplePoint:
     def __init__(self, point):
         self.latitude = point[0]
         self.longitude = point[1]
+        self.annotation = ""
 
     @classmethod
     def from_gpx_point(cls, gpx_point):
         return cls((gpx_point.latitude, gpx_point.longitude))
 
     def __str__(self):
-        return f"GPS:({self.latitude:.8f},{self.longitude:.8f}):{hex(id(self))}"
+        return self.__repr__()
 
     def __repr__(self):
-        return f"GPS:({self.latitude:.4f},{self.longitude:.4f})"
+        return f"GPS({self.latitude:.4f}, {self.longitude:.4f}):{self.annotation}"
 
     def __lt__(self, other):
         return True

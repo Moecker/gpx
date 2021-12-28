@@ -34,10 +34,10 @@ def load_worldcities():
 
 def find_start_and_end(cities, start_city, end_city):
     if start_city.lower() not in cities.keys():
-        logging.error(f"{start_city} not found.")
+        logging.error(f"{start_city} not found, exiting.")
         sys.exit(1)
     if end_city.lower() not in cities.keys():
-        logging.error(f"{end_city} not found.")
+        logging.error(f"{end_city} not found, exiting.")
         sys.exit(1)
     return cities[start_city.lower()], cities[end_city.lower()]
 
@@ -47,7 +47,7 @@ def parse_args():
     parser.add_argument("--start", required=True, help="Start City")
     parser.add_argument("--end", required=True, help="End City")
     parser.add_argument("--gpx", required=True, help="Relative Path to GPX Data Source")
-    parser.add_argument("--silent", action="store_true",  help="Do not do any extra stuff")
+    parser.add_argument("--silent", action="store_true", help="Do not do any extra stuff")
     args = parser.parse_args()
     return args
 
@@ -72,7 +72,10 @@ def print_important_infos():
         logging.warning("Option config.ALWAYS_GRAPH is active.")
 
     logging.info(f"Using graph version '{config.GRAPH_MODUL.__name__}'")
-    logging.info(f"Minimum possible distance between points: {config.REDUCTION_DISTANCE * config.PRECISION / 1000:.2f} km.")
+    logging.info(
+        f"Minimum possible distance between points: {config.REDUCTION_DISTANCE * config.PRECISION / 1000:.2f} km."
+    )
+
 
 def load_segments(gpx_path):
     pickle_file_name = "_".join(
@@ -103,6 +106,10 @@ def load_map(segments_dict, gpx_path):
         ]
     )
     map = build_graph.load_or_build_map(segments_dict, map_file_name, os.path.join(config.STORAGE_TEMP_DIR, "maps"))
+
+    if not len(map.keys()):
+        logging.error(f"No keys in map, exiting.")
+        sys.exit(1)
     return map
 
 
@@ -132,28 +139,44 @@ def main():
     logging.info(f"Number of total nodes in graph {str(len(map.nodes()))}.")
     logging.info(f"Quantiles weights {str(statistics.quantiles(map.weights(), n=10))}.")
 
-    logging.info("Finding shortest path...")
-    start_time = time.time()
-    shortest = build_graph.find_path(map, start_gps, end_gps, map.find_shortest_path)
-    logging.info(f"Elapsed time {time.time() - start_time:.2f} s")
+    # perform_shortest(start_gps, end_gps, segments_dict, background, map)
+    perform_dijksra(start_gps, end_gps, segments_dict, background, map)
 
-    build_graph.create_and_display_map(shortest, "Shortest path", background)
+    if not args.silent:
+        webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "shortest.html"))
+        webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "shortest_rescaled.html"))
+        webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "dijkstra.html"))
+        webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "dijkstra_rescaled.html"))
 
+
+def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
     logging.info("Finding dijkstra path...")
     start_time = time.time()
     dijkstra = build_graph.find_path(map, start_gps, end_gps, map.dijkstra)
+    rescaled_dijkstra = build_graph.rescale(segments_dict, dijkstra)
     logging.info(f"Elapsed time {time.time() - start_time:.2f} s")
 
     build_graph.create_and_display_map(dijkstra, "Dijkstra path", background)
 
-    gpx_tools.save_as_gpx_file(shortest, config.RESULTS_FOLDER, "shortest_path.gpx")
     gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, "dijkstra.gpx")
-
-    display.save_gpx_as_html("shortest_path", config.RESULTS_FOLDER)
+    gpx_tools.save_as_gpx_file(rescaled_dijkstra, config.RESULTS_FOLDER, "dijkstra_rescaled.gpx")
     display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
+    display.save_gpx_as_html("dijkstra_rescaled", config.RESULTS_FOLDER)
 
-    if not args.silent:
-        webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "dijkstra.html"))
+
+def perform_shortest(start_gps, end_gps, segments_dict, background, map):
+    logging.info("Finding shortest path...")
+    start_time = time.time()
+    shortest = build_graph.find_path(map, start_gps, end_gps, map.find_shortest_path)
+    rescaled_shortest = build_graph.rescale(segments_dict, shortest)
+    logging.info(f"Elapsed time {time.time() - start_time:.2f} s")
+
+    build_graph.create_and_display_map(shortest, "Shortest path", background)
+
+    gpx_tools.save_as_gpx_file(shortest, config.RESULTS_FOLDER, "shortest.gpx")
+    gpx_tools.save_as_gpx_file(rescaled_shortest, config.RESULTS_FOLDER, "shortest_rescaled.gpx")
+    display.save_gpx_as_html("shortest", config.RESULTS_FOLDER)
+    display.save_gpx_as_html("shortest_rescaled", config.RESULTS_FOLDER)
 
 
 if __name__ == "__main__":

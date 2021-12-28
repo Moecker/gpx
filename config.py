@@ -13,11 +13,11 @@ RESULTS_FOLDER = "results"
 SCALE_FACTOR = 40  # How "big" the map is, the larger the more downsacling takes place.
 
 # COMMON
-REDUCTION_DISTANCE = 1000.0  # The distance betwen two GPS points during reduction phase, in meter.
+REDUCTION_DISTANCE = 50.0  # The distance betwen two GPS points during reduction phase, in meter.
 
 # GRAPH
 GRAPH_CONNECTION_DISTANCE = 5.0  # In km, When a point to another point is considered connected.
-PRECISION = 2  # Every nth point is part of the graph or evaluated as a adjacent point.
+PRECISION = 10  # Every nth point is part of the graph or evaluated as a adjacent point.
 
 # COSTS
 COST_NORMAL_PENALTY = 1  # Cost for normal next points.

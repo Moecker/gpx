@@ -12,26 +12,46 @@ import gpx_tools
 import points2ascii
 
 
+def annotate(point, name, idx):
+    point.annotation = f"{name}@{idx}"
+
+
 def build_map(segments_dict):
     map = config.GRAPH_MODUL.Graph()
     pbar = tqdm(segments_dict.items())
     for name, segment in pbar:
         pbar.set_description(f"INFO: Processing {name} with {len(segment.points)} points.")
         if len(segment.points):
-            prev_point = None
-            for point in segment.points[:: config.PRECISION]:
-                # Direct, inter segment connection is always possible, without checking the distance
-                if prev_point:
-                    dis = distance.haversine_gpx(prev_point, point)
-                    map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_PENALTY))
+            if config.USE_SMART_ALGO:
+                idx = 0
+                prev_point = None
+                while idx < len(segment.points):
+                    point = segment.points[idx]
+                    annotate(point, name, idx)
 
-                prev_point = point
-                find_and_add_adjacent_nodes(map, segments_dict, segment, point)
+                    if prev_point:
+                        dis = distance.haversine_gpx(prev_point, point)
+                        map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_PENALTY))
+
+                    prev_point = point
+                    find_and_add_adjacent_nodes(map, segments_dict, segment, point)
+                    idx = idx + max(1, int(config.PRECISION))
+            else:
+                # TODO Consider removing this
+                prev_point = None
+                for point_idx, point in enumerate(segment.points[:: config.PRECISION]):
+                    # Direct, inter segment connection is always possible, without checking the distance
+                    if prev_point:
+                        dis = distance.haversine_gpx(prev_point, point)
+                        map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_PENALTY))
+                    prev_point = point
+                    find_and_add_adjacent_nodes(map, segments_dict, segment, point)
+
     return map
 
 
 def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_point):
-    for _, other_segment in segments_dict.items():
+    for name, other_segment in segments_dict.items():
         # Do no connect points which would skip intermediate, intra segment points
         if other_segment == current_segment:
             continue
@@ -40,6 +60,8 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
             idx = 0
             while idx < len(other_segment.points):
                 other_point = other_segment.points[idx]
+                annotate(other_point, name, idx)
+
                 dis = distance.haversine_gpx(current_point, other_point)
 
                 # TODO Consider using this to enable more points
@@ -50,6 +72,7 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
                 if dis < config.GRAPH_CONNECTION_DISTANCE:
                     map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_PENALTY))
         else:
+            # TODO Consider removing this
             for other_point in other_segment.points[:: config.PRECISION_OTHER_SEGMENT]:
                 # Self connection does not make sense
                 if current_point == other_point:
@@ -146,3 +169,38 @@ def load_or_build_map(segments_dict, name, output_dir):
     map = pickle.load(open(pickle_path, "rb"))
 
     return map
+
+
+def rescale(segments_dict, path):
+    previous_idx = None
+    previous_key = None
+
+    rescaled_path = []
+
+    for point in path:
+        annotations = point.annotation.split("@")
+        key = annotations[0]
+        idx = int(annotations[1])
+
+        if key != previous_key:
+            previous_idx = None
+            previous_key = key
+
+        if not previous_idx:
+            previous_idx = idx
+            continue
+
+        if previous_idx < idx:
+            adding_points = segments_dict[key].points[previous_idx:idx]
+        else:
+            adding_points = segments_dict[key].points[idx:previous_idx]
+
+        rescaled_path.extend(adding_points)
+
+        print(f"{previous_idx}:{idx}{key}")
+
+        segments_dict[key]
+        previous_idx = idx
+
+    logging.info(f"Rescaled from {len(path)} to {len(rescaled_path)} points")
+    return rescaled_path
