@@ -35,7 +35,10 @@ def build_map(segments_dict):
 
                     prev_point = point
                     find_and_add_adjacent_nodes(map, segments_dict, segment, point)
-                    idx = idx + max(1, config.PRECISION)
+
+                    # Jump the step size, but always add the last point, too
+                    idx = min(idx + max(1, config.PRECISION), len(segment.points) - 1)
+
             else:
                 # TODO Consider removing this
                 prev_point = None
@@ -64,11 +67,14 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
 
                 dis = distance.haversine_gpx(current_point, other_point)
 
-                step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
-                idx = idx + max(1, step_distance)
-
                 if dis < config.GRAPH_CONNECTION_DISTANCE:
                     map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_PENALTY))
+
+                step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
+
+                # Jump the step size, but always add the last point, too
+                idx = min(idx + max(1, step_distance), len(other_segment.points) - 1)
+
         else:
             # TODO Consider removing this
             for other_point in other_segment.points[:: config.PRECISION]:
@@ -196,13 +202,19 @@ def rescale(segments_dict, path):
             previous_idx = idx
             continue
 
+        # Importantly, the original tour can be made in both directions.
+        # To respect this, the found part-segments have to be added
+        # not according to how it has ben recorded, but how the current
+        # direction is.
         if previous_idx < idx:
             adding_points = segments_dict[key].points[previous_idx:idx]
+            logging.debug(f"Adding range: {previous_idx}:{idx}:{key}")
         else:
             adding_points = segments_dict[key].points[idx:previous_idx]
+            adding_points = reversed(adding_points)
+            logging.debug(f"Adding range: {idx}:{previous_idx}:{key}")
 
         rescaled_path.extend(adding_points)
-        logging.debug(f"{previous_idx}:{idx}{key}")
 
         segments_dict[key]
         previous_idx = idx

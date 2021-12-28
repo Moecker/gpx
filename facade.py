@@ -35,15 +35,17 @@ def load_worldcities():
         cities[city].append((lat, lon))
     return cities
 
+
 def check_city(cities, city):
     if city.lower() not in cities.keys():
         logging.warning(f"{city} not found.")
         return False
     return True
 
+
 def find_start_and_end(cities, start_city, end_city):
     found_start = check_city(cities, start_city)
-    found_end= check_city(cities, end_city)
+    found_end = check_city(cities, end_city)
 
     if not found_start or not found_end:
         logging.error(f"Start and/or End city not found, returning.")
@@ -237,12 +239,12 @@ def main():
                 while True:
                     end_city = input("Destination: ")
                     if end_city == "":
-                        sys.exit(0) 
+                        sys.exit(0)
                     if not check_city(cities, end_city):
                         continue
                     break
                 perform_run(cities, start_city, end_city, segments_dict, background, map, args.silent)
-        except(KeyboardInterrupt):
+        except (KeyboardInterrupt):
             sys.exit(0)
 
     else:
