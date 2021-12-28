@@ -44,8 +44,5 @@ COST_SWITCH_SEGMENT_PENALTY = 500
 # the shortest path to other nodes quicker.
 HEURISTIC_SCALE_FACTOR = 100
 
-# To simplify the mechanism which adjacent nodes are important and which are not.
-USE_SMART_ALGO = True
-
 # The used module which implements the graph.
 GRAPH_MODUL = astar

@@ -21,35 +21,25 @@ def build_map(segments_dict):
     pbar = tqdm(segments_dict.items())
     for name, segment in pbar:
         pbar.set_description(f"INFO: Processing {name} with {len(segment.points)} points.")
-        if len(segment.points):
-            if config.USE_SMART_ALGO:
-                idx = 0
-                prev_point = None
-                while idx < len(segment.points):
-                    point = segment.points[idx]
-                    annotate(point, name, idx)
+        
+        if not len(segment.points):
+            continue
 
-                    if prev_point:
-                        dis = distance.haversine_gpx(prev_point, point)
-                        map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_PENALTY))
+        idx = 0
+        prev_point = None
+        while idx < len(segment.points):
+            point = segment.points[idx]
+            annotate(point, name, idx)
 
-                    prev_point = point
-                    find_and_add_adjacent_nodes(map, segments_dict, segment, point)
+            if prev_point:
+                dis = distance.haversine_gpx(prev_point, point)
+                map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_PENALTY))
 
-                    # Jump the step size, but always add the last point, too
-                    idx = min(idx + max(1, config.PRECISION), len(segment.points) - 1)
+            prev_point = point
+            find_and_add_adjacent_nodes(map, segments_dict, segment, point)
 
-            else:
-                # TODO Consider removing this
-                prev_point = None
-                for _, point in enumerate(segment.points[:: config.PRECISION]):
-                    # Direct, inter segment connection is always possible, without checking the distance
-                    if prev_point:
-                        dis = distance.haversine_gpx(prev_point, point)
-                        map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_PENALTY))
-                    prev_point = point
-                    find_and_add_adjacent_nodes(map, segments_dict, segment, point)
-
+            # Jump the step size, but always add the last point, too
+            idx = min(idx + max(1, config.PRECISION), len(segment.points) - 1)
     return map
 
 
@@ -59,31 +49,20 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
         if other_segment == current_segment:
             continue
 
-        if config.USE_SMART_ALGO:
-            idx = 0
-            while idx < len(other_segment.points):
-                other_point = other_segment.points[idx]
-                annotate(other_point, name, idx)
+        idx = 0
+        while idx < len(other_segment.points):
+            other_point = other_segment.points[idx]
+            annotate(other_point, name, idx)
 
-                dis = distance.haversine_gpx(current_point, other_point)
+            dis = distance.haversine_gpx(current_point, other_point)
 
-                if dis < config.GRAPH_CONNECTION_DISTANCE:
-                    map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_PENALTY))
+            if dis < config.GRAPH_CONNECTION_DISTANCE:
+                map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_PENALTY))
 
-                step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
+            step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
 
-                # Jump the step size, but always add the last point, too
-                idx = min(idx + max(1, step_distance), len(other_segment.points) - 1)
-
-        else:
-            # TODO Consider removing this
-            for other_point in other_segment.points[:: config.PRECISION]:
-                # Self connection does not make sense
-                if current_point == other_point:
-                    continue
-                dis = distance.haversine_gpx(current_point, other_point)
-                if dis < config.GRAPH_CONNECTION_DISTANCE:
-                    map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_PENALTY))
+            # Jump the step size, but always add the last point, too
+            idx = min(idx + max(1, step_distance), len(other_segment.points) - 1)
 
 
 def add_waypoints(map, path, edges, character):
