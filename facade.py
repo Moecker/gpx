@@ -2,6 +2,7 @@ import argparse
 import logging
 import math
 import os
+from pickle import FALSE
 import statistics
 import sys
 import time
@@ -34,15 +35,19 @@ def load_worldcities():
         cities[city].append((lat, lon))
     return cities
 
+def check_city(cities, city):
+    if city.lower() not in cities.keys():
+        logging.warning(f"{city} not found.")
+        return False
+    return True
 
 def find_start_and_end(cities, start_city, end_city):
-    if start_city.lower() not in cities.keys():
-        logging.error(f"{start_city} not found, exiting.")
-        sys.exit(1)
+    found_start = check_city(cities, start_city)
+    found_end= check_city(cities, end_city)
 
-    if end_city.lower() not in cities.keys():
-        logging.error(f"{end_city} not found, exiting.")
-        sys.exit(1)
+    if not found_start or not found_end:
+        logging.error(f"Start and/or End city not found, returning.")
+        return None, None
 
     possible_starts = cities[start_city.lower()]
     possible_ends = cities[end_city.lower()]
@@ -66,11 +71,17 @@ def find_start_and_end(cities, start_city, end_city):
 
 def parse_args():
     parser = argparse.ArgumentParser(description="GPX Path.")
-    parser.add_argument("--start", required=True, help="Start City")
-    parser.add_argument("--end", required=True, help="End City")
+    parser.add_argument("--start", help="Start City", default=None)
+    parser.add_argument("--end", help="End City", default=None)
     parser.add_argument("--gpx", required=True, help="Relative Path to GPX Data Source")
     parser.add_argument("--silent", action="store_true", help="Do not do any extra stuff")
+    parser.add_argument("--interactive", action="store_true", help="Interactively make multiple queries")
     args = parser.parse_args()
+
+    if not args.interactive and (args.start is None or args.end is None):
+        parser.error("Arguments --start and --end are required in non interactive mode (--interactive).")
+    if args.interactive and (args.start or args.end):
+        logging.warning(f"Arguments --star and --end are ignored in interactive mode.")
     return args
 
 
@@ -131,8 +142,8 @@ def load_map(segments_dict, gpx_path):
     map = build_graph.load_or_build_map(segments_dict, map_file_name, os.path.join(config.STORAGE_TEMP_DIR, "maps"))
 
     if not len(map.keys()):
-        logging.error(f"No keys in map, exiting.")
-        sys.exit(1)
+        logging.error(f"No keys in map, returning.")
+        return None
     return map
 
 
@@ -166,27 +177,18 @@ def perform_shortest(start_gps, end_gps, segments_dict, background, map):
     display.save_gpx_as_html("shortest_rescaled", config.RESULTS_FOLDER)
 
 
-def main():
-    print_important_infos()
+def do_additional_stuff():
+    webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "dijkstra.html"))
+    webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "dijkstra_rescaled.html"))
 
-    args = parse_args()
-    cities = load_worldcities()
-    logging.info(f"Loaded {len(cities)} cities.")
 
-    start_gps, end_gps = find_start_and_end(cities, args.start, args.end)
-    logging.info(f"Start GPS for {args.start}: {start_gps}.")
-    logging.info(f"End GPS for {args.end}: {end_gps}.")
+def perform_run(cities, start_city, end_city, segments_dict, background, map, silent):
+    start_gps, end_gps = find_start_and_end(cities, start_city, end_city)
+    if not start_gps or not end_gps:
+        return False
 
-    segments_dict = load_segments(args.gpx)
-
-    all_points = build_graph.collect_all_points(segments_dict)
-    logging.info(f"Number of points in segments {str(len(all_points))}.")
-
-    background = load_background()
-
-    build_graph.create_and_display_map(all_points, "All Points", background)
-
-    map = load_map(segments_dict, args.gpx)
+    logging.info(f"Start GPS for {start_city}: {start_gps}.")
+    logging.info(f"End GPS for {end_city}: {end_gps}.")
 
     logging.info(f"Building a heuristic.")
     map.build_heuristic(gpx_tools.SimplePoint(end_gps))
@@ -199,11 +201,48 @@ def main():
     # TODO perform_shortest(start_gps, end_gps, segments_dict, background, map)
     perform_dijksra(start_gps, end_gps, segments_dict, background, map)
 
-    if not args.silent:
-        webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "shortest.html"))
-        webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "shortest_rescaled.html"))
-        webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "dijkstra.html"))
-        webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "dijkstra_rescaled.html"))
+    if not silent:
+        do_additional_stuff()
+
+
+def main():
+    print_important_infos()
+
+    args = parse_args()
+    cities = load_worldcities()
+    logging.info(f"Loaded {len(cities)} cities.")
+
+    segments_dict = load_segments(args.gpx)
+
+    all_points = build_graph.collect_all_points(segments_dict)
+    logging.info(f"Number of points in segments {str(len(all_points))}.")
+
+    background = load_background()
+
+    build_graph.create_and_display_map(all_points, "All Points", background)
+
+    map = load_map(segments_dict, args.gpx)
+
+    if args.interactive:
+        while True:
+            logging.info(f"Input the start/end city. Leave blank to exit.")
+            while True:
+                start_city = input("Origin: ")
+                if start_city == "":
+                    sys.exit(0)
+                if not check_city(cities, start_city):
+                    continue
+                break
+            while True:
+                end_city = input("Destination: ")
+                if end_city == "":
+                    sys.exit(0) 
+                if not check_city(cities, end_city):
+                    continue
+                break
+            perform_run(cities, start_city, end_city, segments_dict, background, map, args.silent)
+    else:
+        perform_run(cities, args.start, args.end, segments_dict, background, map, args.silent)
 
 
 if __name__ == "__main__":

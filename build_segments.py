@@ -113,8 +113,8 @@ def build_segments_dict(reduction_threshold, pickle_path, root, output_dir):
         track_file_names = glob.glob(root)
         logging.info(f"Globing found {len(track_file_names)} files.")
         if not len(track_file_names):
-            logging.error("No files found, exiting.")
-            sys.exit(1)
+            logging.error("No files found, returning.")
+            return {}
 
         segments_dict = load_and_reduce_gpxs(track_file_names, reduction_threshold, pickle_path, output_dir)
 
