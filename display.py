@@ -34,5 +34,5 @@ def save_gpx_as_html(map_name, dir):
     html_file_path = os.path.join(dir, f"{map_name}.html")
     logging.info(f"Saving {gpx_file_path} as HTML to {html_file_path}.")
 
-    map = overlay_gpx(gpx_file_path, zoom=10)
+    map = overlay_gpx(gpx_file_path, zoom=8)
     map.save(f"{html_file_path}")

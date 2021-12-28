@@ -26,7 +26,8 @@ class Graph:
 
     # This is heuristic function which is having equal values for all nodes
     def h(self, n, stop):
-        # return = distance.simple_distance(n, stop)
+        # TODO Use a real heuristic
+        # TODO return = distance.simple_distance(n, stop)
         return 0
 
     def weights(self):

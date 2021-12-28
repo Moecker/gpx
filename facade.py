@@ -4,6 +4,7 @@ import os
 import statistics
 import sys
 import time
+import webbrowser
 from posixpath import split
 from pprint import pprint
 
@@ -149,6 +150,8 @@ def main():
 
     display.save_gpx_as_html("shortest_path", config.RESULTS_FOLDER)
     display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
+
+    webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "dijkstra.html"))
 
 
 if __name__ == "__main__":
