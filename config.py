@@ -13,15 +13,16 @@ RESULTS_FOLDER = "results"
 SCALE_FACTOR = 40  # How "big" the map is, the larger the more downsacling takes place.
 
 # COMMON
-REDUCTION_DISTANCE = 1000.0  # The distance betwen two GPS points during reduction phase, in meter.
+REDUCTION_DISTANCE = 100.0  # The distance betwen two GPS points during reduction phase, in meter.
 
 # GRAPH
-GRAPH_CONNECTION_DISTANCE = 5.0  # In km, When a point to another point is considered connected.
 PRECISION = 1  # Every nth point is part of the graph or evaluated as an adjacent point.
+GRAPH_CONNECTION_DISTANCE = 1.0 * PRECISION  # In km, When a point to another point is considered connected.
 
 # COSTS
 COST_NORMAL_PENALTY = 1  # Cost for normal next points.
-COST_SWITCH_SEGMENT_PENALTY = 20 * 1000 / REDUCTION_DISTANCE  # Cost for switching segments.
+COST_SWITCH_SEGMENT_PENALTY = 1000 / REDUCTION_DISTANCE  # Cost for switching segments.
+HEURISTIC_SCALE_FACTOR = 100
 
 # ALGOS
 USE_SMART_ALGO = True

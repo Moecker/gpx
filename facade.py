@@ -1,10 +1,12 @@
 import argparse
 import logging
+import math
 import os
 import statistics
 import sys
 import time
 import webbrowser
+from collections import defaultdict
 from posixpath import split
 from pprint import pprint
 
@@ -12,6 +14,7 @@ import build_graph
 import build_segments
 import config
 import display
+import distance
 import gpx2ascii
 import gpx_tools
 import utils
@@ -19,7 +22,7 @@ import utils
 
 def load_worldcities():
     """From https://simplemaps.com/data/world-cities"""
-    cities = {}
+    cities = defaultdict(list)
     with open(os.path.join("data", "worldcities.csv"), encoding="utf8") as f:
         lines = f.readlines()
     # Skip the first one which is a string
@@ -28,7 +31,7 @@ def load_worldcities():
         city = split[1].strip().replace('"', "").lower()
         lat = float(split[2].strip().replace('"', ""))
         lon = float(split[3].strip().replace('"', ""))
-        cities[city] = (lat, lon)
+        cities[city].append((lat, lon))
     return cities
 
 
@@ -36,10 +39,29 @@ def find_start_and_end(cities, start_city, end_city):
     if start_city.lower() not in cities.keys():
         logging.error(f"{start_city} not found, exiting.")
         sys.exit(1)
+
     if end_city.lower() not in cities.keys():
         logging.error(f"{end_city} not found, exiting.")
         sys.exit(1)
-    return cities[start_city.lower()], cities[end_city.lower()]
+
+    possible_starts = cities[start_city.lower()]
+    possible_ends = cities[end_city.lower()]
+
+    logging.info(f"Number of possible start cities: {len(possible_starts)}.")
+    logging.info(f"Number of possible end cities: {len(possible_ends)}.")
+
+    min_dis = math.inf
+    selected_start = None
+    selected_end = None
+    for possible_start in possible_starts:
+        for possible_end in possible_ends:
+            dis = distance.haversine(possible_start, possible_end)
+            if dis < min_dis:
+                min_dis = dis
+                selected_start = possible_start
+                selected_end = possible_end
+
+    return selected_start, selected_end
 
 
 def parse_args():
@@ -166,11 +188,15 @@ def main():
 
     map = load_map(segments_dict, args.gpx)
 
+    logging.info(f"Building a heuristic.")
+    map.build_heuristic(gpx_tools.SimplePoint(end_gps))
+
     logging.info(f"Number of keys in graph {str(len(map.keys()))}.")
     logging.info(f"Number of total nodes in graph {str(len(map.nodes()))}.")
     logging.info(f"Quantiles weights {str(statistics.quantiles(map.weights(), n=10))}.")
 
-    perform_shortest(start_gps, end_gps, segments_dict, background, map)
+    # TODO Consider removing this
+    # TODO perform_shortest(start_gps, end_gps, segments_dict, background, map)
     perform_dijksra(start_gps, end_gps, segments_dict, background, map)
 
     if not args.silent:
@@ -181,5 +207,7 @@ def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s:%(msecs)03d %(levelname)s: %(message)s", datefmt="%H:%M:%S"
+    )
     main()

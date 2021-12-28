@@ -1,7 +1,8 @@
+import itertools
 import logging
 from collections import defaultdict, deque
+
 from tqdm import tqdm
-import itertools
 
 
 class Graph:
@@ -25,6 +26,9 @@ class Graph:
     def weights(self):
         all_weights = self.costs.values()
         return all_weights
+
+    def build_heuristic(self, end):
+        pass
 
     def add(self, from_node, to_node, cost):
         # Note: assumes edges are bi-directional

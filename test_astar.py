@@ -25,6 +25,15 @@ class TestGraph(unittest.TestCase):
         graph.add(a, c, 1)
         self.assertEqual(graph.a_star_algorithm(a, c), [a, c])
 
+    @unittest.skip
+    def test_utc(self):
+        graph = astar.Graph()
+        a = "A"
+        b = "B"
+        c = "C"
+        graph.add(a, b, 1)
+        self.assertEqual(graph.ucs(a, b), [a, b])
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

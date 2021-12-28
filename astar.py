@@ -2,11 +2,13 @@ import itertools
 from collections import defaultdict, deque
 import queue
 import distance
+import config
 
 
 class Graph:
     def __init__(self):
         self.friends = defaultdict(list)
+        self.heuristic = defaultdict(int)
 
     def nodes(self):
         return [t[0] for t in list(itertools.chain.from_iterable(self.friends.values()))]
@@ -24,16 +26,18 @@ class Graph:
     def get_neighbors(self, v):
         return self.friends[v]
 
-    # This is heuristic function which is having equal values for all nodes
-    def h(self, n, stop):
-        # TODO Use a real heuristic
-        # TODO return = distance.simple_distance(n, stop)
-        return 0
+    def h(self, n):
+        return self.heuristic[n]
 
     def weights(self):
         all_nodes = [t for t in list(self.friends.items())]
         all_weights = [t[1][0][1] for t in all_nodes]
         return all_weights
+
+    def build_heuristic(self, end):
+        for key in self.keys():
+            dis = distance.haversine_gpx(key, end)
+            self.heuristic[key] = dis * config.HEURISTIC_SCALE_FACTOR
 
     def dijkstra(self, start, stop):
         return self.a_star_algorithm(start, stop)
@@ -41,34 +45,33 @@ class Graph:
     def a_star_algorithm(self, start, stop):
         """From https://www.pythonpool.com/a-star-algorithm-python/"""
         # In this open_lst is a list of nodes which have been visited, but who's
-        # neighbors haven't all been always inspected, It starts off with the start node
-        # And closed_lst is a list of nodes which have been visited
+        # neighbors haven't all been always inspected.
+        # The closed_lst is a list of nodes which have been visited
         # and who's neighbors have been always inspected
         open_lst = set([start])
         closed_lst = set([])
 
-        # poo has present distances from start to all other nodes
+        # Dict poo has present distances from start to all other nodes
         # The default value is +infinity
         poo = {}
         poo[start] = 0
 
-        # The variable par contains an adjacent mapping of all nodes
+        # Dict par contains an adjacent mapping of all nodes
         par = {}
         par[start] = start
 
         while len(open_lst) > 0:
             n = None
 
-            # It will find a node with the lowest value of f() -
+            # It will find a node with the lowest value of f()
             for v in open_lst:
-                heurisic = self.h(v, stop)
-                if n == None or poo[v] + heurisic < poo[n] + heurisic:
+                if n == None or poo[v] + self.h(v) < poo[n] + self.h(n):
                     n = v
 
             if n == None:
                 return None
 
-            # If the current node is the stop then we start again from start
+            # If the current node is the end node then we start again from start
             if n == stop:
                 reconst_path = []
 
@@ -83,7 +86,7 @@ class Graph:
 
             # For all the neighbors of the current node do
             for (m, weight) in self.get_neighbors(n):
-                # If the current node is not presentin both open_lst and closed_lst
+                # If the current node is not present in both open_lst and closed_lst
                 # add it to open_lst and note n as it's par
                 if m not in open_lst and m not in closed_lst:
                     open_lst.add(m)
@@ -124,6 +127,7 @@ class Graph:
                     q.append(next)
         return dist.get(end)
 
+    # TODO Not used, not tested
     def find_shortest_path_prio_queue(self, start, end):
         """From https://stackoverflow.com/questions/48313993/uniform-cost-search-algorithm-with-python"""
         visited = set()  # set of visited nodes
@@ -148,7 +152,11 @@ class Graph:
                     if child not in visited:
                         q.put((f + edge[1], child, path + [child]))
 
-    def ucs(G, v):
+    # TODO Not used, not tested
+    def ucs(self, start, end):
+        """From https://stackoverflow.com/questions/43354715/uniform-cost-search-in-python"""
+        v = start
+
         visited = set()  # set of visited nodes
         visited.add(v)  # mark the starting vertex as visited
         q = queue.PriorityQueue()  # we store vertices in the (priority) queue as tuples with cumulative cost

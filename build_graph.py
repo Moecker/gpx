@@ -173,7 +173,7 @@ def load_or_build_map(segments_dict, name, output_dir):
 
 def rescale(segments_dict, path):
     if not path:
-        logging.warning(f"Cannot rescale because path is empty, skipping")
+        logging.warning(f"Cannot rescale because path is empty, skipping.")
         return None
 
     previous_idx = None
@@ -183,7 +183,7 @@ def rescale(segments_dict, path):
 
     for point in path:
         if not point.annotation:
-            logging.warning(f"Cannot rescale because annotations are missing, skipping")
+            logging.warning(f"Cannot rescale because annotations are missing, skipping.")
             return None
 
         annotations = point.annotation.split("@")
@@ -209,5 +209,5 @@ def rescale(segments_dict, path):
         segments_dict[key]
         previous_idx = idx
 
-    logging.info(f"Rescaled from {len(path)} to {len(rescaled_path)} points")
+    logging.info(f"Rescaled from {len(path)} to {len(rescaled_path)} points.")
     return rescaled_path

@@ -1,6 +1,3 @@
-import copy
-import glob
-import os
 from pprint import pformat
 
 import gpxpy
@@ -72,7 +69,7 @@ def display(map):
             display_string += str(f"{line} ")
         display_string += "\n"
 
-    print()
+    print()  # Empty line
     print(display_string)
 
 
