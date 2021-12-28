@@ -26,7 +26,7 @@ class Graph:
 
     # This is heuristic function which is having equal values for all nodes
     def h(self, n, stop):
-        dis = distance.simple_distance(n, stop)
+        # dis = distance.simple_distance(n, stop)
         return 1
 
     def weights(self):
@@ -124,7 +124,7 @@ class Graph:
         return dist.get(end)
 
     def find_shortest_path_prio_queue(self, start, end):
-        """ From https://stackoverflow.com/questions/48313993/uniform-cost-search-algorithm-with-python """
+        """From https://stackoverflow.com/questions/48313993/uniform-cost-search-algorithm-with-python"""
         visited = set()  # set of visited nodes
         q = PriorityQueue()  # we store vertices in the (priority) queue as tuples
         # (f, n, path), with

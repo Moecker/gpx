@@ -22,6 +22,10 @@ class Graph:
     def keys(self):
         return self.edges.keys()
 
+    def weights(self):
+        all_weights = self.costs.values()
+        return all_weights
+
     def add(self, from_node, to_node, cost):
         # Note: assumes edges are bi-directional
         self.edges[from_node].append(to_node)

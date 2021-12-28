@@ -25,6 +25,7 @@ class SimplePoint:
     def __le__(self, other):
         return True
 
+
 class SimpleSegment:
     def __init__(self, segment):
         self.points = []
