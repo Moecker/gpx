@@ -4,6 +4,8 @@ import queue
 import distance
 import config
 
+from tqdm import tqdm
+
 
 class Graph:
     def __init__(self):
@@ -60,56 +62,62 @@ class Graph:
         par = {}
         par[start] = start
 
-        while len(open_lst) > 0:
-            n = None
+        total_pbar = len(self.keys())
+        with tqdm(total=total_pbar) as pbar:
+            while len(open_lst) > 0:
+                n = None
 
-            # It will find a node with the lowest value of f()
-            for v in open_lst:
-                if n == None or poo[v] + self.h(v) < poo[n] + self.h(n):
-                    n = v
+                # It will find a node with the lowest value of f()
+                for v in open_lst:
+                    if n == None or poo[v] + self.h(v) < poo[n] + self.h(n):
+                        n = v
 
-            if n == None:
-                return None
+                if n == None:
+                    pbar.n = total_pbar
+                    return None
 
-            # If the current node is the end node then we start again from start
-            if n == stop:
-                reconst_path = []
+                # If the current node is the end node then we start again from start
+                if n == stop:
+                    reconst_path = []
 
-                while par[n] != n:
-                    reconst_path.append(n)
-                    n = par[n]
+                    while par[n] != n:
+                        reconst_path.append(n)
+                        n = par[n]
 
-                reconst_path.append(start)
-                reconst_path.reverse()
+                    reconst_path.append(start)
+                    reconst_path.reverse()
 
-                return reconst_path
+                    pbar.n = total_pbar
+                    return reconst_path
 
-            # For all the neighbors of the current node do
-            for (m, weight) in self.get_neighbors(n):
-                # If the current node is not present in both open_lst and closed_lst
-                # add it to open_lst and note n as it's par
-                if m not in open_lst and m not in closed_lst:
-                    open_lst.add(m)
-                    par[m] = n
-                    poo[m] = poo[n] + weight
-
-                # Otherwise, check if it's quicker to first visit n, then m
-                # and if it is, update par data and poo data,
-                # and if the node was in the closed_lst, move it to open_lst
-                else:
-                    if poo[m] > poo[n] + weight:
-                        poo[m] = poo[n] + weight
+                # For all the neighbors of the current node do
+                for (m, weight) in self.get_neighbors(n):
+                    # If the current node is not present in both open_lst and closed_lst
+                    # add it to open_lst and note n as it's par
+                    if m not in open_lst and m not in closed_lst:
+                        open_lst.add(m)
                         par[m] = n
+                        poo[m] = poo[n] + weight
 
-                        if m in closed_lst:
-                            closed_lst.remove(m)
-                            open_lst.add(m)
+                    # Otherwise, check if it's quicker to first visit n, then m
+                    # and if it is, update par data and poo data,
+                    # and if the node was in the closed_lst, move it to open_lst
+                    else:
+                        if poo[m] > poo[n] + weight:
+                            poo[m] = poo[n] + weight
+                            par[m] = n
 
-            # Remove n from the open_lst, and add it to closed_lst,
-            # because all of his neighbors were inspected
-            open_lst.remove(n)
-            closed_lst.add(n)
+                            if m in closed_lst:
+                                closed_lst.remove(m)
+                                open_lst.add(m)
 
+                # Remove n from the open_lst, and add it to closed_lst,
+                # because all of his neighbors were inspected
+                open_lst.remove(n)
+                closed_lst.add(n)
+                pbar.update(1)
+                
+        pbar.n = total_pbar
         return None
 
     def find_shortest_path(self, start, end):

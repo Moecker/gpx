@@ -224,23 +224,27 @@ def main():
     map = load_map(segments_dict, args.gpx)
 
     if args.interactive:
-        while True:
-            logging.info(f"Input the start/end city. Leave blank to exit.")
+        try:
             while True:
-                start_city = input("Origin: ")
-                if start_city == "":
-                    sys.exit(0)
-                if not check_city(cities, start_city):
-                    continue
-                break
-            while True:
-                end_city = input("Destination: ")
-                if end_city == "":
-                    sys.exit(0) 
-                if not check_city(cities, end_city):
-                    continue
-                break
-            perform_run(cities, start_city, end_city, segments_dict, background, map, args.silent)
+                logging.info(f"Input the start/end city. Leave blank to exit.")
+                while True:
+                    start_city = input("Origin: ")
+                    if start_city == "":
+                        sys.exit(0)
+                    if not check_city(cities, start_city):
+                        continue
+                    break
+                while True:
+                    end_city = input("Destination: ")
+                    if end_city == "":
+                        sys.exit(0) 
+                    if not check_city(cities, end_city):
+                        continue
+                    break
+                perform_run(cities, start_city, end_city, segments_dict, background, map, args.silent)
+        except(KeyboardInterrupt):
+            sys.exit(0)
+
     else:
         perform_run(cities, args.start, args.end, segments_dict, background, map, args.silent)
 
