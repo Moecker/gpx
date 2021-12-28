@@ -23,7 +23,7 @@ def create_map(file_name, map=None, character="x"):
 
     for track in gpx.tracks:
         for segment in track.segments:
-            for point in segment.points[:: config.SCALE_FACTOR]:
+            for point in segment.points[:: config.PRECISION]:
                 idx_w, idx_h = determine_index((point.latitude, point.longitude), edges)
                 map[idx_w][idx_h] = character
 

@@ -16,7 +16,7 @@ class Graph:
         self.friends[n1].append((n2, cost))
         self.friends[n2].append((n1, cost))
 
-    # TODO Not used, not tested
+    # Not used, not tested
     def find_shortest_path_prio_queue(self, start, end):
         """From https://stackoverflow.com/questions/48313993/uniform-cost-search-algorithm-with-python"""
         visited = set()  # set of visited nodes
@@ -41,7 +41,7 @@ class Graph:
                     if child not in visited:
                         q.put((f + edge[1], child, path + [child]))
 
-    # TODO Not used, not tested
+    # Not used, not tested
     def ucs(self, start, end):
         """From https://stackoverflow.com/questions/43354715/uniform-cost-search-in-python"""
         v = start

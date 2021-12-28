@@ -21,12 +21,12 @@ SCALE_FACTOR = 40
 
 # The distance betwen two GPS points during reduction phase, in meter.
 # This determines the minimal possible distance which can be later represented as a GPX track.
-REDUCTION_DISTANCE = 500.0
+REDUCTION_DISTANCE = 100.0
 
 # Every nth point is part of the graph or evaluated as an adjacent point.
 # If increased, some points are skipped during evaluation of distances to other points,
 # but they are also ignored and not part of the actual graph.
-PRECISION = 100
+PRECISION = 20
 
 # The maximum distance when a point to another point is considered connected, in km.
 # A lower value means that there are more connections in the graph, that is, there could be
