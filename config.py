@@ -2,7 +2,7 @@ import astar
 import graph
 
 # Controls whether to always re-create the graph.
-ALWAYS_GRAPH = False
+ALWAYS_GRAPH = True
 
 # Controls whether to always re-create cached segments dicts.
 ALWAYS_PARSE = False
@@ -32,7 +32,7 @@ PRECISION = 1
 # A lower value means that there are more connections in the graph, that is, there could be
 # a connection from Hamburg to Berlin with a big cost, however keeping this value in a good range
 # is a trade off between not being able to connect other segments vs. a too huge graph.
-GRAPH_CONNECTION_DISTANCE = 2.0
+GRAPH_CONNECTION_DISTANCE = 5.0
 
 # Cost for points which are next to each other within a segment.
 COST_NORMAL_PENALTY = 1
