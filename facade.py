@@ -47,6 +47,7 @@ def parse_args():
     parser.add_argument("--start", required=True, help="Start City")
     parser.add_argument("--end", required=True, help="End City")
     parser.add_argument("--gpx", required=True, help="Relative Path to GPX Data Source")
+    parser.add_argument("--silent", action="store_true",  help="Do not do any extra stuff")
     args = parser.parse_args()
     return args
 
@@ -151,7 +152,8 @@ def main():
     display.save_gpx_as_html("shortest_path", config.RESULTS_FOLDER)
     display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
 
-    webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "dijkstra.html"))
+    if not args.silent:
+        webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "dijkstra.html"))
 
 
 if __name__ == "__main__":

@@ -3,19 +3,18 @@ import logging
 import math
 import os
 import pickle
+import sys
 from pathlib import Path
 from pprint import pformat
 
 import gpxpy
 import gpxpy.gpx
-
 from tqdm import tqdm
 
 import config
 import distance
 import gpx_tools
 import reducer
-import walk
 
 
 def determine_start():
@@ -113,8 +112,14 @@ def build_segments_dict(reduction_threshold, pickle_path, root, output_dir):
     if not segments_dict:
         track_file_names = glob.glob(root)
         logging.info(f"Globing found {len(track_file_names)} files.")
+        if not len(track_file_names):
+            logging.error("No files found, exiting")
+            sys.exit(1)
+
         segments_dict = load_and_reduce_gpxs(track_file_names, reduction_threshold, pickle_path, output_dir)
+
         logging.info(f"Saving pickle file to {pickle_path}.")
         pickle.dump(segments_dict, open(pickle_path, "wb"))
+
     logging.info(f"Found {len(segments_dict)} segment(s).")
     return segments_dict

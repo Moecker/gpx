@@ -1,7 +1,7 @@
 import os
 
 # STORAGE
-ALWAYS_GRAPH = False  # Always re-create the graph.
+ALWAYS_GRAPH = True  # Always re-create the graph.
 ALWAYS_PARSE = False  # Always re-create cached segments dicts.
 ALWAYS_REDUCE = False  # Always re-create reduced gpx files.
 
