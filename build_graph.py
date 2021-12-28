@@ -35,11 +35,11 @@ def build_map(segments_dict):
 
                     prev_point = point
                     find_and_add_adjacent_nodes(map, segments_dict, segment, point)
-                    idx = idx + max(1, int(config.PRECISION))
+                    idx = idx + max(1, config.PRECISION)
             else:
                 # TODO Consider removing this
                 prev_point = None
-                for point_idx, point in enumerate(segment.points[:: config.PRECISION]):
+                for _, point in enumerate(segment.points[:: config.PRECISION]):
                     # Direct, inter segment connection is always possible, without checking the distance
                     if prev_point:
                         dis = distance.haversine_gpx(prev_point, point)
@@ -73,7 +73,7 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
                     map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_PENALTY))
         else:
             # TODO Consider removing this
-            for other_point in other_segment.points[:: config.PRECISION_OTHER_SEGMENT]:
+            for other_point in other_segment.points[:: config.PRECISION]:
                 # Self connection does not make sense
                 if current_point == other_point:
                     continue
@@ -172,12 +172,20 @@ def load_or_build_map(segments_dict, name, output_dir):
 
 
 def rescale(segments_dict, path):
+    if not path:
+        logging.warning(f"Cannot rescale because path is empty, skipping")
+        return None
+
     previous_idx = None
     previous_key = None
 
     rescaled_path = []
 
     for point in path:
+        if not point.annotation:
+            logging.warning(f"Cannot rescale because annotations are missing, skipping")
+            return None
+
         annotations = point.annotation.split("@")
         key = annotations[0]
         idx = int(annotations[1])
@@ -196,8 +204,7 @@ def rescale(segments_dict, path):
             adding_points = segments_dict[key].points[idx:previous_idx]
 
         rescaled_path.extend(adding_points)
-
-        print(f"{previous_idx}:{idx}{key}")
+        logging.debug(f"{previous_idx}:{idx}{key}")
 
         segments_dict[key]
         previous_idx = idx

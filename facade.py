@@ -71,7 +71,7 @@ def print_important_infos():
     if config.ALWAYS_GRAPH:
         logging.warning("Option config.ALWAYS_GRAPH is active.")
 
-    logging.info(f"Using graph version '{config.GRAPH_MODUL.__name__}'")
+    logging.info(f"Using graph version '{config.GRAPH_MODUL.__name__}'.")
     logging.info(
         f"Minimum possible distance between points: {config.REDUCTION_DISTANCE * config.PRECISION / 1000:.2f} km."
     )
@@ -101,6 +101,7 @@ def load_map(segments_dict, gpx_path):
             utils.replace_os_separator(gpx_path),
             str(int(config.GRAPH_CONNECTION_DISTANCE)),
             str(int(config.PRECISION)),
+            str(int(config.COST_SWITCH_SEGMENT_PENALTY)),
             str(config.GRAPH_MODUL.__name__),
             "map.p",
         ]
@@ -111,6 +112,36 @@ def load_map(segments_dict, gpx_path):
         logging.error(f"No keys in map, exiting.")
         sys.exit(1)
     return map
+
+
+def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
+    logging.info("Finding dijkstra path...")
+    start_time = time.time()
+    dijkstra = build_graph.find_path(map, start_gps, end_gps, map.dijkstra)
+    rescaled_dijkstra = build_graph.rescale(segments_dict, dijkstra)
+    logging.info(f"Elapsed time {time.time() - start_time:.2f} s.")
+
+    build_graph.create_and_display_map(dijkstra, "Dijkstra path", background)
+
+    gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, "dijkstra.gpx")
+    gpx_tools.save_as_gpx_file(rescaled_dijkstra, config.RESULTS_FOLDER, "dijkstra_rescaled.gpx")
+    display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
+    display.save_gpx_as_html("dijkstra_rescaled", config.RESULTS_FOLDER)
+
+
+def perform_shortest(start_gps, end_gps, segments_dict, background, map):
+    logging.info("Finding shortest path...")
+    start_time = time.time()
+    shortest = build_graph.find_path(map, start_gps, end_gps, map.find_shortest_path)
+    rescaled_shortest = build_graph.rescale(segments_dict, shortest)
+    logging.info(f"Elapsed time {time.time() - start_time:.2f} s.")
+
+    build_graph.create_and_display_map(shortest, "Shortest path", background)
+
+    gpx_tools.save_as_gpx_file(shortest, config.RESULTS_FOLDER, "shortest.gpx")
+    gpx_tools.save_as_gpx_file(rescaled_shortest, config.RESULTS_FOLDER, "shortest_rescaled.gpx")
+    display.save_gpx_as_html("shortest", config.RESULTS_FOLDER)
+    display.save_gpx_as_html("shortest_rescaled", config.RESULTS_FOLDER)
 
 
 def main():
@@ -139,7 +170,7 @@ def main():
     logging.info(f"Number of total nodes in graph {str(len(map.nodes()))}.")
     logging.info(f"Quantiles weights {str(statistics.quantiles(map.weights(), n=10))}.")
 
-    # perform_shortest(start_gps, end_gps, segments_dict, background, map)
+    perform_shortest(start_gps, end_gps, segments_dict, background, map)
     perform_dijksra(start_gps, end_gps, segments_dict, background, map)
 
     if not args.silent:
@@ -147,36 +178,6 @@ def main():
         webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "shortest_rescaled.html"))
         webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "dijkstra.html"))
         webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "dijkstra_rescaled.html"))
-
-
-def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
-    logging.info("Finding dijkstra path...")
-    start_time = time.time()
-    dijkstra = build_graph.find_path(map, start_gps, end_gps, map.dijkstra)
-    rescaled_dijkstra = build_graph.rescale(segments_dict, dijkstra)
-    logging.info(f"Elapsed time {time.time() - start_time:.2f} s")
-
-    build_graph.create_and_display_map(dijkstra, "Dijkstra path", background)
-
-    gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, "dijkstra.gpx")
-    gpx_tools.save_as_gpx_file(rescaled_dijkstra, config.RESULTS_FOLDER, "dijkstra_rescaled.gpx")
-    display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
-    display.save_gpx_as_html("dijkstra_rescaled", config.RESULTS_FOLDER)
-
-
-def perform_shortest(start_gps, end_gps, segments_dict, background, map):
-    logging.info("Finding shortest path...")
-    start_time = time.time()
-    shortest = build_graph.find_path(map, start_gps, end_gps, map.find_shortest_path)
-    rescaled_shortest = build_graph.rescale(segments_dict, shortest)
-    logging.info(f"Elapsed time {time.time() - start_time:.2f} s")
-
-    build_graph.create_and_display_map(shortest, "Shortest path", background)
-
-    gpx_tools.save_as_gpx_file(shortest, config.RESULTS_FOLDER, "shortest.gpx")
-    gpx_tools.save_as_gpx_file(rescaled_shortest, config.RESULTS_FOLDER, "shortest_rescaled.gpx")
-    display.save_gpx_as_html("shortest", config.RESULTS_FOLDER)
-    display.save_gpx_as_html("shortest_rescaled", config.RESULTS_FOLDER)
 
 
 if __name__ == "__main__":
