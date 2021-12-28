@@ -42,7 +42,8 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
                 other_point = other_segment.points[idx]
                 dis = distance.haversine_gpx(current_point, other_point)
 
-                # step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
+                # TODO Consider using this to enable more points
+                # TODO step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
                 step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE)
                 idx = idx + max(1, step_distance)
 

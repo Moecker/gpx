@@ -26,8 +26,8 @@ class Graph:
 
     # This is heuristic function which is having equal values for all nodes
     def h(self, n, stop):
-        # dis = distance.simple_distance(n, stop)
-        return 1
+        # return = distance.simple_distance(n, stop)
+        return 0
 
     def weights(self):
         all_nodes = [t for t in list(self.friends.items())]
