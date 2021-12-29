@@ -1,6 +1,6 @@
-import unittest
-import logging
 import graph
+import logging
+import unittest
 
 
 class TestGraph(unittest.TestCase):
@@ -36,14 +36,6 @@ class TestGraph(unittest.TestCase):
         self.assertEqual(g.dijkstra(foo, ohm), [foo, ohm])
         self.assertEqual(g.dijkstra(bar, ohm), [bar, foo, ohm])
 
-    def test_nodes(self):
-        g = graph.Graph()
-        foo = "Foo"
-        bar = "Bar"
-        g.add(foo, bar, 1)
-        self.assertEqual(len(g.nodes()), 2)
-        self.assertEqual(g.nodes(), [bar, foo])
-
     def test_internet(self):
         g = graph.Graph()
 
@@ -73,6 +65,14 @@ class TestGraph(unittest.TestCase):
 
         path = g.dijkstra("X", "Y")
         self.assertEqual(path, ["X", "B", "H", "G", "Y"])
+
+    def test_nodes(self):
+        g = graph.Graph()
+        foo = "Foo"
+        bar = "Bar"
+        g.add(foo, bar, 1)
+        self.assertEqual(len(g.nodes()), 2)
+        self.assertEqual(g.nodes(), [bar, foo])
 
 
 if __name__ == "__main__":

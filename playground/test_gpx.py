@@ -32,3 +32,7 @@ gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(2.1235, 5.1235, elevation=1235
 gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(2.1236, 5.1236, elevation=1236))
 
 print("Created GPX:", gpx.to_xml())
+
+
+def main():
+    pass

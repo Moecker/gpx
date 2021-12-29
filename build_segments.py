@@ -1,14 +1,14 @@
+from pathlib import Path
+from pprint import pformat
 import glob
 import logging
 import math
 import os
 import pickle
-from pathlib import Path
-from pprint import pformat
 
+from tqdm import tqdm
 import gpxpy
 import gpxpy.gpx
-from tqdm import tqdm
 
 import config
 import distance
@@ -17,18 +17,42 @@ import reducer
 import utils
 
 
-def determine_start():
-    munich_gps = gpxpy.gpx.GPXTrackPoint(48.13743, 11.57549)
-    return munich_gps
+def build_segments_dict(reduction_threshold, pickle_path, root, output_dir):
+    segments_dict = try_load_pickle(pickle_path)
+
+    if not segments_dict:
+        track_file_names = glob.glob(root)
+        logging.debug(f"Globbing found {len(track_file_names)} files.")
+        if not len(track_file_names):
+            logging.error(f"No files found while globbing '{root}'.")
+            return {}
+
+        segments_dict = load_and_reduce_gpxs(track_file_names, reduction_threshold, pickle_path, output_dir)
+
+        logging.debug(f"Saving pickle file to {pickle_path}.")
+        Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)
+        pickle.dump(segments_dict, open(pickle_path, "wb"))
+
+    logging.debug(f"Found {len(segments_dict)} segment(s).")
+    return segments_dict
+
+
+def compute_distances(start_gps, segments_dict):
+    distances = dict()
+    for name, segment in segments_dict.items():
+        min_distance = math.inf
+        for point in segment.points:
+            dis = distance.haversine_gpx(point, start_gps)
+            if dis < min_distance:
+                min_distance = dis
+        logging.debug(f"Minimum Distance: {min_distance:.2f} km.")
+        distances[name] = min_distance
+    return distances
 
 
 def determine_end():
     dachau_gps = gpxpy.gpx.GPXTrackPoint(48.26299, 11.43390)
     return dachau_gps
-
-
-def determine_reduction_threshold():
-    return config.REDUCTION_DISTANCE
 
 
 def determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict):
@@ -46,27 +70,13 @@ def determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict)
     return distances_start, distances_end
 
 
-def try_load_pickle(pickle_path):
-    if not config.ALWAYS_PARSE and os.path.isfile(pickle_path):
-        logging.debug(f"{pickle_path} exists, using it.")
-        logging.debug(f"Loading {pickle_path}.")
-        segments_dict = pickle.load(open(pickle_path, "rb"))
-        return segments_dict
-    else:
-        return None
+def determine_reduction_threshold():
+    return config.REDUCTION_DISTANCE
 
 
-def compute_distances(start_gps, segments_dict):
-    distances = dict()
-    for name, segment in segments_dict.items():
-        min_distance = math.inf
-        for point in segment.points:
-            dis = distance.haversine_gpx(point, start_gps)
-            if dis < min_distance:
-                min_distance = dis
-        logging.debug(f"Minimum Distance: {min_distance:.2f} km.")
-        distances[name] = min_distance
-    return distances
+def determine_start():
+    munich_gps = gpxpy.gpx.GPXTrackPoint(48.13743, 11.57549)
+    return munich_gps
 
 
 def get_reduced_name(dir_name, threshold_string, track_file_name):
@@ -121,21 +131,11 @@ def setup_segments_dict(segments_dict, track_file_name_reduced):
                 segment_id += 1
 
 
-def build_segments_dict(reduction_threshold, pickle_path, root, output_dir):
-    segments_dict = try_load_pickle(pickle_path)
-
-    if not segments_dict:
-        track_file_names = glob.glob(root)
-        logging.debug(f"Globbing found {len(track_file_names)} files.")
-        if not len(track_file_names):
-            logging.error(f"No files found while globbing '{root}'.")
-            return {}
-
-        segments_dict = load_and_reduce_gpxs(track_file_names, reduction_threshold, pickle_path, output_dir)
-
-        logging.debug(f"Saving pickle file to {pickle_path}.")
-        Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)
-        pickle.dump(segments_dict, open(pickle_path, "wb"))
-
-    logging.debug(f"Found {len(segments_dict)} segment(s).")
-    return segments_dict
+def try_load_pickle(pickle_path):
+    if not config.ALWAYS_PARSE and os.path.isfile(pickle_path):
+        logging.debug(f"{pickle_path} exists, using it.")
+        logging.debug(f"Loading {pickle_path}.")
+        segments_dict = pickle.load(open(pickle_path, "rb"))
+        return segments_dict
+    else:
+        return None

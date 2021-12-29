@@ -1,7 +1,7 @@
-import logging
-import pprint
 from collections import defaultdict
 from functools import partial
+import logging
+import pprint
 
 import graph_simple
 
@@ -9,6 +9,12 @@ import graph_simple
 class CostGraph(graph_simple.Graph):
     def __init__(self, _):
         self._graph = defaultdict(partial(defaultdict, int))
+
+    def __repr__(self):
+        return "{}({})".format(self.__class__.__name__, dict(self._graph))
+
+    def __str__(self):
+        return "{}({})".format(self.__class__.__name__, dict(self._graph))
 
     def add(self, node1, node2, cost=1):
         self._graph[node1].update({node2: cost})
@@ -56,9 +62,3 @@ class CostGraph(graph_simple.Graph):
         logging.info(f"Dijksra path {pprint.pformat(path)}.")
         logging.info(f"Dijksra graph {pprint.pformat(D)}.")
         return path
-
-    def __str__(self):
-        return "{}({})".format(self.__class__.__name__, dict(self._graph))
-
-    def __repr__(self):
-        return "{}({})".format(self.__class__.__name__, dict(self._graph))

@@ -22,3 +22,7 @@ print("###")
 print(g.find_path_recursive(n1, n5))
 print("###")
 print(g.find_path_iterative(n1, n5))
+
+
+def main():
+    pass

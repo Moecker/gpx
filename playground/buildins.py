@@ -1,5 +1,5 @@
-import sys
 import numpy as np
+import sys
 
 
 def print_size_of(thing):

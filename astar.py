@@ -1,6 +1,6 @@
-import itertools
 from collections import defaultdict, deque
 from functools import partial
+import itertools
 
 from tqdm import tqdm
 
@@ -25,52 +25,8 @@ class Graph:
         self.friends = defaultdict(list) if USE_TUPLE_IMPL else defaultdict(partial(defaultdict, int))
         self.heuristic = defaultdict(int)
 
-    def nodes(self):
-        return (
-            [t[0] for t in list(itertools.chain.from_iterable(self.friends.values()))]
-            if USE_TUPLE_IMPL
-            else [t for t in list(itertools.chain.from_iterable(self.friends.values()))]
-        )
-
-    def keys(self):
-        return self.friends.keys()
-
-    def init_with_friends(self, friends):
-        self.friends = friends
-
-    def add(self, n1, n2, cost):
-        if USE_TUPLE_IMPL:
-            self.friends[n1].append((n2, cost))
-            self.friends[n2].append((n1, cost))
-        else:
-            self.friends[n1][n2] = cost
-            self.friends[n2][n1] = cost
-
-    def get_neighbors(self, v):
-        return self.friends[v] if USE_TUPLE_IMPL else [(k, v) for k, v in self.friends[v].items()]
-
-    def h(self, n):
-        return self.heuristic[n]
-
-    def weights(self):
-        return (
-            [t[1][0][1] for t in [t for t in list(self.friends.items())]]
-            if USE_TUPLE_IMPL
-            else [val for sublist in self.friends.values() for val in sublist.values()]
-        )
-
-    def build_heuristic(self, end):
-        for key in self.keys():
-            dis = distance.haversine_gpx(key, end)
-            self.heuristic[key] = dis * config.HEURISTIC_SCALE_FACTOR
-
-    def adjust_weight(self, n1, n2, cost):
-        if not USE_TUPLE_IMPL:
-            self.friends[n1][n2] = cost
-            self.friends[n2][n1] = cost
-
-    def dijkstra(self, start, stop):
-        return self.a_star_algorithm(start, stop)
+    def __str__(self):
+        return "{}({})".format(self.__class__.__name__, dict(self.friends))
 
     def a_star_algorithm(self, start, stop):
         """From https://www.pythonpool.com/a-star-algorithm-python/"""
@@ -143,6 +99,27 @@ class Graph:
 
         return None
 
+    def add(self, n1, n2, cost):
+        if USE_TUPLE_IMPL:
+            self.friends[n1].append((n2, cost))
+            self.friends[n2].append((n1, cost))
+        else:
+            self.friends[n1][n2] = cost
+            self.friends[n2][n1] = cost
+
+    def adjust_weight(self, n1, n2, cost):
+        if not USE_TUPLE_IMPL:
+            self.friends[n1][n2] = cost
+            self.friends[n2][n1] = cost
+
+    def build_heuristic(self, end):
+        for key in self.keys():
+            dis = distance.haversine_gpx(key, end)
+            self.heuristic[key] = dis * config.HEURISTIC_SCALE_FACTOR
+
+    def dijkstra(self, start, stop):
+        return self.a_star_algorithm(start, stop)
+
     def find_shortest_path(self, start, end):
         """From https://www.python.org/doc/essays/graphs/"""
         dist = {start: [start]}
@@ -158,5 +135,28 @@ class Graph:
                     q.append(next)
         return dist.get(end)
 
-    def __str__(self):
-        return "{}({})".format(self.__class__.__name__, dict(self.friends))
+    def get_neighbors(self, v):
+        return self.friends[v] if USE_TUPLE_IMPL else [(k, v) for k, v in self.friends[v].items()]
+
+    def h(self, n):
+        return self.heuristic[n]
+
+    def init_with_friends(self, friends):
+        self.friends = friends
+
+    def keys(self):
+        return self.friends.keys()
+
+    def nodes(self):
+        return (
+            [t[0] for t in list(itertools.chain.from_iterable(self.friends.values()))]
+            if USE_TUPLE_IMPL
+            else [t for t in list(itertools.chain.from_iterable(self.friends.values()))]
+        )
+
+    def weights(self):
+        return (
+            [t[1][0][1] for t in [t for t in list(self.friends.items())]]
+            if USE_TUPLE_IMPL
+            else [val for sublist in self.friends.values() for val in sublist.values()]
+        )

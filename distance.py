@@ -1,11 +1,6 @@
 import math
 
 
-def haversine_gpx(gps1, gps2):
-    """Distance in KM between two GPS points"""
-    return haversine((gps1.latitude, gps1.longitude), (gps2.latitude, gps2.longitude))
-
-
 def haversine(coord1, coord2):
     return haversine_fast(coord1, coord2)
 
@@ -32,6 +27,11 @@ def haversine_fast(coord1, coord2):
     x = lat2 - lat1
     y = (lon2 - lon1) * math.cos((lat2 + lat1) * 0.00872664626)
     return 111.319 * math.sqrt(x * x + y * y)
+
+
+def haversine_gpx(gps1, gps2):
+    """Distance in KM between two GPS points"""
+    return haversine((gps1.latitude, gps1.longitude), (gps2.latitude, gps2.longitude))
 
 
 def simple_distance(gps1, gps2):

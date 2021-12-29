@@ -13,11 +13,8 @@ class Graph(object):
         self._directed = directed
         self.add_connections(connections)
 
-    def add_connections(self, connections):
-        """Add connections (list of tuple pairs) to graph"""
-
-        for node1, node2 in connections:
-            self.add(node1, node2)
+    def __str__(self):
+        return "{}({})".format(self.__class__.__name__, dict(self._graph))
 
     def add(self, node1, node2, cost=1):
         """Add connection between node1 and node2"""
@@ -26,23 +23,28 @@ class Graph(object):
         if not self._directed:
             self._graph[node2].add(node1)
 
-    def remove(self, node):
-        """Remove all references to node"""
+    def add_connections(self, connections):
+        """Add connections (list of tuple pairs) to graph"""
 
-        for n, cxns in self._graph.items():
-            try:
-                cxns.remove(node)
-            except KeyError:
-                pass
-        try:
-            del self._graph[node]
-        except KeyError:
-            pass
+        for node1, node2 in connections:
+            self.add(node1, node2)
 
-    def is_connected(self, node1, node2):
-        """Is node1 directly connected to node2"""
-
-        return node1 in self._graph and node2 in self._graph[node1]
+    def find_all_paths(self, start, end, path=[]):
+        """Find all path between node1 and node2 recursively, very slow though"""
+        path = path + [start]
+        if start == end:
+            return [path]
+        if not start in self._graph.keys():
+            return []
+        paths = []
+        for node in self._graph[start]:
+            if node not in path:
+                newpaths = self.find_all_paths(node, end, path)
+                for newpath in newpaths:
+                    paths.append(newpath)
+                    if len(paths) >= config.ROUTES_FOUND_END:
+                        return paths
+        return paths
 
     def find_path(self, node1, node2, path=[]):
         """Delegates to the best version"""
@@ -88,23 +90,6 @@ class Graph(object):
                     return new_path
         return None
 
-    def find_all_paths(self, start, end, path=[]):
-        """Find all path between node1 and node2 recursively, very slow though"""
-        path = path + [start]
-        if start == end:
-            return [path]
-        if not start in self._graph.keys():
-            return []
-        paths = []
-        for node in self._graph[start]:
-            if node not in path:
-                newpaths = self.find_all_paths(node, end, path)
-                for newpath in newpaths:
-                    paths.append(newpath)
-                    if len(paths) >= config.ROUTES_FOUND_END:
-                        return paths
-        return paths
-
     def find_shortest_path(self, start, end):
         """Finds shortest path efficiently"""
         #  From https://www.python.org/doc/essays/graphs/
@@ -121,5 +106,20 @@ class Graph(object):
                     q.append(next)
         return dist.get(end)
 
-    def __str__(self):
-        return "{}({})".format(self.__class__.__name__, dict(self._graph))
+    def is_connected(self, node1, node2):
+        """Is node1 directly connected to node2"""
+
+        return node1 in self._graph and node2 in self._graph[node1]
+
+    def remove(self, node):
+        """Remove all references to node"""
+
+        for n, cxns in self._graph.items():
+            try:
+                cxns.remove(node)
+            except KeyError:
+                pass
+        try:
+            del self._graph[node]
+        except KeyError:
+            pass

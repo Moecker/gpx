@@ -5,7 +5,6 @@ import gpxpy
 
 import gpx_tools
 
-
 class SimplePoint:
     def __init__(self, point):
         self.latitude = point[0]
@@ -35,12 +34,6 @@ class SimpleSegment:
         self.points = []
         for point in segment.points:
             self.points.append(SimplePoint.from_gpx_point(point))
-
-
-def simplify_segment(segment):
-    new_segment = SimpleSegment(segment)
-    return new_segment
-
 
 def annotate(point, name, idx):
     point.annotation = f"{name}@{idx}"
@@ -77,3 +70,8 @@ def save_as_gpx_file(points, dir, file_name):
 
     with open(file_path, "w") as f:
         f.write(gpx.to_xml())
+
+
+def simplify_segment(segment):
+    new_segment = SimpleSegment(segment)
+    return new_segment

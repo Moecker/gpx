@@ -1,5 +1,5 @@
-import queue
 from collections import defaultdict, deque
+import queue
 
 from tqdm import tqdm
 
@@ -8,8 +8,8 @@ class Graph:
     def __init__(self):
         self.friends = defaultdict(list)
 
-    def init_with_friends(self, friends):
-        self.friends = friends
+    def __str__(self):
+        return "{}({})".format(self.__class__.__name__, dict(self.friends))
 
     def add(self, n1, n2, cost):
         self.friends[n1].append((n2, cost))
@@ -41,6 +41,9 @@ class Graph:
                         q.put((f + edge[1], child, path + [child]))
 
     # Not used, not tested
+    def init_with_friends(self, friends):
+        self.friends = friends
+
     def ucs(self, start, end):
         """From https://stackoverflow.com/questions/43354715/uniform-cost-search-in-python"""
         v = start
@@ -79,6 +82,3 @@ class Graph:
                         visited.add(child)  # mark it as visited
                         parents[child] = current_node  # set the current node as the parent of child
                         q.put((current_node_priority + edge.weight, child))  # and enqueue it with *cumulative* priority
-
-    def __str__(self):
-        return "{}({})".format(self.__class__.__name__, dict(self.friends))

@@ -1,16 +1,8 @@
-import argparse
-import logging
-import math
-import os
-from pickle import FALSE
-import statistics
-import sys
-import time
-import webbrowser
 from collections import defaultdict
+from pickle import FALSE
 from posixpath import split
 from pprint import pprint
-import gpx_display
+import argparse
 import build_graph
 import build_segments
 import config
@@ -18,22 +10,20 @@ import display
 import distance
 import gpx_display
 import gpx_tools
+import logging
+import math
+import os
+import statistics
+import sys
+import time
 import utils
+import webbrowser
 
 
-def load_worldcities():
-    """From https://simplemaps.com/data/world-cities"""
-    cities = defaultdict(list)
-    with open(os.path.join("data", "worldcities.csv"), encoding="utf8") as f:
-        lines = f.readlines()
-    # Skip the first one which is a string
-    for line in lines[1:]:
-        split = line.split('","')
-        city = split[1].strip().replace('"', "").lower()
-        lat = float(split[2].strip().replace('"', ""))
-        lon = float(split[3].strip().replace('"', ""))
-        cities[city].append((lat, lon))
-    return cities
+def annotate_points(segments_dict):
+    for name, segment in segments_dict.items():
+        for idx, point in enumerate(segment.points):
+            gpx_tools.annotate(point, name, idx)
 
 
 def check_city(cities, city):
@@ -41,6 +31,13 @@ def check_city(cities, city):
         logging.warning(f"City '{city}' not found, try again.")
         return False
     return True
+
+
+def do_additional_stuff():
+    file_path = os.path.join(config.RESULTS_FOLDER, "dijkstra_rescaled.html")
+    if sys.platform == "darwin":
+        file_path = "file:///" + os.path.join(os.getcwd(), file_path)
+    webbrowser.open_new_tab(file_path)
 
 
 def find_start_and_end(cities, start_city, end_city):
@@ -71,124 +68,6 @@ def find_start_and_end(cities, start_city, end_city):
     return gpx_tools.SimplePoint(selected_start), gpx_tools.SimplePoint(selected_end)
 
 
-def load_background():
-    germany_gpx_path = os.path.join("maps", "1000_germany.gpx")
-    germany_points = gpx_display.load_all_points(germany_gpx_path)
-    switzerland_gpx_path = os.path.join("maps", "1000_switzerland.gpx")
-    switzerland_points = gpx_display.load_all_points(switzerland_gpx_path)
-    austria_gpx_path = os.path.join("maps", "1000_austria.gpx")
-    austria_points = gpx_display.load_all_points(austria_gpx_path)
-    return germany_points + switzerland_points + austria_points
-
-
-def print_important_infos():
-    if config.ALWAYS_REDUCE:
-        logging.warning("Option config.ALWAYS_REDUCE is active.")
-    if config.ALWAYS_PARSE:
-        logging.warning("Option config.ALWAYS_PARSE is active.")
-    if config.ALWAYS_GRAPH:
-        logging.warning("Option config.ALWAYS_GRAPH is active.")
-
-    logging.debug(f"Using graph version '{config.GRAPH_MODUL.__name__}'.")
-    logging.debug(
-        f"Minimum possible distance between points: {config.REDUCTION_DISTANCE * config.PRECISION / 1000:.2f} km."
-    )
-    logging.debug(f"Using cost for segment changes: {config.COST_SWITCH_SEGMENT_PENALTY}.")
-
-
-def load_segments(gpx_path):
-    pickle_file_name = "_".join(
-        [str(int(config.REDUCTION_DISTANCE)), utils.replace_os_separator(gpx_path), "segments.p"]
-    )
-
-    pickle_path = os.path.join(config.STORAGE_TEMP_DIR, "segments", pickle_file_name)
-    logging.debug(f"Storage path: '{pickle_path}'.")
-
-    glob_search_pattern = os.path.join(gpx_path, "*.gpx")
-    logging.debug(f"Glob search pattern: '{glob_search_pattern}'.")
-
-    segments_dict = build_segments.build_segments_dict(
-        config.REDUCTION_DISTANCE, pickle_path, glob_search_pattern, config.STORAGE_TEMP_DIR
-    )
-    return segments_dict
-
-
-def load_map(segments_dict, gpx_path):
-    map_file_name = "_".join(
-        [
-            str(int(config.REDUCTION_DISTANCE)),
-            utils.replace_os_separator(gpx_path),
-            str(int(config.GRAPH_CONNECTION_DISTANCE)),
-            str(int(config.PRECISION)),
-            str(int(config.COST_SWITCH_SEGMENT_PENALTY)),
-            str(config.GRAPH_MODUL.__name__),
-            "map.p",
-        ]
-    )
-    map = build_graph.load_or_build_map(segments_dict, map_file_name, os.path.join(config.STORAGE_TEMP_DIR, "maps"))
-
-    if not len(map.keys()):
-        logging.error(f"No keys in map")
-        return None
-    return map
-
-
-def none_tuple():
-    return None, None
-
-
-def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
-    logging.debug("Finding dijkstra path.")
-    start_time = time.time()
-    dijkstra = build_graph.find_path(map, start_gps, end_gps, map.dijkstra)
-
-    if not dijkstra:
-        return none_tuple()
-
-    dijkstra_rescaled = build_graph.rescale(segments_dict, dijkstra)
-    logging.info(f"Elapsed time {time.time() - start_time:.2f} s.")
-
-    if not dijkstra_rescaled:
-        return none_tuple()
-
-    gpx_display.create_and_display_map(dijkstra, "Map of found path", background)
-
-    gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, "dijkstra.gpx")
-    gpx_tools.save_as_gpx_file(dijkstra_rescaled, config.RESULTS_FOLDER, "dijkstra_rescaled.gpx")
-    display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
-    display.save_gpx_as_html("dijkstra_rescaled", config.RESULTS_FOLDER)
-
-    return dijkstra, dijkstra_rescaled
-
-
-def do_additional_stuff():
-    file_path = os.path.join(config.RESULTS_FOLDER, "dijkstra_rescaled.html")
-    if sys.platform == "darwin":
-        file_path = "file:///" + os.path.join(os.getcwd(), file_path)
-    webbrowser.open_new_tab(file_path)
-
-
-def perform_run(cities, start_city, end_city, segments_dict, background, map):
-    start_gps, end_gps = find_start_and_end(cities, start_city, end_city)
-
-    if not start_gps or not end_gps:
-        return none_tuple()
-
-    logging.info(f"Start GPS for {start_city}: {start_gps}.")
-    logging.info(f"End GPS for {end_city}: {end_gps}.")
-
-    logging.debug(f"Building a heuristic.")
-    map.build_heuristic(end_gps)
-
-    logging.debug(f"Number of keys in graph {str(len(map.keys()))}.")
-    logging.debug(f"Number of total nodes in graph {str(len(map.nodes()))}.")
-    logging.debug(f"Quantiles weights {str(statistics.quantiles(map.weights(), n=10))}.")
-
-    dijkstra, dijkstra_rescaled = perform_dijksra(start_gps, end_gps, segments_dict, background, map)
-
-    return dijkstra, dijkstra_rescaled
-
-
 def interactive_mode(cities, segments_dict, background, map):
     try:
         while True:
@@ -212,10 +91,66 @@ def interactive_mode(cities, segments_dict, background, map):
         sys.exit(0)
 
 
-def annotate_points(segments_dict):
-    for name, segment in segments_dict.items():
-        for idx, point in enumerate(segment.points):
-            gpx_tools.annotate(point, name, idx)
+def load_background():
+    germany_gpx_path = os.path.join("maps", "1000_germany.gpx")
+    germany_points = gpx_display.load_all_points(germany_gpx_path)
+    switzerland_gpx_path = os.path.join("maps", "1000_switzerland.gpx")
+    switzerland_points = gpx_display.load_all_points(switzerland_gpx_path)
+    austria_gpx_path = os.path.join("maps", "1000_austria.gpx")
+    austria_points = gpx_display.load_all_points(austria_gpx_path)
+    return germany_points + switzerland_points + austria_points
+
+
+def load_map(segments_dict, gpx_path):
+    map_file_name = "_".join(
+        [
+            str(int(config.REDUCTION_DISTANCE)),
+            utils.replace_os_separator(gpx_path),
+            str(int(config.GRAPH_CONNECTION_DISTANCE)),
+            str(int(config.PRECISION)),
+            str(int(config.COST_SWITCH_SEGMENT_PENALTY)),
+            str(config.GRAPH_MODUL.__name__),
+            "map.p",
+        ]
+    )
+    map = build_graph.load_or_build_map(segments_dict, map_file_name, os.path.join(config.STORAGE_TEMP_DIR, "maps"))
+
+    if not len(map.keys()):
+        logging.error(f"No keys in map")
+        return None
+    return map
+
+
+def load_segments(gpx_path):
+    pickle_file_name = "_".join(
+        [str(int(config.REDUCTION_DISTANCE)), utils.replace_os_separator(gpx_path), "segments.p"]
+    )
+
+    pickle_path = os.path.join(config.STORAGE_TEMP_DIR, "segments", pickle_file_name)
+    logging.debug(f"Storage path: '{pickle_path}'.")
+
+    glob_search_pattern = os.path.join(gpx_path, "*.gpx")
+    logging.debug(f"Glob search pattern: '{glob_search_pattern}'.")
+
+    segments_dict = build_segments.build_segments_dict(
+        config.REDUCTION_DISTANCE, pickle_path, glob_search_pattern, config.STORAGE_TEMP_DIR
+    )
+    return segments_dict
+
+
+def load_worldcities():
+    """From https://simplemaps.com/data/world-cities"""
+    cities = defaultdict(list)
+    with open(os.path.join("data", "worldcities.csv"), encoding="utf8") as f:
+        lines = f.readlines()
+    # Skip the first one which is a string
+    for line in lines[1:]:
+        split = line.split('","')
+        city = split[1].strip().replace('"', "").lower()
+        lat = float(split[2].strip().replace('"', ""))
+        lon = float(split[3].strip().replace('"', ""))
+        cities[city].append((lat, lon))
+    return cities
 
 
 def main():
@@ -275,6 +210,10 @@ def main():
             continue
 
 
+def none_tuple():
+    return None, None
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="GPX Path Planner.")
 
@@ -290,6 +229,66 @@ def parse_args():
         parser.error("Arguments --start and --end are required in non interactive mode (--interactive).")
         sys.exit(1)
     return args
+
+
+def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
+    logging.debug("Finding dijkstra path.")
+    start_time = time.time()
+    dijkstra = build_graph.find_path(map, start_gps, end_gps, map.dijkstra)
+
+    if not dijkstra:
+        return none_tuple()
+
+    dijkstra_rescaled = build_graph.rescale(segments_dict, dijkstra)
+    logging.info(f"Elapsed time {time.time() - start_time:.2f} s.")
+
+    if not dijkstra_rescaled:
+        return none_tuple()
+
+    gpx_display.create_and_display_map(dijkstra, "Map of found path", background)
+
+    gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, "dijkstra.gpx")
+    gpx_tools.save_as_gpx_file(dijkstra_rescaled, config.RESULTS_FOLDER, "dijkstra_rescaled.gpx")
+    display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
+    display.save_gpx_as_html("dijkstra_rescaled", config.RESULTS_FOLDER)
+
+    return dijkstra, dijkstra_rescaled
+
+
+def perform_run(cities, start_city, end_city, segments_dict, background, map):
+    start_gps, end_gps = find_start_and_end(cities, start_city, end_city)
+
+    if not start_gps or not end_gps:
+        return none_tuple()
+
+    logging.info(f"Start GPS for {start_city}: {start_gps}.")
+    logging.info(f"End GPS for {end_city}: {end_gps}.")
+
+    logging.debug(f"Building a heuristic.")
+    map.build_heuristic(end_gps)
+
+    logging.debug(f"Number of keys in graph {str(len(map.keys()))}.")
+    logging.debug(f"Number of total nodes in graph {str(len(map.nodes()))}.")
+    logging.debug(f"Quantiles weights {str(statistics.quantiles(map.weights(), n=10))}.")
+
+    dijkstra, dijkstra_rescaled = perform_dijksra(start_gps, end_gps, segments_dict, background, map)
+
+    return dijkstra, dijkstra_rescaled
+
+
+def print_important_infos():
+    if config.ALWAYS_REDUCE:
+        logging.warning("Option config.ALWAYS_REDUCE is active.")
+    if config.ALWAYS_PARSE:
+        logging.warning("Option config.ALWAYS_PARSE is active.")
+    if config.ALWAYS_GRAPH:
+        logging.warning("Option config.ALWAYS_GRAPH is active.")
+
+    logging.debug(f"Using graph version '{config.GRAPH_MODUL.__name__}'.")
+    logging.debug(
+        f"Minimum possible distance between points: {config.REDUCTION_DISTANCE * config.PRECISION / 1000:.2f} km."
+    )
+    logging.debug(f"Using cost for segment changes: {config.COST_SWITCH_SEGMENT_PENALTY}.")
 
 
 if __name__ == "__main__":

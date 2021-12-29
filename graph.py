@@ -1,6 +1,6 @@
+from collections import defaultdict, deque
 import itertools
 import logging
-from collections import defaultdict, deque
 
 from tqdm import tqdm
 
@@ -17,18 +17,8 @@ class Graph:
         self.edges = defaultdict(list)
         self.costs = {}
 
-    def nodes(self):
-        return list(itertools.chain.from_iterable(self.edges.values()))
-
-    def keys(self):
-        return self.edges.keys()
-
-    def weights(self):
-        all_weights = self.costs.values()
-        return all_weights
-
-    def build_heuristic(self, end):
-        pass
+    def __str__(self):
+        return "{}({})".format(self.__class__.__name__, dict(self.edges))
 
     def add(self, from_node, to_node, cost):
         # Note: assumes edges are bi-directional
@@ -37,19 +27,8 @@ class Graph:
         self.costs[(from_node, to_node)] = cost
         self.costs[(to_node, from_node)] = cost
 
-    def find_shortest_path(self, start, end):
-        """From https://www.python.org/doc/essays/graphs/"""
-        dist = {start: [start]}
-        q = deque([start])
-        while len(q):
-            at = q.popleft()
-            for next in self.edges[at]:
-                if next not in dist:
-                    # Optimal solution would be:
-                    # dist[next] = [dist[at], next]
-                    dist[next] = dist[at] + [next]
-                    q.append(next)
-        return dist.get(end)
+    def build_heuristic(self, end):
+        pass
 
     def dijkstra(self, initial, end):
         """From https://www.bogotobogo.com/python/python_Dijkstras_Shortest_Path_Algorithm.php"""
@@ -96,5 +75,26 @@ class Graph:
         logging.info(f"Dijksra found a path of length {len(path)}.")
         return path
 
-    def __str__(self):
-        return "{}({})".format(self.__class__.__name__, dict(self.edges))
+    def find_shortest_path(self, start, end):
+        """From https://www.python.org/doc/essays/graphs/"""
+        dist = {start: [start]}
+        q = deque([start])
+        while len(q):
+            at = q.popleft()
+            for next in self.edges[at]:
+                if next not in dist:
+                    # Optimal solution would be:
+                    # dist[next] = [dist[at], next]
+                    dist[next] = dist[at] + [next]
+                    q.append(next)
+        return dist.get(end)
+
+    def keys(self):
+        return self.edges.keys()
+
+    def nodes(self):
+        return list(itertools.chain.from_iterable(self.edges.values()))
+
+    def weights(self):
+        all_weights = self.costs.values()
+        return all_weights

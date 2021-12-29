@@ -9,3 +9,7 @@ with tqdm(total=n * m) as pbar:
         for i2 in tqdm(range(m)):
             time.sleep(0.01)
             pbar.update(1)
+
+
+def main():
+    pass

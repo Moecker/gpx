@@ -49,3 +49,7 @@ NUMBER_OF_PATHS = 1
 
 # The used module which implements the graph.
 GRAPH_MODUL = astar
+
+
+def main():
+    pass

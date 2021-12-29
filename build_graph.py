@@ -1,15 +1,25 @@
+from pathlib import Path
+from pprint import pformat
+import gpx_tools
 import logging
 import math
 import os
 import pickle
-from pathlib import Path
-from pprint import pformat
-import gpx_tools
 
 from tqdm import tqdm
 
 import config
 import distance
+
+
+def adjust_weight_of_path(path, map):
+    prev_point = None
+    for point in path:
+        if prev_point == None:
+            prev_point = point
+            continue
+        map.adjust_weight(prev_point, point, config.COST_SWITCH_SEGMENT_PENALTY)
+        prev_point = point
 
 
 def build_map(segments_dict):
@@ -42,6 +52,26 @@ def build_map(segments_dict):
     return map
 
 
+def collect_all_points(segments_dict):
+    all_points = []
+    for _, segment in segments_dict.items():
+        for point in segment.points:
+            all_points.append(point)
+    return all_points
+
+
+def compute_min_dis(map, start_gpx):
+    min_dis = math.inf
+    min_node = None
+    nodes = map.keys()
+    for k in nodes:
+        dis = distance.haversine_gpx(k, start_gpx)
+        if dis < min_dis:
+            min_dis = dis
+            min_node = k
+    return min_dis, min_node
+
+
 def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_point):
     for _, other_segment in segments_dict.items():
         # Do no connect points which would skip intermediate, intra segment points
@@ -68,30 +98,6 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
             idx = min(idx + max(1, step_distance), max(len(other_segment.points) - 1, 1))
 
 
-def compute_min_dis(map, start_gpx):
-    min_dis = math.inf
-    min_node = None
-    nodes = map.keys()
-    for k in nodes:
-        dis = distance.haversine_gpx(k, start_gpx)
-        if dis < min_dis:
-            min_dis = dis
-            min_node = k
-    return min_dis, min_node
-
-
-def get_closest_start_and_end(map, start_gpx, end_gpx):
-    min_dis_start, first = compute_min_dis(map, start_gpx)
-    min_dis_end, last = compute_min_dis(map, end_gpx)
-
-    logging.debug(f"Desired GPS start: {start_gpx} and end: {end_gpx}.")
-    logging.debug(f"Minimum distance to start: {min_dis_start:.2f} km, and end: {min_dis_end:.2f} km")
-    logging.info(f"Closest GPS start node in graph: {first}")
-    logging.info(f"Closest GPS end node in graph: {last}.")
-
-    return first, last
-
-
 def find_path(map, start, end, strategy):
     first, last = get_closest_start_and_end(map, start, end)
 
@@ -113,12 +119,16 @@ def find_path(map, start, end, strategy):
     return path
 
 
-def collect_all_points(segments_dict):
-    all_points = []
-    for _, segment in segments_dict.items():
-        for point in segment.points:
-            all_points.append(point)
-    return all_points
+def get_closest_start_and_end(map, start_gpx, end_gpx):
+    min_dis_start, first = compute_min_dis(map, start_gpx)
+    min_dis_end, last = compute_min_dis(map, end_gpx)
+
+    logging.debug(f"Desired GPS start: {start_gpx} and end: {end_gpx}.")
+    logging.debug(f"Minimum distance to start: {min_dis_start:.2f} km, and end: {min_dis_end:.2f} km")
+    logging.info(f"Closest GPS start node in graph: {first}")
+    logging.info(f"Closest GPS end node in graph: {last}.")
+
+    return first, last
 
 
 def load_or_build_map(segments_dict, name, output_dir):
@@ -188,13 +198,3 @@ def rescale(segments_dict, path):
     logging.info(f"Path uses {len(used_segments)} different segments.")
     logging.debug(f"Used segments: \n{pformat(used_segments)}.")
     return rescaled_path
-
-
-def adjust_weight_of_path(path, map):
-    prev_point = None
-    for point in path:
-        if prev_point == None:
-            prev_point = point
-            continue
-        map.adjust_weight(prev_point, point, config.COST_SWITCH_SEGMENT_PENALTY)
-        prev_point = point

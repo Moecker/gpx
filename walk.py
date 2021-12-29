@@ -1,5 +1,5 @@
-import logging
 from pprint import pformat
+import logging
 
 import distance
 import utils
