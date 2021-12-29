@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# From https://github.com/Moecker/samo_tidy/blob/main/support/apply_linter.py
 
 from collections import defaultdict
 from pathlib import Path

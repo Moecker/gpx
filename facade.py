@@ -33,7 +33,7 @@ def check_city(cities, city):
     return True
 
 
-def do_additional_stuff():
+def open_web_browser():
     file_path = os.path.join(config.RESULTS_FOLDER, "dijkstra_rescaled.html")
     if sys.platform == "darwin":
         file_path = "file:///" + os.path.join(os.getcwd(), file_path)
@@ -183,6 +183,9 @@ def main():
     all_points = build_graph.collect_all_points(segments_dict)
     logging.debug(f"Number of points in segments {str(len(all_points))}.")
 
+    gpx_tools.save_as_gpx_file(all_points, config.RESULTS_FOLDER, "all_points.gpx")
+    display.save_gpx_as_html("all_points", config.RESULTS_FOLDER)
+
     background = load_background()
 
     gpx_display.create_and_display_map(all_points, "Map of all points in database", background)
@@ -192,22 +195,26 @@ def main():
     if args.interactive:
         interactive_mode(cities, segments_dict, background, map)
     else:
-        loop = 0
-        while True:
-            if loop >= config.NUMBER_OF_PATHS:
-                logging.info(f"Maximum number of {config.NUMBER_OF_PATHS} path(s) found.")
-                break
+        normal_mode(args, cities, segments_dict, background, map)
 
-            loop += 1
-            logging.info(f"Searching path {loop} of {config.NUMBER_OF_PATHS}.")
-            dijkstra, dijkstra_rescaled = perform_run(cities, args.start, args.end, segments_dict, background, map)
 
-            if not dijkstra or not dijkstra_rescaled:
-                logging.info("No more paths found, stopping.")
-                break
+def normal_mode(args, cities, segments_dict, background, map):
+    loop = 0
+    while True:
+        if loop >= config.NUMBER_OF_PATHS:
+            logging.info(f"Maximum number of {config.NUMBER_OF_PATHS} path(s) found.")
+            break
 
-            build_graph.adjust_weight_of_path(dijkstra, map)
-            continue
+        loop += 1
+        logging.info(f"Searching path {loop} of {config.NUMBER_OF_PATHS}.")
+        dijkstra, dijkstra_rescaled = perform_run(cities, args.start, args.end, segments_dict, background, map)
+
+        if not dijkstra or not dijkstra_rescaled:
+            logging.info("No more paths found, stopping.")
+            break
+
+        build_graph.adjust_weight_of_path(dijkstra, map)
+        continue
 
 
 def none_tuple():

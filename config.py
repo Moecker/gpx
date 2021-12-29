@@ -5,10 +5,10 @@ import graph
 ALWAYS_GRAPH = True
 
 # Controls whether to always re-create cached segments dicts.
-ALWAYS_PARSE = True
+ALWAYS_PARSE = False
 
 # Controls whether to always re-create reduced gpx files.
-ALWAYS_REDUCE = True
+ALWAYS_REDUCE = False
 
 # Location for intermediate results, such as maps and segments for caching.
 STORAGE_TEMP_DIR = "tmp"
