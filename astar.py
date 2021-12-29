@@ -8,6 +8,10 @@ from tqdm import tqdm
 
 
 class Graph:
+    """
+    A Graph in a structure
+    dict[key=GPSPoint] = list(tuple(NeighborGPSPoint, Costs))
+    """
     def __init__(self):
         self.friends = defaultdict(list)
         self.heuristic = defaultdict(int)

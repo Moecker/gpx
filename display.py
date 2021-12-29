@@ -32,6 +32,11 @@ def overlay_gpx(gpx_data_file, zoom):
 def save_gpx_as_html(map_name, dir):
     gpx_file_path = os.path.join(dir, f"{map_name}.gpx")
     html_file_path = os.path.join(dir, f"{map_name}.html")
+
+    if not os.path.isfile(gpx_file_path):
+        logging.error(f"Cannot save {gpx_file_path} to {html_file_path}, input file does not exist.")
+        return
+
     logging.info(f"Saving {gpx_file_path} as HTML to {html_file_path}.")
 
     map = overlay_gpx(gpx_file_path, zoom=8)

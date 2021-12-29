@@ -3,7 +3,6 @@ import logging
 import math
 import os
 import pickle
-import sys
 from pathlib import Path
 from pprint import pformat
 
@@ -84,12 +83,12 @@ def load_and_reduce_gpxs(track_file_names, threshold, pickle_path, output_dir):
         )
 
         if config.ALWAYS_REDUCE or not os.path.isfile(track_file_name_reduced):
-            pbar.set_description(f"INFO: {track_file_name_reduced} does not exist or is forced ignored, creating it.")
+            pbar.set_description(f"INFO: {track_file_name_reduced.ljust(180):.100s} does not exist or is forced ignored, creating it.")
             success = reducer.reduce(track_file_name, threshold, track_file_name_reduced)
             if not success:
                 continue
         else:
-            pbar.set_description(f"INFO: {track_file_name_reduced} exists, using it.")
+            pbar.set_description(f"INFO: {track_file_name_reduced.ljust(180):.100s} exists, using it.")
 
         setup_segments_dict(segments_dict, track_file_name_reduced)
     return segments_dict
@@ -119,6 +118,7 @@ def build_segments_dict(reduction_threshold, pickle_path, root, output_dir):
         segments_dict = load_and_reduce_gpxs(track_file_names, reduction_threshold, pickle_path, output_dir)
 
         logging.info(f"Saving pickle file to {pickle_path}.")
+        Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)
         pickle.dump(segments_dict, open(pickle_path, "wb"))
 
     logging.info(f"Found {len(segments_dict)} segment(s).")

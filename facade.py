@@ -82,7 +82,6 @@ def load_background():
 
 
 def print_important_infos():
-    logging.info(f"Starting")
     if config.ALWAYS_REDUCE:
         logging.warning("Option config.ALWAYS_REDUCE is active.")
     if config.ALWAYS_PARSE:
@@ -149,8 +148,10 @@ def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
 
 
 def do_additional_stuff():
-    webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "dijkstra.html"))
-    webbrowser.open_new_tab(os.path.join(config.RESULTS_FOLDER, "dijkstra_rescaled.html"))
+    file_path =  os.path.join(config.RESULTS_FOLDER, "dijkstra_rescaled.html")
+    if sys.platform == "darwin":
+        file_path = "file:///"  + os.path.join(os.getcwd(), file_path)
+    webbrowser.open_new_tab(file_path)
 
 
 def perform_run(cities, start_city, end_city, segments_dict, background, map, silent):
@@ -198,9 +199,12 @@ def interactive_mode(cities, segments_dict, background, map, silent):
 
 
 def main():
-    print_important_infos()
+    logging.info(f"Starting...")
 
     args = parse_args()
+
+    print_important_infos()
+
     cities = load_worldcities()
     logging.info(f"Loaded {len(cities)} cities.")
 

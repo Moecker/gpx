@@ -2,6 +2,7 @@ import logging
 import math
 import os
 import pickle
+from pathlib import Path
 
 from tqdm import tqdm
 
@@ -20,7 +21,7 @@ def build_map(segments_dict):
     map = config.GRAPH_MODUL.Graph()
     pbar = tqdm(segments_dict.items())
     for name, segment in pbar:
-        pbar.set_description(f"INFO: Processing {name} with {len(segment.points)} points.")
+        pbar.set_description(f"INFO: Processing {name.ljust(180):.100s} with {len(segment.points):6d} points.")
 
         if not len(segment.points):
             continue
@@ -77,6 +78,9 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
 def add_waypoints(map, path, edges, character):
     for point in path[::]:
         idx_w, idx_h = gpx2ascii.determine_index((point.latitude, point.longitude), edges)
+        assert idx_w < len(map), f"{idx_w} exceeds {len(map)}"
+        assert len(map) > 0
+        assert idx_h < len(map[0])
         map[idx_w][idx_h] = character
 
 
@@ -154,6 +158,7 @@ def load_or_build_map(segments_dict, name, output_dir):
         map = build_map(segments_dict)
 
         logging.info(f"Saving pickle file to {pickle_path}.")
+        Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)
         pickle.dump(map, open(pickle_path, "wb"))
 
     logging.info(f"Pickle {pickle_path} exist, using it.")
