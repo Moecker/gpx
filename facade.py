@@ -10,13 +10,13 @@ import webbrowser
 from collections import defaultdict
 from posixpath import split
 from pprint import pprint
-import points2ascii
+import gpx_display
 import build_graph
 import build_segments
 import config
 import display
 import distance
-import gpx2ascii
+import gpx_display
 import gpx_tools
 import utils
 
@@ -73,11 +73,11 @@ def find_start_and_end(cities, start_city, end_city):
 
 def load_background():
     germany_gpx_path = os.path.join("maps", "1000_germany.gpx")
-    germany_points = gpx2ascii.load_all_points(germany_gpx_path)
+    germany_points = gpx_display.load_all_points(germany_gpx_path)
     switzerland_gpx_path = os.path.join("maps", "1000_switzerland.gpx")
-    switzerland_points = gpx2ascii.load_all_points(switzerland_gpx_path)
+    switzerland_points = gpx_display.load_all_points(switzerland_gpx_path)
     austria_gpx_path = os.path.join("maps", "1000_austria.gpx")
-    austria_points = gpx2ascii.load_all_points(austria_gpx_path)
+    austria_points = gpx_display.load_all_points(austria_gpx_path)
     return germany_points + switzerland_points + austria_points
 
 
@@ -151,7 +151,7 @@ def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
     if not dijkstra_rescaled:
         return none_tuple()
 
-    points2ascii.create_and_display_map(dijkstra, "Map of found path", background)
+    gpx_display.create_and_display_map(dijkstra, "Map of found path", background)
 
     gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, "dijkstra.gpx")
     gpx_tools.save_as_gpx_file(dijkstra_rescaled, config.RESULTS_FOLDER, "dijkstra_rescaled.gpx")
@@ -215,7 +215,7 @@ def interactive_mode(cities, segments_dict, background, map):
 def annotate_points(segments_dict):
     for name, segment in segments_dict.items():
         for idx, point in enumerate(segment.points):
-            build_graph.annotate(point, name, idx)
+            gpx_tools.annotate(point, name, idx)
 
 
 def main():
@@ -250,7 +250,7 @@ def main():
 
     background = load_background()
 
-    points2ascii.create_and_display_map(all_points, "Map of all points in database", background)
+    gpx_display.create_and_display_map(all_points, "Map of all points in database", background)
 
     map = load_map(segments_dict, args.gpx)
 

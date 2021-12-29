@@ -4,25 +4,12 @@ import os
 import pickle
 from pathlib import Path
 from pprint import pformat
+import gpx_tools
 
 from tqdm import tqdm
 
 import config
 import distance
-import gpx2ascii
-import gpx_tools
-import points2ascii
-
-
-def annotate(point, name, idx):
-    point.annotation = f"{name}@{idx}"
-
-
-def deannotate(point):
-    annotations = point.annotation.split("@")
-    key = annotations[0]
-    idx = int(annotations[1])
-    return key, idx
 
 
 def build_map(segments_dict):
@@ -167,7 +154,7 @@ def rescale(segments_dict, path):
             logging.warning(f"Cannot rescale because annotations are missing, skipping.")
             return None
 
-        key, idx = deannotate(point)
+        key, idx = gpx_tools.deannotate(point)
 
         if key != previous_key:
             used_segments.append(key)

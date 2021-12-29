@@ -3,7 +3,7 @@ import os
 
 import gpxpy
 
-import build_graph
+import gpx_tools
 
 
 class SimplePoint:
@@ -42,6 +42,17 @@ def simplify_segment(segment):
     return new_segment
 
 
+def annotate(point, name, idx):
+    point.annotation = f"{name}@{idx}"
+
+
+def deannotate(point):
+    annotations = point.annotation.split("@")
+    key = annotations[0]
+    idx = int(annotations[1])
+    return key, idx
+
+
 def save_as_gpx_file(points, dir, file_name):
     gpx = gpxpy.gpx.GPX()
 
@@ -59,7 +70,7 @@ def save_as_gpx_file(points, dir, file_name):
         return
 
     for point in points:
-        key, idx = build_graph.deannotate(point)
+        key, idx = gpx_tools.deannotate(point)
         track_point = gpxpy.gpx.GPXTrackPoint(point.latitude, point.longitude)
         track_point.source = f"{key}@{idx}"
         gpx_segment.points.append(track_point)

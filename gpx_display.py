@@ -1,9 +1,12 @@
 import logging
 import math
+from pprint import pformat
+
+import gpxpy
 
 import config
 import distance
-import gpx2ascii
+import gpx_display
 
 
 def determine_bounding_box(points):
@@ -42,7 +45,7 @@ def add_waypoints(map, path, edges, character):
     assert len(map[0]) > 0
 
     for point in path[:: config.PRECISION]:
-        idx_w, idx_h = gpx2ascii.determine_index((point.latitude, point.longitude), edges)
+        idx_w, idx_h = gpx_display.determine_index((point.latitude, point.longitude), edges)
         idx_w = min(idx_w, len(map) - 1)
 
         idx_h = min(idx_h, len(map[0]) - 1)
@@ -62,4 +65,34 @@ def create_and_display_map(path, name, background=[]):
     add_waypoints(map, path, edges, "x")
 
     logging.info(f"{name}.")
-    gpx2ascii.display(map)
+    gpx_display.display(map)
+
+
+def determine_index(point, edges):
+    distance_w = distance.haversine((edges[1][1][0], point[1]), point)
+    distance_h = distance.haversine((point[0], edges[1][1][1]), point)
+    w, h = int(distance_w / config.SCALE_FACTOR), int(distance_h / config.SCALE_FACTOR)
+    return w, h
+
+
+
+def display(map):
+    display_string = ""
+    for lines in reversed(map):
+        for line in lines:
+            display_string += str(f"{line} ")
+        display_string += "\n"
+
+    print(display_string)
+
+
+def load_all_points(gpx_file_name):
+    with open(gpx_file_name, "r") as f:
+        gpx = gpxpy.parse(f)
+
+    all_points = []
+    for track in gpx.tracks:
+        for segment in track.segments:
+            for point in segment.points:
+                all_points.append(point)
+    return all_points

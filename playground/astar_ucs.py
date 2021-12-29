@@ -1,6 +1,5 @@
-import itertools
-from collections import defaultdict, deque
 import queue
+from collections import defaultdict, deque
 
 from tqdm import tqdm
 

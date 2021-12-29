@@ -1,11 +1,14 @@
 import itertools
 from collections import defaultdict, deque
 from functools import partial
-import distance
-import config
 
 from tqdm import tqdm
 
+import config
+import distance
+
+# Originally, this was a graph which implemented a tuple instead of a dict (for neighbor nodes and costs).
+# Setting this to True would use this old implementation
 USE_TUPLE_IMPL = False
 
 

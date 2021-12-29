@@ -1,9 +1,9 @@
 import logging
-import math
-import graph_simple
+import pprint
 from collections import defaultdict
 from functools import partial
-import pprint
+
+import graph_simple
 
 
 class CostGraph(graph_simple.Graph):
