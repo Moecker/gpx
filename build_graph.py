@@ -41,7 +41,7 @@ def build_map(segments_dict):
                 point = segment.points[idx]
                 if prev_point:
                     dis = distance.haversine_gpx(prev_point, point)
-                    map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_PENALTY))
+                    map.add(prev_point, point, cost=int(dis * config.COST_NORMAL_PENALTY))
 
                 prev_point = point
                 find_and_add_adjacent_nodes(map, segments_dict, segment, point)
@@ -70,7 +70,7 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
             dis = distance.haversine_gpx(current_point, other_point)
 
             if dis < config.GRAPH_CONNECTION_DISTANCE:
-                map.add(current_point, other_point, cost=int(dis + config.COST_SWITCH_SEGMENT_PENALTY))
+                map.add(current_point, other_point, cost=int(dis * config.COST_SWITCH_SEGMENT_PENALTY))
 
             step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
 

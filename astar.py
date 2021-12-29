@@ -87,7 +87,7 @@ class Graph:
         par = {}
         par[start] = start
 
-        total_pbar = len(self.nodes())
+        total_pbar = len(self.nodes()) + len(self.keys())
         with tqdm(total=total_pbar) as pbar:
             while len(open_lst) > 0:
                 n = None
