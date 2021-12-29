@@ -38,8 +38,6 @@ def build_map(segments_dict):
         prev_point = None
         while idx < len(segment.points):
             point = segment.points[idx]
-            annotate(point, name, idx)
-
             if prev_point:
                 dis = distance.haversine_gpx(prev_point, point)
                 map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_PENALTY))
@@ -67,8 +65,6 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
         idx = 0
         while idx < len(other_segment.points):
             other_point = other_segment.points[idx]
-            annotate(other_point, name, idx)
-
             dis = distance.haversine_gpx(current_point, other_point)
 
             if dis < config.GRAPH_CONNECTION_DISTANCE:
@@ -219,6 +215,10 @@ def rescale(segments_dict, path):
 
         segments_dict[key]
         previous_idx = idx
+
+    if not len(rescaled_path):
+        logging.error(f"Rescaling failed, could not determine points.")
+        return None
 
     logging.info(f"Rescaled from {len(path)} to {len(rescaled_path)} points.")
     logging.info(f"Used {len(used_segments)} different segments")

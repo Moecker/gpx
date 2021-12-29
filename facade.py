@@ -137,17 +137,20 @@ def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
     logging.info("Finding dijkstra path...")
     start_time = time.time()
     dijkstra = build_graph.find_path(map, start_gps, end_gps, map.dijkstra)
-    rescaled_dijkstra = build_graph.rescale(segments_dict, dijkstra)
+    dijkstra_rescaled = build_graph.rescale(segments_dict, dijkstra)
     logging.info(f"Elapsed time {time.time() - start_time:.2f} s.")
+
+    if not dijkstra or not dijkstra_rescaled:
+        return None, None
 
     build_graph.create_and_display_map(dijkstra, "Dijkstra path", background)
 
     gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, "dijkstra.gpx")
-    gpx_tools.save_as_gpx_file(rescaled_dijkstra, config.RESULTS_FOLDER, "dijkstra_rescaled.gpx")
+    gpx_tools.save_as_gpx_file(dijkstra_rescaled, config.RESULTS_FOLDER, "dijkstra_rescaled.gpx")
     display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
     display.save_gpx_as_html("dijkstra_rescaled", config.RESULTS_FOLDER)
 
-    return dijkstra
+    return dijkstra, dijkstra_rescaled
 
 
 def do_additional_stuff():
@@ -172,12 +175,12 @@ def perform_run(cities, start_city, end_city, segments_dict, background, map, si
     logging.info(f"Number of total nodes in graph {str(len(map.nodes()))}.")
     logging.info(f"Quantiles weights {str(statistics.quantiles(map.weights(), n=10))}.")
 
-    dijkstra = perform_dijksra(start_gps, end_gps, segments_dict, background, map)
+    dijkstra, dijkstra_rescaled = perform_dijksra(start_gps, end_gps, segments_dict, background, map)
 
     if not silent:
         do_additional_stuff()
 
-    return dijkstra
+    return dijkstra, dijkstra_rescaled
 
 
 def interactive_mode(cities, segments_dict, background, map, silent):
@@ -203,6 +206,12 @@ def interactive_mode(cities, segments_dict, background, map, silent):
         sys.exit(0)
 
 
+def annotate_points(segments_dict):
+    for name, segment in segments_dict.items():
+        for idx, point in enumerate(segment.points):
+            build_graph.annotate(point, name, idx)
+
+
 def main():
     logging.info(f"Starting...")
 
@@ -214,6 +223,7 @@ def main():
     logging.info(f"Loaded {len(cities)} cities.")
 
     segments_dict = load_segments(args.gpx)
+    annotate_points(segments_dict)
 
     all_points = build_graph.collect_all_points(segments_dict)
     logging.info(f"Number of points in segments {str(len(all_points))}.")
@@ -227,12 +237,16 @@ def main():
     if args.interactive:
         interactive_mode(cities, segments_dict, background, map, args.silent)
     else:
-        dijkstra = True
-        while dijkstra:
-            dijkstra = perform_run(cities, args.start, args.end, segments_dict, background, map, args.silent)
-            build_graph.adjust_weight_of_path(dijkstra, map)
-            logging.info("Waiting for next run...")
-            time.sleep(5)
+        while True:
+            dijkstra, dijkstra_rescaled = perform_run(
+                cities, args.start, args.end, segments_dict, background, map, args.silent
+            )
+            if dijkstra and dijkstra_rescaled:
+                build_graph.adjust_weight_of_path(dijkstra, map)
+                logging.info("Waiting for next run...")
+                time.sleep(0.1)
+            else:
+                break
 
 
 def parse_args():
