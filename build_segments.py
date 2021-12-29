@@ -83,7 +83,9 @@ def load_and_reduce_gpxs(track_file_names, threshold, pickle_path, output_dir):
         )
 
         if config.ALWAYS_REDUCE or not os.path.isfile(track_file_name_reduced):
-            pbar.set_description(f"INFO: {track_file_name_reduced.ljust(180):.100s} does not exist or is forced ignored, creating it.")
+            pbar.set_description(
+                f"INFO: {track_file_name_reduced.ljust(180):.100s} does not exist or is forced ignored, creating it."
+            )
             success = reducer.reduce(track_file_name, threshold, track_file_name_reduced)
             if not success:
                 continue

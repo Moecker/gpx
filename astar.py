@@ -1,23 +1,33 @@
 import itertools
 from collections import defaultdict, deque
-import queue
+from functools import partial
 import distance
 import config
 
 from tqdm import tqdm
 
+USE_TUPLE_IMPL = False
+
 
 class Graph:
     """
     A Graph in a structure
-    dict[key=GPSPoint] = list(tuple(NeighborGPSPoint, Costs))
+    if USE_TUPLE_IMPL:
+        dict[key=GPSPoint, value=list(tuple(NeighborGPSPoint, Costs))]
+    if not USE_TUPLE_IMPL:
+        dict[key=GPSPoint, value=dict[key=NeighborGPSPoint, value=Costs)]]
     """
+
     def __init__(self):
-        self.friends = defaultdict(list)
+        self.friends = defaultdict(list) if USE_TUPLE_IMPL else defaultdict(partial(defaultdict, int))
         self.heuristic = defaultdict(int)
 
     def nodes(self):
-        return [t[0] for t in list(itertools.chain.from_iterable(self.friends.values()))]
+        return (
+            [t[0] for t in list(itertools.chain.from_iterable(self.friends.values()))]
+            if USE_TUPLE_IMPL
+            else [t for t in list(itertools.chain.from_iterable(self.friends.values()))]
+        )
 
     def keys(self):
         return self.friends.keys()
@@ -26,24 +36,35 @@ class Graph:
         self.friends = friends
 
     def add(self, n1, n2, cost):
-        self.friends[n1].append((n2, cost))
-        self.friends[n2].append((n1, cost))
+        if USE_TUPLE_IMPL:
+            self.friends[n1].append((n2, cost))
+            self.friends[n2].append((n1, cost))
+        else:
+            self.friends[n1][n2] = cost
+            self.friends[n2][n1] = cost
 
     def get_neighbors(self, v):
-        return self.friends[v]
+        return self.friends[v] if USE_TUPLE_IMPL else [(k, v) for k, v in self.friends[v].items()]
 
     def h(self, n):
         return self.heuristic[n]
 
     def weights(self):
-        all_nodes = [t for t in list(self.friends.items())]
-        all_weights = [t[1][0][1] for t in all_nodes]
-        return all_weights
+        return (
+            [t[1][0][1] for t in [t for t in list(self.friends.items())]]
+            if USE_TUPLE_IMPL
+            else [val for sublist in self.friends.values() for val in sublist.values()]
+        )
 
     def build_heuristic(self, end):
         for key in self.keys():
             dis = distance.haversine_gpx(key, end)
             self.heuristic[key] = dis * config.HEURISTIC_SCALE_FACTOR
+
+    def adjust_weight(self, n1, n2, cost):
+        if not USE_TUPLE_IMPL:
+            self.friends[n1][n2] = cost
+            self.friends[n2][n1] = cost
 
     def dijkstra(self, start, stop):
         return self.a_star_algorithm(start, stop)

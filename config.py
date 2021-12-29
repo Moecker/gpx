@@ -2,7 +2,7 @@ import astar
 import graph
 
 # Controls whether to always re-create the graph.
-ALWAYS_GRAPH = False
+ALWAYS_GRAPH = True
 
 # Controls whether to always re-create cached segments dicts.
 ALWAYS_PARSE = False
@@ -17,7 +17,7 @@ STORAGE_TEMP_DIR = "tmp"
 RESULTS_FOLDER = "results"
 
 # How "big" the map is as ASCI art output, the larger the more downsacling takes place.
-SCALE_FACTOR = 30
+SCALE_FACTOR = 50
 
 # The distance betwen two GPS points during reduction phase, in meter.
 # This determines the minimal possible distance which can be later represented as a GPX track.

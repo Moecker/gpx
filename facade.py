@@ -68,7 +68,7 @@ def find_start_and_end(cities, start_city, end_city):
                 selected_start = possible_start
                 selected_end = possible_end
 
-    return selected_start, selected_end
+    return gpx_tools.SimplePoint(selected_start), gpx_tools.SimplePoint(selected_end)
 
 
 def load_background():
@@ -93,6 +93,7 @@ def print_important_infos():
     logging.info(
         f"Minimum possible distance between points: {config.REDUCTION_DISTANCE * config.PRECISION / 1000:.2f} km."
     )
+    logging.info(f"Using cost for segment changes: {config.COST_SWITCH_SEGMENT_PENALTY}.")
 
 
 def load_segments(gpx_path):
@@ -146,11 +147,13 @@ def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
     display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
     display.save_gpx_as_html("dijkstra_rescaled", config.RESULTS_FOLDER)
 
+    return dijkstra
+
 
 def do_additional_stuff():
-    file_path =  os.path.join(config.RESULTS_FOLDER, "dijkstra_rescaled.html")
+    file_path = os.path.join(config.RESULTS_FOLDER, "dijkstra_rescaled.html")
     if sys.platform == "darwin":
-        file_path = "file:///"  + os.path.join(os.getcwd(), file_path)
+        file_path = "file:///" + os.path.join(os.getcwd(), file_path)
     webbrowser.open_new_tab(file_path)
 
 
@@ -163,16 +166,18 @@ def perform_run(cities, start_city, end_city, segments_dict, background, map, si
     logging.info(f"End GPS for {end_city}: {end_gps}.")
 
     logging.info(f"Building a heuristic.")
-    map.build_heuristic(gpx_tools.SimplePoint(end_gps))
+    map.build_heuristic(end_gps)
 
     logging.info(f"Number of keys in graph {str(len(map.keys()))}.")
     logging.info(f"Number of total nodes in graph {str(len(map.nodes()))}.")
     logging.info(f"Quantiles weights {str(statistics.quantiles(map.weights(), n=10))}.")
 
-    perform_dijksra(start_gps, end_gps, segments_dict, background, map)
+    dijkstra = perform_dijksra(start_gps, end_gps, segments_dict, background, map)
 
     if not silent:
         do_additional_stuff()
+
+    return dijkstra
 
 
 def interactive_mode(cities, segments_dict, background, map, silent):
@@ -222,7 +227,12 @@ def main():
     if args.interactive:
         interactive_mode(cities, segments_dict, background, map, args.silent)
     else:
-        perform_run(cities, args.start, args.end, segments_dict, background, map, args.silent)
+        dijkstra = True
+        while dijkstra:
+            dijkstra = perform_run(cities, args.start, args.end, segments_dict, background, map, args.silent)
+            build_graph.adjust_weight_of_path(dijkstra, map)
+            logging.info("Waiting for next run...")
+            time.sleep(5)
 
 
 def parse_args():

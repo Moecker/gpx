@@ -3,6 +3,7 @@ import math
 import os
 import pickle
 from pathlib import Path
+from pprint import pformat
 
 from tqdm import tqdm
 
@@ -15,6 +16,13 @@ import points2ascii
 
 def annotate(point, name, idx):
     point.annotation = f"{name}@{idx}"
+
+
+def deannotate(point):
+    annotations = point.annotation.split("@")
+    key = annotations[0]
+    idx = int(annotations[1])
+    return key, idx
 
 
 def build_map(segments_dict):
@@ -78,9 +86,12 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
 def add_waypoints(map, path, edges, character):
     for point in path[::]:
         idx_w, idx_h = gpx2ascii.determine_index((point.latitude, point.longitude), edges)
+        idx_w = min(idx_w, len(map) - 1)
+
         assert idx_w < len(map), f"{idx_w} exceeds {len(map)}"
         assert len(map) > 0
         assert idx_h < len(map[0])
+
         map[idx_w][idx_h] = character
 
 
@@ -112,10 +123,7 @@ def compute_min_dis(map, start_gpx):
     return min_dis, min_node
 
 
-def get_closest_start_and_end(map, start, end):
-    start_gpx = gpx_tools.SimplePoint(start)
-    end_gpx = gpx_tools.SimplePoint(end)
-
+def get_closest_start_and_end(map, start_gpx, end_gpx):
     min_dis_start, first = compute_min_dis(map, start_gpx)
     min_dis_end, last = compute_min_dis(map, end_gpx)
 
@@ -169,6 +177,7 @@ def load_or_build_map(segments_dict, name, output_dir):
 
 
 def rescale(segments_dict, path):
+    used_segments = []
     if not path:
         logging.warning(f"Cannot rescale because path is empty, skipping.")
         return None
@@ -183,11 +192,10 @@ def rescale(segments_dict, path):
             logging.warning(f"Cannot rescale because annotations are missing, skipping.")
             return None
 
-        annotations = point.annotation.split("@")
-        key = annotations[0]
-        idx = int(annotations[1])
+        key, idx = deannotate(point)
 
         if key != previous_key:
+            used_segments.append(key)
             previous_idx = None
             previous_key = key
 
@@ -213,4 +221,16 @@ def rescale(segments_dict, path):
         previous_idx = idx
 
     logging.info(f"Rescaled from {len(path)} to {len(rescaled_path)} points.")
+    logging.info(f"Used {len(used_segments)} different segments")
+    logging.debug(f"Used segments: \n{pformat(used_segments)}")
     return rescaled_path
+
+
+def adjust_weight_of_path(path, map):
+    prev_point = None
+    for point in path:
+        if prev_point == None:
+            prev_point = point
+            continue
+        map.adjust_weight(prev_point, point, 10 * 1000)
+        prev_point = point

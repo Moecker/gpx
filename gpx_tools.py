@@ -3,6 +3,8 @@ import os
 
 import gpxpy
 
+import build_graph
+
 
 class SimplePoint:
     def __init__(self, point):
@@ -56,7 +58,10 @@ def save_as_gpx_file(points, dir, file_name):
         return
 
     for point in points:
-        gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(point.latitude, point.longitude))
+        key, idx = build_graph.deannotate(point)
+        track_point = gpxpy.gpx.GPXTrackPoint(point.latitude, point.longitude)
+        track_point.source = f"{key}@{idx}"
+        gpx_segment.points.append(track_point)
 
     with open(file_path, "w") as f:
         f.write(gpx.to_xml())
