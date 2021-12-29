@@ -27,34 +27,36 @@ def deannotate(point):
 
 def build_map(segments_dict):
     map = config.GRAPH_MODUL.Graph()
-    pbar = tqdm(segments_dict.items())
-    for name, segment in pbar:
-        pbar.set_description(f"INFO: Processing {name.ljust(180):.100s} with {len(segment.points):6d} points.")
 
-        if not len(segment.points):
-            continue
+    with tqdm(total=len(segments_dict.items())) as pbar:
+        for name, segment in segments_dict.items():
+            pbar.set_description(f"Processing {name.ljust(120):.100s}")
 
-        idx = 0
-        prev_point = None
-        while idx < len(segment.points):
-            point = segment.points[idx]
-            if prev_point:
-                dis = distance.haversine_gpx(prev_point, point)
-                map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_PENALTY))
+            if not len(segment.points):
+                continue
 
-            prev_point = point
-            find_and_add_adjacent_nodes(map, segments_dict, segment, point)
+            idx = 0
+            prev_point = None
+            while idx < len(segment.points):
+                point = segment.points[idx]
+                if prev_point:
+                    dis = distance.haversine_gpx(prev_point, point)
+                    map.add(prev_point, point, cost=int(dis + config.COST_NORMAL_PENALTY))
 
-            # Jump the step size, but always add the last point, too
-            # Break however, once reached.
-            if idx == len(segment.points) - 1:
-                break
-            idx = min(idx + max(1, config.PRECISION), max(len(segment.points) - 1, 1))
+                prev_point = point
+                find_and_add_adjacent_nodes(map, segments_dict, segment, point)
+
+                # Jump the step size, but always add the last point, too
+                # Break however, once reached.
+                if idx == len(segment.points) - 1:
+                    break
+                idx = min(idx + max(1, config.PRECISION), max(len(segment.points) - 1, 1))
+            pbar.update(1)
     return map
 
 
 def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_point):
-    for name, other_segment in segments_dict.items():
+    for _, other_segment in segments_dict.items():
         # Do no connect points which would skip intermediate, intra segment points
         if other_segment == current_segment:
             continue
@@ -79,34 +81,6 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
             idx = min(idx + max(1, step_distance), max(len(other_segment.points) - 1, 1))
 
 
-def add_waypoints(map, path, edges, character):
-    for point in path[::]:
-        idx_w, idx_h = gpx2ascii.determine_index((point.latitude, point.longitude), edges)
-        idx_w = min(idx_w, len(map) - 1)
-
-        assert idx_w < len(map), f"{idx_w} exceeds {len(map)}"
-        assert len(map) > 0
-        assert idx_h < len(map[0])
-
-        map[idx_w][idx_h] = character
-
-
-def create_and_display_map(path, name, background=[]):
-    if not path:
-        logging.warning(f"Nothing to display for '{name}', no valid points.")
-        return
-
-    logging.info(f"Creating map '{name}'...")
-    edges = points2ascii.determine_bounding_box(path + background)
-    map = points2ascii.create_map(edges, " ")
-
-    add_waypoints(map, background, edges, ".")
-    add_waypoints(map, path, edges, "x")
-
-    logging.info(f"Displaying map name: '{name}'.")
-    gpx2ascii.display(map)
-
-
 def compute_min_dis(map, start_gpx):
     min_dis = math.inf
     min_node = None
@@ -123,9 +97,10 @@ def get_closest_start_and_end(map, start_gpx, end_gpx):
     min_dis_start, first = compute_min_dis(map, start_gpx)
     min_dis_end, last = compute_min_dis(map, end_gpx)
 
-    logging.info(f"Desired GPS start: {start_gpx} and end: {end_gpx}.")
-    logging.info(f"Minimum distance to start: {min_dis_start:.2f} km, and end: {min_dis_end:.2f} km")
-    logging.info(f"Closest GPS node for start: {first} and end: {last}.")
+    logging.debug(f"Desired GPS start: {start_gpx} and end: {end_gpx}.")
+    logging.debug(f"Minimum distance to start: {min_dis_start:.2f} km, and end: {min_dis_end:.2f} km")
+    logging.info(f"Closest GPS start node in graph: {first}")
+    logging.info(f"Closest GPS end node in graph: {last}.")
 
     return first, last
 
@@ -137,13 +112,17 @@ def find_path(map, start, end, strategy):
         logging.error(f"Start and/or End GPX positions are invalid.")
         return None
 
-    logging.info(f"Starting search strategy using {strategy}...")
+    if first == last:
+        logging.error(f"Start and End GPX positions are identical.")
+        return None
+
+    logging.debug(f"Starting search strategy using {strategy}.")
     path = strategy(first, last)
     if not path:
         logging.error(f"No path found from {first} to {last}.")
         return None
 
-    logging.info(f"Path(s) found, length of path(s): {len(path)}.")
+    logging.debug(f"Path found, length of path(s): {len(path)}.")
     return path
 
 
@@ -158,15 +137,15 @@ def collect_all_points(segments_dict):
 def load_or_build_map(segments_dict, name, output_dir):
     pickle_path = os.path.join(output_dir, name)
     if config.ALWAYS_GRAPH or not os.path.isfile(pickle_path):
-        logging.info(f"Pickle {pickle_path} does not exist or is forced ignored, creating map.")
+        logging.debug(f"Pickle {pickle_path} does not exist or is forced ignored, creating map.")
         map = build_map(segments_dict)
 
-        logging.info(f"Saving pickle file to {pickle_path}.")
+        logging.debug(f"Saving pickle file to {pickle_path}.")
         Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)
         pickle.dump(map, open(pickle_path, "wb"))
 
-    logging.info(f"Pickle {pickle_path} exist, using it.")
-    logging.info(f"Loading {pickle_path}...")
+    logging.debug(f"Pickle {pickle_path} exist, using it.")
+    logging.debug(f"Loading {pickle_path}.")
     map = pickle.load(open(pickle_path, "rb"))
 
     return map
@@ -205,11 +184,9 @@ def rescale(segments_dict, path):
         # direction is.
         if previous_idx < idx:
             adding_points = segments_dict[key].points[previous_idx:idx]
-            logging.debug(f"Adding range: {previous_idx}:{idx}:{key}")
         else:
             adding_points = segments_dict[key].points[idx:previous_idx]
             adding_points = reversed(adding_points)
-            logging.debug(f"Adding range: {idx}:{previous_idx}:{key}")
 
         rescaled_path.extend(adding_points)
 
@@ -220,9 +197,9 @@ def rescale(segments_dict, path):
         logging.error(f"Rescaling failed, could not determine points.")
         return None
 
-    logging.info(f"Rescaled from {len(path)} to {len(rescaled_path)} points.")
-    logging.info(f"Used {len(used_segments)} different segments")
-    logging.debug(f"Used segments: \n{pformat(used_segments)}")
+    logging.debug(f"Rescaled from {len(path)} to {len(rescaled_path)} points.")
+    logging.info(f"Path uses {len(used_segments)} different segments.")
+    logging.debug(f"Used segments: \n{pformat(used_segments)}.")
     return rescaled_path
 
 
@@ -232,5 +209,5 @@ def adjust_weight_of_path(path, map):
         if prev_point == None:
             prev_point = point
             continue
-        map.adjust_weight(prev_point, point, 10 * 1000)
+        map.adjust_weight(prev_point, point, config.COST_SWITCH_SEGMENT_PENALTY)
         prev_point = point

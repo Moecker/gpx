@@ -37,7 +37,7 @@ def save_gpx_as_html(map_name, dir):
         logging.error(f"Cannot save {gpx_file_path} to {html_file_path}, input file does not exist.")
         return
 
-    logging.info(f"Saving {gpx_file_path} as HTML to {html_file_path}.")
+    logging.info(f"Saving '{gpx_file_path}' as HTML Map to '{html_file_path}'.")
 
     map = overlay_gpx(gpx_file_path, zoom=8)
     map.save(f"{html_file_path}")

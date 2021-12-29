@@ -7,8 +7,7 @@ def reduce(file_name, min_dis, file_name_reduced):
             track = gpxpy.parse(f)
             track.reduce_points(min_distance=min_dis)
         except:
-            # To interfer with tqpm
-            print(f"\nERROR: Error while parsing and reducing {file_name} to {file_name_reduced}.")
+            print(f"\nError while reducing '{file_name}' to '{file_name_reduced}'.")
             return False
 
     with open(file_name_reduced, "w") as f:

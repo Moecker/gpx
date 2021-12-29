@@ -14,6 +14,7 @@ import config
 import distance
 import gpx_tools
 import reducer
+import utils
 
 
 def determine_start():
@@ -47,8 +48,8 @@ def determine_possible_end_and_start_distance(start_gps, end_gps, segments_dict)
 
 def try_load_pickle(pickle_path):
     if not config.ALWAYS_PARSE and os.path.isfile(pickle_path):
-        logging.info(f"{pickle_path} exists, using it.")
-        logging.info(f"Loading {pickle_path}...")
+        logging.debug(f"{pickle_path} exists, using it.")
+        logging.debug(f"Loading {pickle_path}.")
         segments_dict = pickle.load(open(pickle_path, "rb"))
         return segments_dict
     else:
@@ -68,37 +69,50 @@ def compute_distances(start_gps, segments_dict):
     return distances
 
 
+def get_reduced_name(dir_name, threshold_string, track_file_name):
+    return os.path.join(dir_name, threshold_string + "_" + utils.replace_os_separator(track_file_name))
+
+
 def load_and_reduce_gpxs(track_file_names, threshold, pickle_path, output_dir):
-    logging.info(f"{pickle_path} does not exist or is forced ignored, creating it.")
+    logging.debug(f"{pickle_path} does not exist or is forced ignored, creating it.")
 
     segments_dict = dict()
     threshold_string = str(int(threshold))
+
     dir_name = os.path.join(output_dir, threshold_string)
     Path(dir_name).mkdir(parents=True, exist_ok=True)
 
     pbar = tqdm(track_file_names)
     for track_file_name in pbar:
-        track_file_name_reduced = os.path.join(
-            dir_name, threshold_string + "_" + track_file_name.replace(os.path.sep, "_")
-        )
+        track_file_name_reduced = get_reduced_name(dir_name, threshold_string, track_file_name)
+
+        pbar.set_description(f"Reducing {track_file_name_reduced.ljust(180):.100s}")
 
         if config.ALWAYS_REDUCE or not os.path.isfile(track_file_name_reduced):
-            pbar.set_description(
-                f"INFO: {track_file_name_reduced.ljust(180):.100s} does not exist or is forced ignored, creating it."
-            )
             success = reducer.reduce(track_file_name, threshold, track_file_name_reduced)
             if not success:
                 continue
-        else:
-            pbar.set_description(f"INFO: {track_file_name_reduced.ljust(180):.100s} exists, using it.")
 
+    pbar = tqdm(track_file_names)
+    for track_file_name in pbar:
+        track_file_name_reduced = get_reduced_name(dir_name, threshold_string, track_file_name)
+        pbar.set_description(f"Packing {track_file_name_reduced.ljust(180):.100s}")
+        if not os.path.isfile(track_file_name_reduced):
+            print(f"\nError while packing '{track_file_name_reduced}', file does not exist.")
+            continue
         setup_segments_dict(segments_dict, track_file_name_reduced)
+
     return segments_dict
 
 
 def setup_segments_dict(segments_dict, track_file_name_reduced):
     with open(track_file_name_reduced, "r") as f:
-        gpx = gpxpy.parse(f)
+        try:
+            gpx = gpxpy.parse(f)
+        except:
+            print(f"\nError while parsing '{track_file_name_reduced}'.")
+            return
+
         for track in gpx.tracks:
             segment_id = 0
             for segment in track.segments:
@@ -112,16 +126,16 @@ def build_segments_dict(reduction_threshold, pickle_path, root, output_dir):
 
     if not segments_dict:
         track_file_names = glob.glob(root)
-        logging.info(f"Globing found {len(track_file_names)} files.")
+        logging.debug(f"Globbing found {len(track_file_names)} files.")
         if not len(track_file_names):
-            logging.error("No files found, returning.")
+            logging.error(f"No files found while globbing '{root}'.")
             return {}
 
         segments_dict = load_and_reduce_gpxs(track_file_names, reduction_threshold, pickle_path, output_dir)
 
-        logging.info(f"Saving pickle file to {pickle_path}.")
+        logging.debug(f"Saving pickle file to {pickle_path}.")
         Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)
         pickle.dump(segments_dict, open(pickle_path, "wb"))
 
-    logging.info(f"Found {len(segments_dict)} segment(s).")
+    logging.debug(f"Found {len(segments_dict)} segment(s).")
     return segments_dict

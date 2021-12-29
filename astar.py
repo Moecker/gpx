@@ -87,7 +87,7 @@ class Graph:
         par = {}
         par[start] = start
 
-        total_pbar = len(self.keys())
+        total_pbar = len(self.nodes())
         with tqdm(total=total_pbar) as pbar:
             while len(open_lst) > 0:
                 n = None
@@ -96,23 +96,20 @@ class Graph:
                 for v in open_lst:
                     if n == None or poo[v] + self.h(v) < poo[n] + self.h(n):
                         n = v
-
                 if n == None:
-                    pbar.n = total_pbar
                     return None
+
+                pbar.set_description(f"Processing {str(n).ljust(120):.100s}")
 
                 # If the current node is the end node then we start again from start
                 if n == stop:
                     reconst_path = []
-
                     while par[n] != n:
                         reconst_path.append(n)
                         n = par[n]
 
                     reconst_path.append(start)
                     reconst_path.reverse()
-
-                    pbar.n = total_pbar
                     return reconst_path
 
                 # For all the neighbors of the current node do
@@ -123,7 +120,6 @@ class Graph:
                         open_lst.add(m)
                         par[m] = n
                         poo[m] = poo[n] + weight
-
                     # Otherwise, check if it's quicker to first visit n, then m
                     # and if it is, update par data and poo data,
                     # and if the node was in the closed_lst, move it to open_lst
@@ -142,7 +138,6 @@ class Graph:
                 closed_lst.add(n)
                 pbar.update(1)
 
-        pbar.n = total_pbar
         return None
 
     def find_shortest_path(self, start, end):

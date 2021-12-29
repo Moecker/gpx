@@ -69,7 +69,6 @@ def display(map):
             display_string += str(f"{line} ")
         display_string += "\n"
 
-    print()  # Empty line
     print(display_string)
 
 

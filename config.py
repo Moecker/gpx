@@ -2,7 +2,7 @@ import astar
 import graph
 
 # Controls whether to always re-create the graph.
-ALWAYS_GRAPH = True
+ALWAYS_GRAPH = False
 
 # Controls whether to always re-create cached segments dicts.
 ALWAYS_PARSE = False
@@ -43,6 +43,9 @@ COST_SWITCH_SEGMENT_PENALTY = 500
 # A factor applied to the heuristic of A-Star which helps finding
 # the shortest path to other nodes quicker.
 HEURISTIC_SCALE_FACTOR = 100
+
+# The number of paths to find.
+NUMBER_OF_PATHS = 1
 
 # The used module which implements the graph.
 GRAPH_MODUL = astar
