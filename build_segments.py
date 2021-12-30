@@ -17,14 +17,14 @@ import reducer
 import utils
 
 
-def build_segments_dict(reduction_threshold, pickle_path, root, output_dir):
+def build_segments_dict(reduction_threshold, pickle_path, pattern, output_dir):
     segments_dict = try_load_pickle(pickle_path)
 
     if not segments_dict:
-        track_file_names = glob.glob(root)
+        track_file_names = glob.glob(pattern)
         logging.debug(f"Globbing found {len(track_file_names)} files.")
         if not len(track_file_names):
-            logging.error(f"No files found while globbing '{root}'.")
+            logging.error(f"No files found while globbing '{pattern}'.")
             return {}
 
         segments_dict = load_and_reduce_gpxs(track_file_names, reduction_threshold, pickle_path, output_dir)

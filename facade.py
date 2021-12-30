@@ -210,7 +210,6 @@ def normal_mode(args, cities, segments_dict, background, map):
         dijkstra, dijkstra_rescaled = perform_run(cities, args.start, args.end, segments_dict, background, map)
 
         if not dijkstra or not dijkstra_rescaled:
-            logging.info("No more paths found, stopping.")
             break
 
         build_graph.adjust_weight_of_path(dijkstra, map)

@@ -156,7 +156,7 @@ def rescale(segments_dict, path):
         logging.warning(f"Cannot rescale, because path is empty.")
         return None
 
-    if len(path) < 3:
+    if len(path) < 2:
         logging.warning(f"Cannot rescale, because path must have at least 3 points.")
         return None
 
@@ -192,8 +192,6 @@ def rescale(segments_dict, path):
             adding_points = reversed(adding_points)
 
         rescaled_path.extend(adding_points)
-
-        segments_dict[key]
         previous_idx = idx
 
     if not len(rescaled_path):

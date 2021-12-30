@@ -64,9 +64,8 @@ def save_as_gpx_file(points, dir, file_name):
         logging.error(f"Cannot save {file_name}, no points found.")
         return
 
-    step_size = 1
-    if len(points) > config.MAX_POINTS:
-        step_size = int(max(1, len(points) / config.MAX_POINTS))
+    step_size = int(max(1, len(points) / config.MAX_POINTS))
+    if step_size > 1:
         logging.warning(f"Too many points, reducing to every {step_size}th point.")
     for point in points[::step_size]:
         key, idx = gpx_tools.deannotate(point)

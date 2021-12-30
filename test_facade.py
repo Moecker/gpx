@@ -31,18 +31,36 @@ class TestGraph(unittest.TestCase):
         self.assertEqual(gpx_point.latitude, coord[0])
         self.assertEqual(gpx_point.longitude, coord[1])
 
-    def test_graph_internet_tuples(self):
+    def test_munich_dachau(self):
         args = argparse.Namespace(
-            start="Munich", end="Dachau", gpx=os.path.join("test", "gpx"), interactive=False, verbose=True
+            start="Munich",
+            end="Dachau",
+            gpx=os.path.join("test", "gpx", "test_munich_dachau"),
+            interactive=False,
+            verbose=True,
         )
         dijkstra_rescaled = facade.main(args)
+        self.assertEqual(len(dijkstra_rescaled), 2)
         self.compare_points(dijkstra_rescaled[0], (48.1372, 11.5755))
-        self.compare_points(dijkstra_rescaled[1], (48.2603, 11.4342))
+        self.compare_points(dijkstra_rescaled[-1], (48.2603, 11.4342))
+
+    def test_munich_furstenfeldbruck_dachau(self):
+        args = argparse.Namespace(
+            start="Munich",
+            end="Dachau",
+            gpx=os.path.join("test", "gpx", "test_munich_furstenfeldbruck_dachau"),
+            interactive=False,
+            verbose=True,
+        )
+        dijkstra_rescaled = facade.main(args)
+        self.assertEqual(len(dijkstra_rescaled), 3)
+        self.compare_points(dijkstra_rescaled[0], (48.1372, 11.5755))
+        self.compare_points(dijkstra_rescaled[-1], (48.2603, 11.4342))
 
 
 if __name__ == "__main__":
     logging.basicConfig(
-        level=logging.WARNING,
+        level=logging.ERROR,
         format="%(asctime)s:%(msecs)03d %(levelname)s: %(message)s",
         datefmt="%H:%M:%S",
     )
