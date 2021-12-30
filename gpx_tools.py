@@ -1,9 +1,10 @@
 import logging
 import os
-
+import config
 import gpxpy
 
 import gpx_tools
+
 
 class SimplePoint:
     def __init__(self, point):
@@ -35,6 +36,7 @@ class SimpleSegment:
         for point in segment.points:
             self.points.append(SimplePoint.from_gpx_point(point))
 
+
 def annotate(point, name, idx):
     point.annotation = f"{name}@{idx}"
 
@@ -62,7 +64,11 @@ def save_as_gpx_file(points, dir, file_name):
         logging.error(f"Cannot save {file_name}, no points found.")
         return
 
-    for point in points:
+    step_size = 1
+    if len(points) > config.MAX_POINTS:
+        step_size = int(max(1, len(points) / config.MAX_POINTS))
+        logging.warning(f"Too many points, reducing to every {step_size}th point.")
+    for point in points[::step_size]:
         key, idx = gpx_tools.deannotate(point)
         track_point = gpxpy.gpx.GPXTrackPoint(point.latitude, point.longitude)
         track_point.source = f"{key}@{idx}"

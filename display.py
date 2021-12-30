@@ -13,8 +13,9 @@ def overlay_gpx(gpx_data_file, zoom):
     from this post: https://stackoverflow.com/questions/54455657/
     how-can-i-plot-a-map-using-latitude-and-longitude-data-in-python-highlight-few
     """
-    gpx_file = open(gpx_data_file, "r")
-    gpx = gpxpy.parse(gpx_file)
+    with open(gpx_data_file, "r") as gpx_file:
+        gpx = gpxpy.parse(gpx_file)
+
     points = []
     for track in gpx.tracks:
         for segment in track.segments:

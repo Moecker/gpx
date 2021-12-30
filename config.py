@@ -2,7 +2,7 @@ import astar
 import graph
 
 # Controls whether to always re-create the graph.
-ALWAYS_GRAPH = True
+ALWAYS_GRAPH = False
 
 # Controls whether to always re-create cached segments dicts.
 ALWAYS_PARSE = False
@@ -49,6 +49,9 @@ NUMBER_OF_PATHS = 1
 
 # The used module which implements the graph.
 GRAPH_MODUL = astar
+
+# Maximum points to export into GPX and HTML
+MAX_POINTS = 10000
 
 
 def main():

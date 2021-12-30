@@ -31,7 +31,8 @@ def build_segments_dict(reduction_threshold, pickle_path, root, output_dir):
 
         logging.debug(f"Saving pickle file to {pickle_path}.")
         Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)
-        pickle.dump(segments_dict, open(pickle_path, "wb"))
+        with open(pickle_path, "wb") as f:
+            pickle.dump(segments_dict, f)
 
     logging.debug(f"Found {len(segments_dict)} segment(s).")
     return segments_dict
@@ -92,7 +93,7 @@ def load_and_reduce_gpxs(track_file_names, threshold, pickle_path, output_dir):
     dir_name = os.path.join(output_dir, threshold_string)
     Path(dir_name).mkdir(parents=True, exist_ok=True)
 
-    pbar = tqdm(track_file_names)
+    pbar = tqdm(track_file_names, disable=logging.getLogger().level > logging.INFO)
     for track_file_name in pbar:
         track_file_name_reduced = get_reduced_name(dir_name, threshold_string, track_file_name)
 
@@ -103,12 +104,12 @@ def load_and_reduce_gpxs(track_file_names, threshold, pickle_path, output_dir):
             if not success:
                 continue
 
-    pbar = tqdm(track_file_names)
+    pbar = tqdm(track_file_names, disable=logging.getLogger().level > logging.INFO)
     for track_file_name in pbar:
         track_file_name_reduced = get_reduced_name(dir_name, threshold_string, track_file_name)
         pbar.set_description(f"Packing {track_file_name_reduced.ljust(180):.100s}")
         if not os.path.isfile(track_file_name_reduced):
-            print(f"\nError while packing '{track_file_name_reduced}', file does not exist.")
+            logging.error(f"\nError while packing '{track_file_name_reduced}', file does not exist.")
             continue
         setup_segments_dict(segments_dict, track_file_name_reduced)
 
@@ -120,7 +121,7 @@ def setup_segments_dict(segments_dict, track_file_name_reduced):
         try:
             gpx = gpxpy.parse(f)
         except:
-            print(f"\nError while parsing '{track_file_name_reduced}'.")
+            logging.error(f"\nError while parsing '{track_file_name_reduced}'.")
             return
 
         for track in gpx.tracks:

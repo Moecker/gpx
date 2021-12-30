@@ -153,9 +153,7 @@ def load_worldcities():
     return cities
 
 
-def main():
-    args = parse_args()
-
+def main(args):
     for _ in logging.root.manager.loggerDict:
         logging.getLogger(_).setLevel(logging.CRITICAL)
 
@@ -192,10 +190,12 @@ def main():
 
     map = load_map(segments_dict, args.gpx)
 
+    dijkstra_rescaled = None
     if args.interactive:
         interactive_mode(cities, segments_dict, background, map)
     else:
-        normal_mode(args, cities, segments_dict, background, map)
+        dijkstra_rescaled = normal_mode(args, cities, segments_dict, background, map)
+    return dijkstra_rescaled
 
 
 def normal_mode(args, cities, segments_dict, background, map):
@@ -215,6 +215,7 @@ def normal_mode(args, cities, segments_dict, background, map):
 
         build_graph.adjust_weight_of_path(dijkstra, map)
         continue
+    return dijkstra_rescaled
 
 
 def none_tuple():
@@ -299,4 +300,5 @@ def print_important_infos():
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    main(args)

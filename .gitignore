@@ -139,3 +139,5 @@ dmypy.json
 /bikeline/**/*.gpx
 /tmp/**/*.gpx
 /results/*.gpx
+/test/results/*.gpx
+/test/tmp/**/*.gpx

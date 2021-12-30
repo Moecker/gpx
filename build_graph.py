@@ -25,9 +25,9 @@ def adjust_weight_of_path(path, map):
 def build_map(segments_dict):
     map = config.GRAPH_MODUL.Graph()
 
-    with tqdm(total=len(segments_dict.items())) as pbar:
+    with tqdm(total=len(segments_dict.items()), disable=logging.getLogger().level > logging.INFO) as pbar:
         for name, segment in segments_dict.items():
-            pbar.set_description(f"Processing {name.ljust(120):.100s}")
+            pbar.set_description(f"Building {name.ljust(180):.100s}")
 
             if not len(segment.points):
                 continue
@@ -125,8 +125,8 @@ def get_closest_start_and_end(map, start_gpx, end_gpx):
 
     logging.debug(f"Desired GPS start: {start_gpx} and end: {end_gpx}.")
     logging.debug(f"Minimum distance to start: {min_dis_start:.2f} km, and end: {min_dis_end:.2f} km")
-    logging.info(f"Closest GPS start node in graph: {first}")
-    logging.info(f"Closest GPS end node in graph: {last}.")
+    logging.info(f"Closest possible GPS start node with distance {min_dis_start:.2f} km in graph is: {first}")
+    logging.info(f"Closest possible GPS end node with distance {min_dis_end:.2f} km in graph is: {last}")
 
     return first, last
 
@@ -139,11 +139,13 @@ def load_or_build_map(segments_dict, name, output_dir):
 
         logging.debug(f"Saving pickle file to {pickle_path}.")
         Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)
-        pickle.dump(map, open(pickle_path, "wb"))
+        with open(pickle_path, "wb") as f:
+            pickle.dump(map, f)
 
     logging.debug(f"Pickle {pickle_path} exist, using it.")
     logging.debug(f"Loading {pickle_path}.")
-    map = pickle.load(open(pickle_path, "rb"))
+    with open(pickle_path, "rb") as f:
+        map = pickle.load(f)
 
     return map
 
@@ -151,7 +153,11 @@ def load_or_build_map(segments_dict, name, output_dir):
 def rescale(segments_dict, path):
     used_segments = []
     if not path:
-        logging.warning(f"Cannot rescale because path is empty, skipping.")
+        logging.warning(f"Cannot rescale, because path is empty.")
+        return None
+
+    if len(path) < 3:
+        logging.warning(f"Cannot rescale, because path must have at least 3 points.")
         return None
 
     previous_idx = None
@@ -171,7 +177,7 @@ def rescale(segments_dict, path):
             previous_idx = None
             previous_key = key
 
-        if not previous_idx:
+        if previous_idx == None:
             previous_idx = idx
             continue
 

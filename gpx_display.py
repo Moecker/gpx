@@ -82,7 +82,7 @@ def display(map):
             display_string += str(f"{line} ")
         display_string += "\n"
 
-    print(display_string)
+    logging.info(f"\n{display_string}")
 
 
 def load_all_points(gpx_file_name):

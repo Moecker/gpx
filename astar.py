@@ -1,7 +1,7 @@
 from collections import defaultdict, deque
 from functools import partial
 import itertools
-
+import logging
 from tqdm import tqdm
 
 import config
@@ -47,7 +47,7 @@ class Graph:
         par[start] = start
 
         total_pbar = len(self.nodes()) + len(self.keys())
-        with tqdm(total=total_pbar) as pbar:
+        with tqdm(total=total_pbar, disable=logging.getLogger().level > logging.INFO) as pbar:
             while len(open_lst) > 0:
                 n = None
 
@@ -58,7 +58,7 @@ class Graph:
                 if n == None:
                     return None
 
-                pbar.set_description(f"Processing {str(n).ljust(120):.100s}")
+                pbar.set_description(f"Searching {str(n).ljust(180):.100s}")
 
                 # If the current node is the end node then we start again from start
                 if n == stop:

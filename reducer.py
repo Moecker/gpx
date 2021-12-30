@@ -1,4 +1,5 @@
 import gpxpy
+import logging
 
 
 def reduce(file_name, min_dis, file_name_reduced):
@@ -7,7 +8,7 @@ def reduce(file_name, min_dis, file_name_reduced):
             track = gpxpy.parse(f)
             track.reduce_points(min_distance=min_dis)
         except:
-            print(f"\nError while reducing '{file_name}' to '{file_name_reduced}'.")
+            logging.error(f"\nError while reducing '{file_name}' to '{file_name_reduced}'.")
             return False
 
     with open(file_name_reduced, "w") as f:
