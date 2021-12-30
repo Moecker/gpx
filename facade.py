@@ -101,7 +101,6 @@ def load_map(segments_dict, gpx_path):
             utils.replace_os_separator(gpx_path),
             str(int(config.GRAPH_CONNECTION_DISTANCE)),
             str(int(config.PRECISION)),
-            str(int(config.COST_SWITCH_SEGMENT_PENALTY)),
             str(config.GRAPH_MODUL.__name__),
             "map.p",
         ]
@@ -153,7 +152,7 @@ def main(args):
     utils.add_logging_level("TRACE", 1)
 
     logging.basicConfig(
-        level=logging.DEBUG if args.verbose else logging.INFO,
+        level=logging.TRACE if args.verbose else logging.INFO,
         format="%(asctime)s:%(msecs)03d %(levelname)s: %(message)s",
         datefmt="%H:%M:%S",
     )
@@ -302,7 +301,6 @@ def print_important_infos():
     logging.debug(
         f"Minimum possible distance between points: {config.REDUCTION_DISTANCE * config.PRECISION / 1000:.2f} km."
     )
-    logging.debug(f"Using cost for segment changes: {config.COST_SWITCH_SEGMENT_PENALTY}.")
 
 
 if __name__ == "__main__":

@@ -22,6 +22,12 @@ def default_adjusted_params():
     config.NUMBER_OF_PATHS = 1
 
 
+MUNICH = (48.1372, 11.5755)
+DACHAU = (48.2603, 11.4342)
+FURSTENFELDBRUCK = (48.1778, 11.2556)
+FREISING = (48.4028, 11.7489)
+
+
 class TestFacade(unittest.TestCase):
     def setUp(self):
         default_test_setup()
@@ -42,8 +48,8 @@ class TestFacade(unittest.TestCase):
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 2)
-        self.compare_points(dijkstra_rescaled[0], (48.1372, 11.5755))
-        self.compare_points(dijkstra_rescaled[-1], (48.2603, 11.4342))
+        self.compare_points(dijkstra_rescaled[0], MUNICH)
+        self.compare_points(dijkstra_rescaled[-1], DACHAU)
 
     def test_munich_furstenfeldbruck_dachau(self):
         args = argparse.Namespace(
@@ -56,10 +62,11 @@ class TestFacade(unittest.TestCase):
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 3)
-        self.compare_points(dijkstra_rescaled[0], (48.1372, 11.5755))
-        self.compare_points(dijkstra_rescaled[-1], (48.2603, 11.4342))
+        self.compare_points(dijkstra_rescaled[0], MUNICH)
+        self.compare_points(dijkstra_rescaled[1], FURSTENFELDBRUCK)
+        self.compare_points(dijkstra_rescaled[-1], DACHAU)
 
-    def test_munich_dachau_detour(self):
+    def test_munich_dachau_multiple_segments(self):
         args = argparse.Namespace(
             start="Munich",
             end="Dachau",
@@ -70,9 +77,10 @@ class TestFacade(unittest.TestCase):
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 2)
-        self.compare_points(dijkstra_rescaled[0], (48.1372, 11.5755))
-        self.compare_points(dijkstra_rescaled[-1], (48.2603, 11.4342))
+        self.compare_points(dijkstra_rescaled[0], MUNICH)
+        self.compare_points(dijkstra_rescaled[-1], DACHAU)
 
+    def test_munich_dachau_detour_no_path(self):
         args = argparse.Namespace(
             start="Munich",
             end="Freising",
@@ -84,7 +92,9 @@ class TestFacade(unittest.TestCase):
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(dijkstra_rescaled, None)
 
+    def test_munich_dachau_detour_big_segment_distance(self):
         config.GRAPH_CONNECTION_DISTANCE = 100.0
+        print("\n\n\n")
         args = argparse.Namespace(
             start="Munich",
             end="Freising",
@@ -95,12 +105,9 @@ class TestFacade(unittest.TestCase):
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 2)
+        self.compare_points(dijkstra_rescaled[0], MUNICH)
+        self.compare_points(dijkstra_rescaled[-1], FREISING)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s:%(msecs)03d %(levelname)s: %(message)s",
-        datefmt="%H:%M:%S",
-    )
     unittest.main()

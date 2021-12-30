@@ -1,25 +1,34 @@
-from pathlib import Path
-from pprint import pformat
-import gpx_tools
 import logging
 import math
 import os
 import pickle
-import utils
+from pathlib import Path
+from pprint import pformat
 
 from tqdm import tqdm
 
 import config
 import distance
+import gpx_tools
+import utils
+
+
+def debug_graph(map):
+    for node, neighbors in map.friends.items():
+        logging.trace(node)
+        for other_node, cost in neighbors.items():
+            logging.trace("| " + str(other_node) + ":" + str(cost))
 
 
 def adjust_weight_foreign_segments(map):
     for node, neighbors in map.friends.items():
         key, idx = gpx_tools.deannotate(node)
-        logging.trace(node)
         for other_node, cost in neighbors.items():
-            key, idx = gpx_tools.deannotate(other_node)
-            logging.trace("| " + str(other_node) + ":" + str(cost))
+            other_key, other_idx = gpx_tools.deannotate(other_node)
+            if key != other_key:
+                map.adjust_weight(node, other_node, cost * config.COST_SWITCH_SEGMENT_PENALTY)
+            else:
+                map.adjust_weight(node, other_node, cost * config.COST_NORMAL_PENALTY)
 
 
 def adjust_weight_of_path(path, map):
@@ -28,7 +37,7 @@ def adjust_weight_of_path(path, map):
         if prev_point == None:
             prev_point = point
             continue
-        map.adjust_weight(prev_point, point, config.COST_SWITCH_SEGMENT_PENALTY)
+        map.adjust_weight(prev_point, point, config.COST_ALREADY_VISITED_PENALTY)
         prev_point = point
 
 
@@ -51,7 +60,7 @@ def build_map(segments_dict):
 
                     assert prev_point != point
 
-                    map.add(prev_point, point, cost=int(dis * config.COST_NORMAL_PENALTY))
+                    map.add(prev_point, point, cost=max(1, int(dis)))
 
                 prev_point = point
                 find_and_add_adjacent_nodes(map, segments_dict, segment, point)
@@ -102,7 +111,7 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
             assert current_point != other_point
 
             if dis < config.GRAPH_CONNECTION_DISTANCE:
-                map.add(current_point, other_point, cost=int(dis * config.COST_SWITCH_SEGMENT_PENALTY))
+                map.add(current_point, other_point, cost=max(1, int(dis)))
 
             step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
 
