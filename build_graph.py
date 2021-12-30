@@ -13,6 +13,15 @@ import config
 import distance
 
 
+def adjust_weight_foreign_segments(map):
+    for node, neighbors in map.friends.items():
+        key, idx = gpx_tools.deannotate(node)
+        logging.trace(node)
+        for other_node, cost in neighbors.items():
+            key, idx = gpx_tools.deannotate(other_node)
+            logging.trace("| " + str(other_node) + ":" + str(cost))
+
+
 def adjust_weight_of_path(path, map):
     prev_point = None
     for point in path:
@@ -21,15 +30,6 @@ def adjust_weight_of_path(path, map):
             continue
         map.adjust_weight(prev_point, point, config.COST_SWITCH_SEGMENT_PENALTY)
         prev_point = point
-
-
-def adjust_weight_foreign_segments(map):
-    for node, neighbors in map.friends.items():
-        key, idx = gpx_tools.deannotate(node)
-        logging.trace(node)
-        for other_node, cost in neighbors.items():
-            key, idx = gpx_tools.deannotate(other_node)
-            logging.trace("| " + str(other_node) + ":" + str(cost))
 
 
 def build_map(segments_dict):

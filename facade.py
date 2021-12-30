@@ -33,13 +33,6 @@ def check_city(cities, city):
     return True
 
 
-def open_web_browser():
-    file_path = os.path.join(config.RESULTS_FOLDER, "dijkstra_rescaled.html")
-    if sys.platform == "darwin":
-        file_path = "file:///" + os.path.join(os.getcwd(), file_path)
-    webbrowser.open_new_tab(file_path)
-
-
 def find_start_and_end(cities, start_city, end_city):
     found_start = check_city(cities, start_city)
     found_end = check_city(cities, end_city)
@@ -202,6 +195,10 @@ def main(args):
     return dijkstra_rescaled
 
 
+def none_tuple():
+    return None, None
+
+
 def normal_mode(args, cities, segments_dict, background, map, dry):
     loop = 0
     while True:
@@ -221,8 +218,11 @@ def normal_mode(args, cities, segments_dict, background, map, dry):
     return dijkstra_rescaled
 
 
-def none_tuple():
-    return None, None
+def open_web_browser():
+    file_path = os.path.join(config.RESULTS_FOLDER, "dijkstra_rescaled.html")
+    if sys.platform == "darwin":
+        file_path = "file:///" + os.path.join(os.getcwd(), file_path)
+    webbrowser.open_new_tab(file_path)
 
 
 def parse_args():

@@ -1,20 +1,9 @@
 import logging
 
 
-def replace_os_separator(path):
-    return path.replace("\\", "_").replace("/", "_")
-
-
-def make_path_clickable(path):
-    return path.replace("\\", "\\\\")
-
-
-def simple_name(name):
-    return "".join(name.split("_")[-1])
-
-
 def add_logging_level(levelName, levelNum, methodName=None):
     """
+    From https://stackoverflow.com/questions/2183233/how-to-add-a-custom-loglevel-to-pythons-logging-facility
     Comprehensively adds a new logging level to the `logging` module and the
     currently configured logging class.
 
@@ -42,11 +31,11 @@ def add_logging_level(levelName, levelNum, methodName=None):
         methodName = levelName.lower()
 
     if hasattr(logging, levelName):
-        raise AttributeError("{} already defined in logging module".format(levelName))
+        return AttributeError("{} already defined in logging module".format(levelName))
     if hasattr(logging, methodName):
-        raise AttributeError("{} already defined in logging module".format(methodName))
+        return AttributeError("{} already defined in logging module".format(methodName))
     if hasattr(logging.getLoggerClass(), methodName):
-        raise AttributeError("{} already defined in logger class".format(methodName))
+        return AttributeError("{} already defined in logger class".format(methodName))
 
     # This method was inspired by the answers to Stack Overflow post
     # http://stackoverflow.com/q/2183233/2988730, especially
@@ -62,3 +51,15 @@ def add_logging_level(levelName, levelNum, methodName=None):
     setattr(logging, levelName, levelNum)
     setattr(logging.getLoggerClass(), methodName, logForLevel)
     setattr(logging, methodName, logToRoot)
+
+
+def make_path_clickable(path):
+    return path.replace("\\", "\\\\")
+
+
+def replace_os_separator(path):
+    return path.replace("\\", "_").replace("/", "_")
+
+
+def simple_name(name):
+    return "".join(name.split("_")[-1])

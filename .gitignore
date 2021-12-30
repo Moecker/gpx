@@ -141,3 +141,4 @@ dmypy.json
 /results/*.gpx
 /test/results/*.gpx
 /test/tmp/**/*.gpx
+*.stackdump
