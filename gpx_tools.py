@@ -48,7 +48,7 @@ def deannotate(point):
     return key, idx
 
 
-def save_as_gpx_file(points, dir, file_name):
+def save_as_gpx_file(points, dir, file_name, max_points):
     gpx = gpxpy.gpx.GPX()
 
     gpx_track = gpxpy.gpx.GPXTrack()
@@ -64,7 +64,7 @@ def save_as_gpx_file(points, dir, file_name):
         logging.error(f"Cannot save '{utils.make_path_clickable(file_name)}', no points found.")
         return
 
-    step_size = int(max(1, len(points) / config.MAX_POINTS))
+    step_size = int(max(1, len(points) / max_points))
     if step_size > 1:
         logging.warning(f"Too many points, reducing to every {step_size}th point.")
     for point in points[::step_size]:

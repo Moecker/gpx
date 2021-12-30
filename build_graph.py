@@ -222,12 +222,13 @@ def rescale(segments_dict, path):
         rescaled_path.extend(adding_points)
         previous_idx = idx
 
-    # Always add the last point
-    rescaled_path.append(segments_dict[key].points[-1])
-
     if not len(rescaled_path):
         logging.error(f"Rescaling failed, could not determine points.")
         return None
+
+    # Always add the last point, if the path is at most 3 points long
+    if len(rescaled_path) <= 3:
+        rescaled_path.append(segments_dict[key].points[-1])
 
     logging.debug(f"Rescaled from {len(path)} to {len(rescaled_path)} points.")
     logging.info(f"Path uses {len(used_segments)} different segments.")

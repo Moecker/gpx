@@ -1,6 +1,5 @@
 import facade
 
-import logging
 import unittest
 import argparse
 import os
@@ -94,7 +93,6 @@ class TestFacade(unittest.TestCase):
 
     def test_munich_dachau_detour_big_segment_distance(self):
         config.GRAPH_CONNECTION_DISTANCE = 100.0
-        print("\n\n\n")
         args = argparse.Namespace(
             start="Munich",
             end="Freising",

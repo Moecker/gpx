@@ -43,7 +43,7 @@ GRAPH_CONNECTION_DISTANCE = 1.0
 COST_NORMAL_PENALTY = 1
 
 # Cost for switching segments to avoid jumping around similar segments.
-COST_SWITCH_SEGMENT_PENALTY = 10
+COST_SWITCH_SEGMENT_PENALTY = 1
 
 # Cost penalty if this node has been used before.
 COST_ALREADY_VISITED_PENALTY = 100
@@ -60,6 +60,7 @@ GRAPH_MODUL = astar
 
 # Maximum points to export into GPX and HTML
 MAX_POINTS = 10000
+MAX_POINTS_OVERVIEW = 100
 
 
 def main():

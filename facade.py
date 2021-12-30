@@ -176,7 +176,7 @@ def main(args):
     logging.debug(f"Number of points in segments {str(len(all_points))}.")
 
     if not args.dry:
-        gpx_tools.save_as_gpx_file(all_points, config.RESULTS_FOLDER, "all_points.gpx")
+        gpx_tools.save_as_gpx_file(all_points, config.RESULTS_FOLDER, "all_points.gpx", config.MAX_POINTS_OVERVIEW)
         display.save_gpx_as_html("all_points", config.RESULTS_FOLDER)
 
     background = load_background()
@@ -281,8 +281,8 @@ def perform_run(cities, start_city, end_city, segments_dict, background, map, dr
     dijkstra, dijkstra_rescaled = perform_dijksra(start_gps, end_gps, segments_dict, background, map)
 
     if not dry:
-        gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, "dijkstra.gpx")
-        gpx_tools.save_as_gpx_file(dijkstra_rescaled, config.RESULTS_FOLDER, "dijkstra_rescaled.gpx")
+        gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, "dijkstra.gpx", config.MAX_POINTS_OVERVIEW)
+        gpx_tools.save_as_gpx_file(dijkstra_rescaled, config.RESULTS_FOLDER, "dijkstra_rescaled.gpx", config.MAX_POINTS)
         display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
         display.save_gpx_as_html("dijkstra_rescaled", config.RESULTS_FOLDER)
 
