@@ -192,7 +192,11 @@ def rescale(segments_dict, path):
             adding_points = reversed(adding_points)
 
         rescaled_path.extend(adding_points)
+        last_point_idx = previous_idx if previous_idx > idx else idx
         previous_idx = idx
+
+    # Always add the last point
+    rescaled_path.append(segments_dict[key].points[last_point_idx])
 
     if not len(rescaled_path):
         logging.error(f"Rescaling failed, could not determine points.")
