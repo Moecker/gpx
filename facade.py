@@ -227,12 +227,12 @@ def open_web_browser():
 def parse_args():
     parser = argparse.ArgumentParser(description="GPX Path Planner.")
 
-    parser.add_argument("--start", help="Start City", default=None)
-    parser.add_argument("--end", help="End City", default=None)
+    parser.add_argument("--start", help="Start City.", default=None)
+    parser.add_argument("--end", help="End City.", default=None)
     parser.add_argument("--gpx", required=True, help="Relative Path to GPX Data Source")
-    parser.add_argument("--verbose", action="store_true", help="Do not do any extra stuff")
-    parser.add_argument("--interactive", action="store_true", help="Interactively make multiple queries")
-    parser.add_argument("--dry", action="store_true", help="Do not create any outputs")
+    parser.add_argument("--verbose", action="store_true", help="Log out more details.")
+    parser.add_argument("--interactive", action="store_true", help="Interactively to allow for multiple queries.")
+    parser.add_argument("--dry", action="store_true", help="Do not create any output artifacts.")
 
     args = parser.parse_args()
 
