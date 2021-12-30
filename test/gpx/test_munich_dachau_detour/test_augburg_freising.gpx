@@ -3,11 +3,11 @@
   <trk>
     <name>track.gpx</name>
     <trkseg>
-      <trkpt lat="48.1372" lon="11.5755">
-        <src>Munich</src>
+      <trkpt lat="48.3717" lon="10.8983">
+        <src>Ausgburg</src>
       </trkpt>
-      <trkpt lat="48.2603" lon="11.4342">
-        <src>Dachau</src>
+      <trkpt lat="48.4028" lon="11.7489">
+        <src>Freising</src>
       </trkpt>
     </trkseg>
   </trk>

@@ -22,7 +22,7 @@ def default_adjusted_params():
     config.NUMBER_OF_PATHS = 1
 
 
-class TestGraph(unittest.TestCase):
+class TestFacade(unittest.TestCase):
     def setUp(self):
         default_test_setup()
         default_adjusted_params()
@@ -57,10 +57,44 @@ class TestGraph(unittest.TestCase):
         self.compare_points(dijkstra_rescaled[0], (48.1372, 11.5755))
         self.compare_points(dijkstra_rescaled[-1], (48.2603, 11.4342))
 
+    def test_munich_dachau_detour(self):
+        args = argparse.Namespace(
+            start="Munich",
+            end="Dachau",
+            gpx=os.path.join("test", "gpx", "test_munich_dachau_detour"),
+            interactive=False,
+            verbose=True,
+        )
+        dijkstra_rescaled = facade.main(args)
+        self.assertEqual(len(dijkstra_rescaled), 2)
+        self.compare_points(dijkstra_rescaled[0], (48.1372, 11.5755))
+        self.compare_points(dijkstra_rescaled[-1], (48.2603, 11.4342))
+
+        args = argparse.Namespace(
+            start="Munich",
+            end="Freising",
+            gpx=os.path.join("test", "gpx", "test_munich_dachau_detour"),
+            interactive=False,
+            verbose=True,
+        )
+        dijkstra_rescaled = facade.main(args)
+        self.assertEqual(dijkstra_rescaled, None)
+
+        config.GRAPH_CONNECTION_DISTANCE = 100.0
+        args = argparse.Namespace(
+            start="Munich",
+            end="Freising",
+            gpx=os.path.join("test", "gpx", "test_munich_dachau_detour"),
+            interactive=False,
+            verbose=True,
+        )
+        dijkstra_rescaled = facade.main(args)
+        self.assertEqual(len(dijkstra_rescaled), 2)
+
 
 if __name__ == "__main__":
     logging.basicConfig(
-        level=logging.ERROR,
+        level=logging.DEBUG,
         format="%(asctime)s:%(msecs)03d %(levelname)s: %(message)s",
         datefmt="%H:%M:%S",
     )

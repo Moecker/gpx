@@ -1,12 +1,13 @@
 import os
 
 
-import folium
 import gpxpy
 import logging
 
 
 def overlay_gpx(gpx_data_file, zoom):
+    import folium
+
     """
     overlay a gpx route on top of an OSM map using Folium
     some portions of this function were adapted
