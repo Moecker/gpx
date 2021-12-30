@@ -68,7 +68,7 @@ def find_start_and_end(cities, start_city, end_city):
     return gpx_tools.SimplePoint(selected_start), gpx_tools.SimplePoint(selected_end)
 
 
-def interactive_mode(cities, segments_dict, background, map):
+def interactive_mode(cities, segments_dict, background, map, dry):
     try:
         while True:
             logging.info(f"Input the start and end city. Leave blank or hit CTRL+C to exit.")
@@ -86,7 +86,7 @@ def interactive_mode(cities, segments_dict, background, map):
                 if not check_city(cities, end_city):
                     continue
                 break
-            perform_run(cities, start_city, end_city, segments_dict, background, map)
+            perform_run(cities, start_city, end_city, segments_dict, background, map, dry)
     except (KeyboardInterrupt):
         sys.exit(0)
 
@@ -116,7 +116,7 @@ def load_map(segments_dict, gpx_path):
     map = build_graph.load_or_build_map(segments_dict, map_file_name, os.path.join(config.STORAGE_TEMP_DIR, "maps"))
 
     if not len(map.keys()):
-        logging.error(f"No keys in map")
+        logging.error(f"No keys in map.")
         return None
     return map
 
@@ -127,7 +127,7 @@ def load_segments(gpx_path):
     )
 
     pickle_path = os.path.join(config.STORAGE_TEMP_DIR, "segments", pickle_file_name)
-    logging.debug(f"Storage path: '{pickle_path}'.")
+    logging.debug(f"Storage path: '{utils.make_path_clickable(pickle_path)}'.")
 
     glob_search_pattern = os.path.join(gpx_path, "*.gpx")
     logging.debug(f"Glob search pattern: '{glob_search_pattern}'.")
@@ -157,6 +157,8 @@ def main(args):
     for _ in logging.root.manager.loggerDict:
         logging.getLogger(_).setLevel(logging.CRITICAL)
 
+    utils.add_logging_level("TRACE", 1)
+
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(asctime)s:%(msecs)03d %(levelname)s: %(message)s",
@@ -181,33 +183,35 @@ def main(args):
     all_points = build_graph.collect_all_points(segments_dict)
     logging.debug(f"Number of points in segments {str(len(all_points))}.")
 
-    gpx_tools.save_as_gpx_file(all_points, config.RESULTS_FOLDER, "all_points.gpx")
-    display.save_gpx_as_html("all_points", config.RESULTS_FOLDER)
+    if not args.dry:
+        gpx_tools.save_as_gpx_file(all_points, config.RESULTS_FOLDER, "all_points.gpx")
+        display.save_gpx_as_html("all_points", config.RESULTS_FOLDER)
 
     background = load_background()
 
     gpx_display.create_and_display_map(all_points, "Map of all points in database", background)
 
     map = load_map(segments_dict, args.gpx)
+    build_graph.adjust_weight_foreign_segments(map)
 
     dijkstra_rescaled = None
     if args.interactive:
-        interactive_mode(cities, segments_dict, background, map)
+        interactive_mode(cities, segments_dict, background, map, args.dry)
     else:
-        dijkstra_rescaled = normal_mode(args, cities, segments_dict, background, map)
+        dijkstra_rescaled = normal_mode(args, cities, segments_dict, background, map, args.dry)
     return dijkstra_rescaled
 
 
-def normal_mode(args, cities, segments_dict, background, map):
+def normal_mode(args, cities, segments_dict, background, map, dry):
     loop = 0
     while True:
         if loop >= config.NUMBER_OF_PATHS:
-            logging.info(f"Maximum number of {config.NUMBER_OF_PATHS} path(s) found.")
+            logging.info(f"Maximum configured number of {config.NUMBER_OF_PATHS} path(s) found.")
             break
 
         loop += 1
         logging.info(f"Searching path {loop} of {config.NUMBER_OF_PATHS}.")
-        dijkstra, dijkstra_rescaled = perform_run(cities, args.start, args.end, segments_dict, background, map)
+        dijkstra, dijkstra_rescaled = perform_run(cities, args.start, args.end, segments_dict, background, map, dry)
 
         if not dijkstra or not dijkstra_rescaled:
             break
@@ -229,6 +233,7 @@ def parse_args():
     parser.add_argument("--gpx", required=True, help="Relative Path to GPX Data Source")
     parser.add_argument("--verbose", action="store_true", help="Do not do any extra stuff")
     parser.add_argument("--interactive", action="store_true", help="Interactively make multiple queries")
+    parser.add_argument("--dry", action="store_true", help="Do not create any outputs")
 
     args = parser.parse_args()
 
@@ -253,16 +258,12 @@ def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
         return none_tuple()
 
     gpx_display.create_and_display_map(dijkstra, "Map of found path", background)
-
-    gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, "dijkstra.gpx")
-    gpx_tools.save_as_gpx_file(dijkstra_rescaled, config.RESULTS_FOLDER, "dijkstra_rescaled.gpx")
-    display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
-    display.save_gpx_as_html("dijkstra_rescaled", config.RESULTS_FOLDER)
+    gpx_display.create_and_display_map(dijkstra_rescaled, "Map of found path, rescaled", background)
 
     return dijkstra, dijkstra_rescaled
 
 
-def perform_run(cities, start_city, end_city, segments_dict, background, map):
+def perform_run(cities, start_city, end_city, segments_dict, background, map, dry):
     start_gps, end_gps = find_start_and_end(cities, start_city, end_city)
 
     if not start_gps or not end_gps:
@@ -279,6 +280,12 @@ def perform_run(cities, start_city, end_city, segments_dict, background, map):
     logging.debug(f"Quantiles weights {str(statistics.quantiles(map.weights(), n=10))}.")
 
     dijkstra, dijkstra_rescaled = perform_dijksra(start_gps, end_gps, segments_dict, background, map)
+
+    if not dry:
+        gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, "dijkstra.gpx")
+        gpx_tools.save_as_gpx_file(dijkstra_rescaled, config.RESULTS_FOLDER, "dijkstra_rescaled.gpx")
+        display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
+        display.save_gpx_as_html("dijkstra_rescaled", config.RESULTS_FOLDER)
 
     return dijkstra, dijkstra_rescaled
 

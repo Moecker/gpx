@@ -29,7 +29,7 @@ def build_segments_dict(reduction_threshold, pickle_path, pattern, output_dir):
 
         segments_dict = load_and_reduce_gpxs(track_file_names, reduction_threshold, pickle_path, output_dir)
 
-        logging.debug(f"Saving pickle file to {pickle_path}.")
+        logging.debug(f"Saving pickle file to '{utils.make_path_clickable(pickle_path)}'.")
         Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)
         with open(pickle_path, "wb") as f:
             pickle.dump(segments_dict, f)
@@ -134,8 +134,8 @@ def setup_segments_dict(segments_dict, track_file_name_reduced):
 
 def try_load_pickle(pickle_path):
     if not config.ALWAYS_PARSE and os.path.isfile(pickle_path):
-        logging.debug(f"{pickle_path} exists, using it.")
-        logging.debug(f"Loading {pickle_path}.")
+        logging.debug(f"Path '{utils.make_path_clickable(pickle_path)}' exists.")
+        logging.debug(f"Loading '{utils.make_path_clickable(pickle_path)}'.")
         segments_dict = pickle.load(open(pickle_path, "rb"))
         return segments_dict
     else:

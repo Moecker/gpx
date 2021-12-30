@@ -1,8 +1,9 @@
+import logging
 import os
 
-
 import gpxpy
-import logging
+
+import utils
 
 
 def overlay_gpx(gpx_data_file, zoom):
@@ -36,10 +37,10 @@ def save_gpx_as_html(map_name, dir):
     html_file_path = os.path.join(dir, f"{map_name}.html")
 
     if not os.path.isfile(gpx_file_path):
-        logging.error(f"Cannot save {gpx_file_path} to {html_file_path}, input file does not exist.")
+        logging.error(f"Cannot save '{utils.make_path_clickable(gpx_file_path)}' to '{utils.make_path_clickable(html_file_path)}', input file does not exist.")
         return
 
-    logging.info(f"Saving '{gpx_file_path}' as HTML Map to '{html_file_path}'.")
+    logging.info(f"Saving '{utils.make_path_clickable(gpx_file_path)}' as HTML Map to '{utils.make_path_clickable(html_file_path)}'.")
 
     map = overlay_gpx(gpx_file_path, zoom=8)
     map.save(f"{html_file_path}")

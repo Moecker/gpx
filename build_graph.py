@@ -5,6 +5,7 @@ import logging
 import math
 import os
 import pickle
+import utils
 
 from tqdm import tqdm
 
@@ -20,6 +21,15 @@ def adjust_weight_of_path(path, map):
             continue
         map.adjust_weight(prev_point, point, config.COST_SWITCH_SEGMENT_PENALTY)
         prev_point = point
+
+
+def adjust_weight_foreign_segments(map):
+    for node, neighbors in map.friends.items():
+        key, idx = gpx_tools.deannotate(node)
+        logging.trace(node)
+        for other_node, cost in neighbors.items():
+            key, idx = gpx_tools.deannotate(other_node)
+            logging.trace("| " + str(other_node) + ":" + str(cost))
 
 
 def build_map(segments_dict):
@@ -38,6 +48,9 @@ def build_map(segments_dict):
                 point = segment.points[idx]
                 if prev_point:
                     dis = distance.haversine_gpx(prev_point, point)
+
+                    assert prev_point != point
+
                     map.add(prev_point, point, cost=int(dis * config.COST_NORMAL_PENALTY))
 
                 prev_point = point
@@ -86,6 +99,8 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
             other_point = other_segment.points[idx]
             dis = distance.haversine_gpx(current_point, other_point)
 
+            assert current_point != other_point
+
             if dis < config.GRAPH_CONNECTION_DISTANCE:
                 map.add(current_point, other_point, cost=int(dis * config.COST_SWITCH_SEGMENT_PENALTY))
 
@@ -110,12 +125,13 @@ def find_path(map, start, end, strategy):
         return None
 
     logging.debug(f"Starting search strategy using {strategy}.")
-    path = strategy(first, last)
+    path, cost = strategy(first, last)
     if not path:
         logging.error(f"No path found from {first} to {last}.")
         return None
 
-    logging.debug(f"Path found, length of path(s): {len(path)}.")
+    logging.debug(f"Path found, length of path: {len(path)}.")
+    logging.debug(f"Path found, cost of path: {cost}.")
     return path
 
 
@@ -137,13 +153,13 @@ def load_or_build_map(segments_dict, name, output_dir):
         logging.debug(f"Pickle {pickle_path} does not exist or is forced ignored, creating map.")
         map = build_map(segments_dict)
 
-        logging.debug(f"Saving pickle file to {pickle_path}.")
+        logging.debug(f"Saving pickle file to '{utils.make_path_clickable(pickle_path)}'.")
         Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)
         with open(pickle_path, "wb") as f:
             pickle.dump(map, f)
 
-    logging.debug(f"Pickle {pickle_path} exist, using it.")
-    logging.debug(f"Loading {pickle_path}.")
+    logging.debug(f"Pickle '{utils.make_path_clickable(pickle_path)}' exist.")
+    logging.debug(f"Loading '{utils.make_path_clickable(pickle_path)}'.")
     with open(pickle_path, "rb") as f:
         map = pickle.load(f)
 

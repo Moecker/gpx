@@ -2,7 +2,7 @@ import logging
 import os
 import config
 import gpxpy
-
+import utils
 import gpx_tools
 
 
@@ -20,7 +20,7 @@ class SimplePoint:
         return self.__repr__()
 
     def __repr__(self):
-        post = f" from {self.annotation}" if self.annotation else ""
+        post = f"[{utils.make_path_clickable(self.annotation)}]" if self.annotation else ""
         return f"GPS({self.latitude:.4f},{self.longitude:.4f}){post}"
 
     def __lt__(self, other):
@@ -59,9 +59,9 @@ def save_as_gpx_file(points, dir, file_name):
 
     file_path = os.path.join(dir, file_name)
     if points:
-        logging.info(f"Saving GPX path of {len(points)} points to '{file_path}'.")
+        logging.info(f"Saving GPX path of {len(points)} points to '{utils.make_path_clickable(file_path)}'.")
     else:
-        logging.error(f"Cannot save {file_name}, no points found.")
+        logging.error(f"Cannot save '{utils.make_path_clickable(file_name)}', no points found.")
         return
 
     step_size = int(max(1, len(points) / config.MAX_POINTS))

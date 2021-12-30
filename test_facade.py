@@ -38,6 +38,7 @@ class TestFacade(unittest.TestCase):
             gpx=os.path.join("test", "gpx", "test_munich_dachau"),
             interactive=False,
             verbose=True,
+            dry=False,
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 2)
@@ -51,6 +52,7 @@ class TestFacade(unittest.TestCase):
             gpx=os.path.join("test", "gpx", "test_munich_furstenfeldbruck_dachau"),
             interactive=False,
             verbose=True,
+            dry=False,
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 3)
@@ -64,6 +66,7 @@ class TestFacade(unittest.TestCase):
             gpx=os.path.join("test", "gpx", "test_munich_dachau_detour"),
             interactive=False,
             verbose=True,
+            dry=True,
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 2)
@@ -76,6 +79,7 @@ class TestFacade(unittest.TestCase):
             gpx=os.path.join("test", "gpx", "test_munich_dachau_detour"),
             interactive=False,
             verbose=True,
+            dry=True,
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(dijkstra_rescaled, None)
@@ -87,6 +91,7 @@ class TestFacade(unittest.TestCase):
             gpx=os.path.join("test", "gpx", "test_munich_dachau_detour"),
             interactive=False,
             verbose=True,
+            dry=True,
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 2)

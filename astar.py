@@ -3,7 +3,7 @@ from functools import partial
 import itertools
 import logging
 from tqdm import tqdm
-
+import math
 import config
 import distance
 
@@ -38,7 +38,6 @@ class Graph:
         closed_lst = set([])
 
         # Dict poo has present distances from start to all other nodes
-        # The default value is +infinity
         poo = {}
         poo[start] = 0
 
@@ -56,7 +55,7 @@ class Graph:
                     if n == None or poo[v] + self.h(v) < poo[n] + self.h(n):
                         n = v
                 if n == None:
-                    return None
+                    return None, math.inf
 
                 pbar.set_description(f"Searching {str(n).ljust(180):.100s}")
 
@@ -69,22 +68,23 @@ class Graph:
 
                     reconst_path.append(start)
                     reconst_path.reverse()
-                    return reconst_path
+                    return reconst_path, poo[stop]
 
                 # For all the neighbors of the current node do
-                for (m, weight) in self.get_neighbors(n):
+                for (m, cost) in self.get_neighbors(n):
                     # If the current node is not present in both open_lst and closed_lst
                     # add it to open_lst and note n as it's par
                     if m not in open_lst and m not in closed_lst:
                         open_lst.add(m)
                         par[m] = n
-                        poo[m] = poo[n] + weight
+                        poo[m] = poo[n] + cost
                     # Otherwise, check if it's quicker to first visit n, then m
                     # and if it is, update par data and poo data,
                     # and if the node was in the closed_lst, move it to open_lst
                     else:
-                        if poo[m] > poo[n] + weight:
-                            poo[m] = poo[n] + weight
+                        new_cost = poo[n] + cost
+                        if poo[m] > new_cost:
+                            poo[m] = new_cost
                             par[m] = n
 
                             if m in closed_lst:
@@ -97,7 +97,7 @@ class Graph:
                 closed_lst.add(n)
                 pbar.update(1)
 
-        return None
+        return None, math.inf
 
     def add(self, n1, n2, cost):
         if USE_TUPLE_IMPL:
