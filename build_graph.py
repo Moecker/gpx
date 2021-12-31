@@ -62,7 +62,6 @@ def build_map_smart(segments_dict):
 
         if not has_connection:
             dis = distance.haversine_gpx(first_point, cur_point)
-            logging.trace(f"Special adding {first_point.short()} to {cur_point.short()} with {dis:.2f} km")
             map.add(first_point, cur_point, dis)
 
     return map
@@ -140,7 +139,10 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
             if dis < config.GRAPH_CONNECTION_DISTANCE:
                 map.add(current_point, other_point, cost=max(1, int(dis)))
 
-            step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
+            if config.USE_INEXACT_STEP_DISTANCE:
+                step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
+            else:
+                step_distance = 1
 
             # Jump the step size, but always add the last point, too.
             # Break however, once reached.
@@ -225,42 +227,47 @@ def rescale(segments_dict, path):
 
     rescaled_path = []
 
-    for point in path:
+    prev_point = None
+    for i, point in enumerate(path):
         if not point.annotation:
             logging.warning(f"Cannot rescale because annotations are missing, skipping.")
             return None
 
         key, idx = gpx_tools.deannotate(point)
 
+        # We saw a new section
         if key != previous_key:
             used_segments.append(key)
             previous_idx = None
             previous_key = key
 
+        # No previous idx known due to segment switch (or first point)
         if previous_idx == None:
+            if prev_point:
+                rescaled_path.append(prev_point)
             previous_idx = idx
-            continue
-
-        # Importantly, the original tour can be made in both directions.
-        # To respect this, the found part-segments have to be added
-        # not according to how it has ben recorded, but how the current
-        # direction is.
-        if previous_idx < idx:
-            adding_points = segments_dict[key].points[previous_idx:idx]
+            prev_point = point
         else:
-            adding_points = segments_dict[key].points[idx:previous_idx]
-            adding_points = reversed(adding_points)
+            # Importantly, the original tour can be made in both directions.
+            # To respect this, the found part-segments have to be added
+            # not according to how it has ben recorded, but how the current
+            # direction is.
+            if previous_idx < idx:
+                adding_points = segments_dict[key].points[previous_idx:idx]
+            else:
+                adding_points = segments_dict[key].points[idx:previous_idx]
+                adding_points = reversed(adding_points)
 
-        rescaled_path.extend(adding_points)
-        previous_idx = idx
+            rescaled_path.extend(adding_points)
+            previous_idx = idx
+            prev_point = point
+
+        if i == len(path) - 1:
+            rescaled_path.append(segments_dict[key].points[idx])
 
     if not len(rescaled_path):
         logging.error(f"Rescaling failed, could not determine points.")
         return None
-
-    # Always add the last point, if the path is at most 3 points long
-    if len(rescaled_path) <= 3:
-        rescaled_path.append(segments_dict[key].points[-1])
 
     logging.debug(f"Rescaled from {len(path)} to {len(rescaled_path)} points.")
     logging.info(f"Path uses {len(used_segments)} different segments.")

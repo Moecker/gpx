@@ -192,8 +192,6 @@ def main(args) -> list:
         logging.error("Error loading map.")
         return empty_path()
 
-    build_graph.debug_graph(map)
-
     build_graph.adjust_weight_foreign_segments(map)
 
     dijkstra_rescaled = None

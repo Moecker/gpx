@@ -15,7 +15,6 @@ class TestGraph(unittest.TestCase):
         g.add(bar, ohm, 1)
         self.assertEqual(g.find_shortest_path(foo, ohm), [foo, bar, ohm])
         self.assertEqual(g.dijkstra(foo, ohm), [foo, bar, ohm])
-        print(g)
         g.add(foo, ohm, 1)
         self.assertEqual(g.find_shortest_path(foo, ohm), [foo, ohm])
         self.assertEqual(g.dijkstra(foo, ohm), [foo, ohm])
