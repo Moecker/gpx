@@ -19,6 +19,7 @@ def default_adjusted_params():
     # Config options which are non default in order to be able to test more easily.
     config.PRECISION = 1
     config.NUMBER_OF_PATHS = 1
+    config.GRAPH_CONNECTION_DISTANCE = 1
 
 
 MUNICH = (48.1372, 11.5755)
@@ -43,7 +44,7 @@ class TestFacade(unittest.TestCase):
             gpx=os.path.join("test", "gpx", "test_munich_dachau"),
             interactive=False,
             verbose=True,
-            dry=False,
+            dry=True,
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 2)
@@ -89,7 +90,7 @@ class TestFacade(unittest.TestCase):
             dry=True,
         )
         dijkstra_rescaled = facade.main(args)
-        self.assertEqual(dijkstra_rescaled, None)
+        self.assertEqual(dijkstra_rescaled, [])
 
     def test_munich_dachau_detour_big_segment_distance(self):
         config.GRAPH_CONNECTION_DISTANCE = 100.0

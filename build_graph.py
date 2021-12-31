@@ -41,6 +41,25 @@ def adjust_weight_of_path(path, map):
         prev_point = point
 
 
+def build_map_smart(segments_dict):
+    print(len(segments_dict))
+    map = config.GRAPH_MODUL.Graph()
+    for cur_name, cur_segment in segments_dict.items():
+        for cur_point in cur_segment.points:
+            prev_point = None
+            if not prev_point:
+                prev_point = cur_point
+                continue
+            dis = distance.haversine_gpx(prev_point, cur_point)
+            map.add(prev_point, cur_point, dis)
+
+            for oth_name, oth_segment in segments_dict.items():
+                for oth_point in cur_segment.points:
+                    if cur_point != oth_point:
+                        pass
+    return map
+
+
 def build_map(segments_dict):
     map = config.GRAPH_MODUL.Graph()
 
@@ -141,6 +160,7 @@ def find_path(map, start, end, strategy):
 
     logging.debug(f"Path found, length of path: {len(path)}.")
     logging.debug(f"Path found, cost of path: {cost}.")
+    logging.info(f"Found Path of (node-)length {len(path)} and (graph-)cost {cost}.")
     return path
 
 
@@ -159,15 +179,17 @@ def get_closest_start_and_end(map, start_gpx, end_gpx):
 def load_or_build_map(segments_dict, name, output_dir):
     pickle_path = os.path.join(output_dir, name)
     if config.ALWAYS_GRAPH or not os.path.isfile(pickle_path):
-        logging.debug(f"Pickle {pickle_path} does not exist or is forced ignored, creating map.")
-        map = build_map(segments_dict)
+        logging.debug(f"Pickle file {pickle_path} does not exist or is forced ignored, creating map.")
+
+        # TODO map = build_map(segments_dict)
+        map = build_map_smart(segments_dict)
 
         logging.debug(f"Saving pickle file to '{utils.make_path_clickable(pickle_path)}'.")
         Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)
         with open(pickle_path, "wb") as f:
             pickle.dump(map, f)
 
-    logging.debug(f"Pickle '{utils.make_path_clickable(pickle_path)}' exist.")
+    logging.debug(f"Pickle file '{utils.make_path_clickable(pickle_path)}' exist.")
     logging.debug(f"Loading '{utils.make_path_clickable(pickle_path)}'.")
     with open(pickle_path, "rb") as f:
         map = pickle.load(f)

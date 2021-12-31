@@ -2,7 +2,7 @@ import astar
 import graph
 
 # Controls whether to always re-create the graph.
-ALWAYS_GRAPH = False
+ALWAYS_GRAPH = True
 
 # Controls whether to always re-create cached segments dicts.
 ALWAYS_PARSE = False
@@ -37,20 +37,20 @@ PRECISION = 10
 # a connection from Hamburg to Berlin with a big cost, however keeping this value in a good range
 # is a trade off between not being able to connect other segments vs. a too huge graph.
 # Note: Impacts Map Cache
-GRAPH_CONNECTION_DISTANCE = 1.0
+GRAPH_CONNECTION_DISTANCE = 2.0
 
 # Cost for points which are next to each other within a segment.
 COST_NORMAL_PENALTY = 1
 
 # Cost for switching segments to avoid jumping around similar segments.
-COST_SWITCH_SEGMENT_PENALTY = 1
+COST_SWITCH_SEGMENT_PENALTY = 10
 
 # Cost penalty if this node has been used before.
 COST_ALREADY_VISITED_PENALTY = 100
 
 # A factor applied to the heuristic of A-Star which helps finding
 # the shortest path to other nodes quicker.
-HEURISTIC_SCALE_FACTOR = 100
+HEURISTIC_SCALE_FACTOR = 10
 
 # The number of paths to find.
 NUMBER_OF_PATHS = 1

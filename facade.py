@@ -39,7 +39,7 @@ def find_start_and_end(cities, start_city, end_city):
 
     if not found_start or not found_end:
         logging.error(f"Start and/or End city not found.")
-        return none_tuple()
+        return empty_path_tuple()
 
     possible_starts = cities[start_city.lower()]
     possible_ends = cities[end_city.lower()]
@@ -145,7 +145,11 @@ def load_worldcities():
     return cities
 
 
-def main(args):
+def empty_path():
+    return []
+
+
+def main(args) -> list:
     for _ in logging.root.manager.loggerDict:
         logging.getLogger(_).setLevel(logging.CRITICAL)
 
@@ -168,7 +172,7 @@ def main(args):
     segments_dict = load_segments(args.gpx)
     if not segments_dict:
         logging.error("Error loading segments.")
-        sys.exit(1)
+        return empty_path()
 
     annotate_points(segments_dict)
 
@@ -184,6 +188,10 @@ def main(args):
     gpx_display.create_and_display_map(all_points, "Map of all points in database", background)
 
     map = load_map(segments_dict, args.gpx)
+    if not map:
+        logging.error("Error loading map.")
+        return empty_path()
+
     build_graph.adjust_weight_foreign_segments(map)
 
     dijkstra_rescaled = None
@@ -194,8 +202,8 @@ def main(args):
     return dijkstra_rescaled
 
 
-def none_tuple():
-    return None, None
+def empty_path_tuple():
+    return [], []
 
 
 def normal_mode(args, cities, segments_dict, background, map, dry):
@@ -248,13 +256,13 @@ def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
     dijkstra = build_graph.find_path(map, start_gps, end_gps, map.dijkstra)
 
     if not dijkstra:
-        return none_tuple()
+        return empty_path_tuple()
 
     dijkstra_rescaled = build_graph.rescale(segments_dict, dijkstra)
     logging.info(f"Elapsed time {time.time() - start_time:.2f} s.")
 
     if not dijkstra_rescaled:
-        return none_tuple()
+        return empty_path_tuple()
 
     gpx_display.create_and_display_map(dijkstra, "Map of found path", background)
     gpx_display.create_and_display_map(dijkstra_rescaled, "Map of found path, rescaled", background)
@@ -266,7 +274,7 @@ def perform_run(cities, start_city, end_city, segments_dict, background, map, dr
     start_gps, end_gps = find_start_and_end(cities, start_city, end_city)
 
     if not start_gps or not end_gps:
-        return none_tuple()
+        return empty_path_tuple()
 
     logging.info(f"Start GPS for {start_city}: {start_gps}.")
     logging.info(f"End GPS for {end_city}: {end_gps}.")

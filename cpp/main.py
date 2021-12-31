@@ -1,20 +1,21 @@
 import time
-import fibinacci as pbe
+import fibonacci as pbe
 
-def fibinacci_py(x):
+
+def fibonacci_py(x):
     if x < 2:
         return x
-    return fibinacci_py(x - 1) + fibinacci_py(x - 2)
+    return fibonacci_py(x - 1) + fibonacci_py(x - 2)
 
-n = 40
 
-print('Python:')
+n = 35
+
+print("C++:")
 start_time = time.perf_counter_ns()
-print('Answer:', fibinacci_py(n))
-print('Time:', (time.perf_counter_ns() - start_time) / 1e9, 's')
-print()
+print("Answer:", pbe.fibonacci(n))
+print("Time:", (time.perf_counter_ns() - start_time) / 1e9, "s")
 
-print('C++:')
+print("Python:")
 start_time = time.perf_counter_ns()
-print('Answer:', pbe.fibinacci_cpp(n))
-print('Time:', (time.perf_counter_ns() - start_time) / 1e9, 's')
+print("Answer:", fibonacci_py(n))
+print("Time:", (time.perf_counter_ns() - start_time) / 1e9, "s")

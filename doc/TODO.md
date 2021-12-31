@@ -9,3 +9,7 @@
   * (DONE) How come that it says "Rescaled from 43 to 0 points"? -> Directions did matter, but should not.
 * ID4:
   * (DONE) Select multiple possible path: https://softwareengineering.stackexchange.com/questions/232305/a-with-possible-multiple-paths
+* ID5:
+  * Use python C++ binding to speed up
+* ID6:
+  * Only use those nodes which are possible segment change (or shortcuts) into the map
