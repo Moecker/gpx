@@ -48,3 +48,7 @@ def save_gpx_as_html(map_name, dir):
 
     map = overlay_gpx(gpx_file_path, zoom=8)
     map.save(f"{html_file_path}")
+
+
+def ascii_map(map):
+    pass

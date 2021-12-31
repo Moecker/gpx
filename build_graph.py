@@ -42,21 +42,29 @@ def adjust_weight_of_path(path, map):
 
 
 def build_map_smart(segments_dict):
-    print(len(segments_dict))
     map = config.GRAPH_MODUL.Graph()
     for cur_name, cur_segment in segments_dict.items():
+        first_point = None
+        has_connection = False
+
         for cur_point in cur_segment.points:
-            prev_point = None
-            if not prev_point:
-                prev_point = cur_point
-                continue
-            dis = distance.haversine_gpx(prev_point, cur_point)
-            map.add(prev_point, cur_point, dis)
+            if not first_point:
+                first_point = cur_point
 
             for oth_name, oth_segment in segments_dict.items():
-                for oth_point in cur_segment.points:
-                    if cur_point != oth_point:
-                        pass
+                for oth_point in oth_segment.points:
+                    if cur_name != oth_name:
+                        dis = distance.haversine_gpx(cur_point, oth_point)
+                        if dis < config.GRAPH_CONNECTION_DISTANCE:
+                            logging.trace(f"Normal adding {cur_point.short()} to {oth_point.short()} with {dis:.2f} km")
+                            map.add(cur_point, oth_point, dis)
+                            has_connection = True
+
+        if not has_connection:
+            dis = distance.haversine_gpx(first_point, cur_point)
+            logging.trace(f"Special adding {first_point.short()} to {cur_point.short()} with {dis:.2f} km")
+            map.add(first_point, cur_point, dis)
+
     return map
 
 
@@ -181,8 +189,10 @@ def load_or_build_map(segments_dict, name, output_dir):
     if config.ALWAYS_GRAPH or not os.path.isfile(pickle_path):
         logging.debug(f"Pickle file {pickle_path} does not exist or is forced ignored, creating map.")
 
-        # TODO map = build_map(segments_dict)
-        map = build_map_smart(segments_dict)
+        if config.USE_SMART:
+            map = build_map_smart(segments_dict)
+        else:
+            map = build_map(segments_dict)
 
         logging.debug(f"Saving pickle file to '{utils.make_path_clickable(pickle_path)}'.")
         Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)

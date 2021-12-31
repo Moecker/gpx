@@ -1,6 +1,9 @@
 import astar
 import graph
 
+# Algorithm for building the grapg
+USE_SMART = False
+
 # Controls whether to always re-create the graph.
 ALWAYS_GRAPH = True
 

@@ -16,6 +16,9 @@ class SimplePoint:
     def from_gpx_point(cls, gpx_point):
         return cls((gpx_point.latitude, gpx_point.longitude))
 
+    def short(self):
+        return f"({self.latitude:.4f},{self.longitude:.4f})"
+
     def __str__(self):
         return self.__repr__()
 

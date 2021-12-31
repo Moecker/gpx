@@ -107,6 +107,18 @@ class TestFacade(unittest.TestCase):
         self.compare_points(dijkstra_rescaled[0], MUNICH)
         self.compare_points(dijkstra_rescaled[-1], FREISING)
 
+    def test_munich_augsburg_via_ffb(self):
+        args = argparse.Namespace(
+            start="Munich",
+            end="Augsburg",
+            gpx=os.path.join("test", "gpx", "test_munich_augsburg_intersection"),
+            interactive=False,
+            verbose=True,
+            dry=True,
+        )
+        dijkstra_rescaled = facade.main(args)
+        self.assertEqual(dijkstra_rescaled, 2)
+
 
 if __name__ == "__main__":
     unittest.main()
