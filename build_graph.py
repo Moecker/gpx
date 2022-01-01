@@ -215,40 +215,37 @@ def rescale(segments_dict, path):
         logging.warning(f"Cannot rescale, because path is empty.")
         return None
 
-    if len(path) < 2:
-        logging.warning(f"Cannot rescale, because path must have at least 3 points.")
-        return None
-
-    if len(path) == 2:
-        return path
-
     previous_idx = None
     previous_key = None
-    batch_points = []
-
-    rescaled_path = []
 
     prev_point = None
+    is_reversed = False
+
+    batch_points = []
+    rescaled_path = []
+
     for i, point in enumerate(path):
         if not point.annotation:
             logging.warning(f"Cannot rescale because annotations are missing, skipping.")
-            return None
+            return rescaled_path
 
         key, idx = gpx_tools.deannotate(point)
 
-        # We saw a new section
+        # We saw a new section or we are at the beginning.
         if key != previous_key:
             used_segments.append(key)
             previous_key = key
+
             if prev_point:
-                rescaled_path.append(prev_point)
+                batch_points.append(prev_point)
+
             rescaled_path.extend(batch_points)
+
+            batch_points = []
+            prev_point = segments_dict[key].points[idx]
         else:
-            # Importantly, the original tour can be made in both directions.
-            # To respect this, the found part-segments have to be added
-            # not according to how it has ben recorded, but how the current
-            # direction is.
-            if previous_idx < idx:
+            is_reversed = previous_idx < idx
+            if is_reversed:
                 adding_points = segments_dict[key].points[previous_idx:idx]
                 prev_point = segments_dict[key].points[idx]
             else:
@@ -260,15 +257,23 @@ def rescale(segments_dict, path):
 
         previous_idx = idx
 
+        # Last point.
         if i == len(path) - 1:
-            rescaled_path.extend(batch_points)
-            rescaled_path.append(prev_point)
+            if not is_reversed:
+                if prev_point:
+                    rescaled_path.append(prev_point)
+                rescaled_path.extend(batch_points)
+            else:
+                rescaled_path.extend(batch_points)
+                if prev_point:
+                    rescaled_path.append(prev_point)
 
     if not len(rescaled_path):
         logging.error(f"Rescaling failed, could not determine points.")
         return None
 
     logging.debug(f"Rescaled from {len(path)} to {len(rescaled_path)} points.")
+
     logging.info(f"Path uses {len(used_segments)} different segments.")
     logging.debug(f"Used segments: \n{pformat(used_segments)}.")
     return rescaled_path
