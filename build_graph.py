@@ -224,6 +224,7 @@ def rescale(segments_dict, path):
 
     previous_idx = None
     previous_key = None
+    batch_points = []
 
     rescaled_path = []
 
@@ -238,15 +239,10 @@ def rescale(segments_dict, path):
         # We saw a new section
         if key != previous_key:
             used_segments.append(key)
-            previous_idx = None
             previous_key = key
-
-        # No previous idx known due to segment switch (or first point)
-        if previous_idx == None:
             if prev_point:
                 rescaled_path.append(prev_point)
-            previous_idx = idx
-            prev_point = point
+            rescaled_path.extend(batch_points)
         else:
             # Importantly, the original tour can be made in both directions.
             # To respect this, the found part-segments have to be added
@@ -254,16 +250,19 @@ def rescale(segments_dict, path):
             # direction is.
             if previous_idx < idx:
                 adding_points = segments_dict[key].points[previous_idx:idx]
+                prev_point = segments_dict[key].points[idx]
             else:
                 adding_points = segments_dict[key].points[idx:previous_idx]
                 adding_points = reversed(adding_points)
+                prev_point = segments_dict[key].points[previous_idx]
 
-            rescaled_path.extend(adding_points)
-            previous_idx = idx
-            prev_point = point
+            batch_points.extend(adding_points)
+
+        previous_idx = idx
 
         if i == len(path) - 1:
-            rescaled_path.append(segments_dict[key].points[idx])
+            rescaled_path.extend(batch_points)
+            rescaled_path.append(prev_point)
 
     if not len(rescaled_path):
         logging.error(f"Rescaling failed, could not determine points.")
