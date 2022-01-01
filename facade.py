@@ -156,7 +156,7 @@ def main(args) -> list:
     utils.add_logging_level("TRACE", 1)
 
     logging.basicConfig(
-        level=logging.TRACE if args.verbose else logging.INFO,
+        level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(asctime)s:%(msecs)03d %(levelname)s: %(message)s",
         datefmt="%H:%M:%S",
     )

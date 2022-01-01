@@ -60,25 +60,60 @@ def build_map_smart(segments_dict):
 
                 for oth_name, oth_segment in segments_dict.items():
                     if cur_name != oth_name:
-                        for oth_point in oth_segment.points:
-                            dis = distance.haversine_gpx(cur_point, oth_point)
+                        # TODO Remove the else branch
+                        if True:
+                            idx = 0
+                            while idx < len(oth_segment.points):
+                                oth_point = oth_segment.points[idx]
+                                dis = distance.haversine_gpx(cur_point, oth_point)
 
-                            if dis < config.GRAPH_CONNECTION_DISTANCE:
-                                logging.trace(
-                                    f"Segment change adding {cur_point.short()} to {oth_point.short()} with {dis:.2f} km"
-                                )
-                                map.add(cur_point, oth_point, dis)
-
-                                has_connection = True
-
-                                if not intersection_point and first_point != cur_point:
-                                    needs_intra = True
-                                    intra_dis = distance.haversine_gpx(first_point, cur_point)
+                                if dis < config.GRAPH_CONNECTION_DISTANCE:
                                     logging.trace(
-                                        f"First inter segment adding {first_point.short()} to {cur_point.short()} with {intra_dis:.2f} km"
+                                        f"Segment change adding {cur_point.short()} to {oth_point.short()} with {dis:.2f} km"
                                     )
-                                    map.add(first_point, cur_point, intra_dis)
-                                    intersection_point = cur_point
+                                    map.add(cur_point, oth_point, dis)
+
+                                    has_connection = True
+
+                                    if not intersection_point and first_point != cur_point:
+                                        needs_intra = True
+                                        intra_dis = distance.haversine_gpx(first_point, cur_point)
+                                        logging.trace(
+                                            f"First inter segment adding {first_point.short()} to {cur_point.short()} with {intra_dis:.2f} km"
+                                        )
+                                        map.add(first_point, cur_point, intra_dis)
+                                        intersection_point = cur_point
+
+                                if config.USE_INEXACT_STEP_DISTANCE:
+                                    step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
+                                else:
+                                    step_distance = 1
+
+                                # Jump the step size, but always add the last point, too.
+                                # Break however, once reached.
+                                if idx == len(oth_segment.points) - 1:
+                                    break
+                                idx = min(idx + max(1, step_distance), max(len(oth_segment.points) - 1, 1))
+                        else:
+                            for oth_point in oth_segment.points:
+                                dis = distance.haversine_gpx(cur_point, oth_point)
+
+                                if dis < config.GRAPH_CONNECTION_DISTANCE:
+                                    logging.trace(
+                                        f"Segment change adding {cur_point.short()} to {oth_point.short()} with {dis:.2f} km"
+                                    )
+                                    map.add(cur_point, oth_point, dis)
+
+                                    has_connection = True
+
+                                    if not intersection_point and first_point != cur_point:
+                                        needs_intra = True
+                                        intra_dis = distance.haversine_gpx(first_point, cur_point)
+                                        logging.trace(
+                                            f"First inter segment adding {first_point.short()} to {cur_point.short()} with {intra_dis:.2f} km"
+                                        )
+                                        map.add(first_point, cur_point, intra_dis)
+                                        intersection_point = cur_point
 
                 if needs_intra:
                     if intersection_point != cur_point:

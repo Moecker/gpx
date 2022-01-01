@@ -6,7 +6,7 @@ import graph
 ALWAYS_GRAPH = True
 
 # Controls whether to always re-create cached segments dicts.
-ALWAYS_PARSE = True
+ALWAYS_PARSE = False
 
 # Controls whether to always re-create reduced gpx files.
 ALWAYS_REDUCE = False
@@ -25,7 +25,7 @@ COST_ALREADY_VISITED_PENALTY = 100
 # a connection from Hamburg to Berlin with a big cost, however keeping this value in a good range
 # is a trade off between not being able to connect other segments vs. a too huge graph.
 # Note: Impacts Map Cache
-GRAPH_CONNECTION_DISTANCE = 2
+GRAPH_CONNECTION_DISTANCE = 1
 
 # The used module which implements the graph.
 GRAPH_MODUL = astar
