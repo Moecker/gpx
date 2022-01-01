@@ -7,8 +7,6 @@ class Graph {
 public:
   Graph() = default;
   void BuildHeuristic(Point p);
-
-private:
-  std::map<Point, int> heuristic_{};
-  std::map<Point, std::map<Point, int>> friends_{};
+  std::map<Point, int> heuristic{};
+  std::map<Point, std::map<Point, int>> friends{};
 };
