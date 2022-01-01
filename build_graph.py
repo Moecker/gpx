@@ -52,16 +52,23 @@ def build_map_smart(segments_dict):
                 first_point = cur_point
 
             for oth_name, oth_segment in segments_dict.items():
-                for oth_point in oth_segment.points:
-                    if cur_name != oth_name:
+                if cur_name != oth_name:
+                    for oth_point in oth_segment.points:
                         dis = distance.haversine_gpx(cur_point, oth_point)
                         if dis < config.GRAPH_CONNECTION_DISTANCE:
-                            logging.trace(f"Normal adding {cur_point.short()} to {oth_point.short()} with {dis:.2f} km")
+                            logging.trace(f"Inter segment adding {first_point.short()} to {cur_point.short()} with {dis:.2f} km")
+                            map.add(first_point, cur_point, dis)
+
+                            first_point = cur_point
+
+                            logging.trace(f"Segment change adding {cur_point.short()} to {oth_point.short()} with {dis:.2f} km")
                             map.add(cur_point, oth_point, dis)
+
                             has_connection = True
 
         if not has_connection:
             dis = distance.haversine_gpx(first_point, cur_point)
+            logging.trace(f"Special adding {first_point.short()} to {cur_point.short()} with {dis:.2f} km")
             map.add(first_point, cur_point, dis)
 
     return map

@@ -65,7 +65,7 @@ SCALE_FACTOR = 100
 STORAGE_TEMP_DIR = "tmp"
 
 # Algorithm for building the graph.
-USE_SMART = False
+USE_SMART = True
 
 # Whether to use a inexact step distance to speed up the graph building process.
 USE_INEXACT_STEP_DISTANCE = True
