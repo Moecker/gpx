@@ -11,20 +11,25 @@ class SimplePoint:
         self.latitude = point[0]
         self.longitude = point[1]
         self.annotation = ""
+        self.source = ""
 
     @classmethod
     def from_gpx_point(cls, gpx_point):
-        return cls((gpx_point.latitude, gpx_point.longitude))
+        point = cls((gpx_point.latitude, gpx_point.longitude))
+        point.source = gpx_point.source
+        return point
 
     def short(self):
-        return f"({self.latitude:.4f},{self.longitude:.4f})"
+        pre = f"[{self.source}]" if self.source else ""
+        return f"{pre}GPS({self.latitude:.4f},{self.longitude:.4f})"
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
         post = f"[{utils.make_path_clickable(self.annotation)}]" if self.annotation else ""
-        return f"GPS({self.latitude:.4f},{self.longitude:.4f}){post}"
+        pre = f"[{self.source}]" if self.source else ""
+        return f"{pre}GPS({self.latitude:.4f},{self.longitude:.4f}){post}"
 
     def __lt__(self, other):
         return True

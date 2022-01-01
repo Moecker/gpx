@@ -4,7 +4,7 @@
     <name>track.gpx</name>
     <trkseg>
       <trkpt lat="48.3717" lon="10.8983">
-        <src>Ausgburg</src>
+        <src>Augsburg</src>
       </trkpt>
       <trkpt lat="48.1778" lon="11.2556">
         <src>Furstenfeldbruck</src>
