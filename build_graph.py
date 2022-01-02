@@ -85,7 +85,9 @@ def build_map_smart(segments_dict):
                                         intersection_point = cur_point
 
                                 if config.USE_INEXACT_STEP_DISTANCE:
-                                    step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
+                                    step_distance = int(
+                                        dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE
+                                    )
                                 else:
                                     step_distance = 1
 
