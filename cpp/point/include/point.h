@@ -21,4 +21,7 @@ float Haversine(const Point &p1, const Point &p2) {
 
 float Distance(const Point &l, const Point &r) { return Haversine(l, r); }
 
-bool operator<(const Point &l, const Point &r) { return Distance(l, r) < 0; }
+bool operator<(const Point &l, const Point &r) {
+  // return (l.lat + l.lon) < (r.lat + r.lon);
+  return &l < &r;
+}
