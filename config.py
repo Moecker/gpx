@@ -67,6 +67,9 @@ STORAGE_TEMP_DIR = "tmp"
 # Algorithm for building the graph.
 USE_SMART = True
 
+# Use the C++ binding
+USE_CPP = True
+
 # Whether to use a inexact step distance to speed up the graph building process.
 USE_INEXACT_STEP_DISTANCE = True
 

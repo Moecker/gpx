@@ -12,17 +12,6 @@ void Graph::BuildHeuristic(Point *end) {
 
 void Graph::Build(std::map<std::string, std::vector<Point *>>) {}
 
-// void Graph::Add(Point *p1, Point *p2, int cost) {
-//   std::map<Point *, int> forward{};
-//   std::map<Point *, int> backward{};
-
-//   forward.insert(std::make_pair(p2, cost));
-//   backward.insert(std::make_pair(p1, cost));
-
-//   friends.insert(std::make_pair(p1, forward));
-//   friends.insert(std::make_pair(p2, backward));
-// }
-
 void Graph::Add(Point *p1, Point *p2, int cost) {
   if (friends.find(p1) == friends.end()) {
     std::map<Point *, int> forward{};
@@ -30,6 +19,14 @@ void Graph::Add(Point *p1, Point *p2, int cost) {
     friends.insert(std::make_pair(p1, forward));
   } else {
     friends.find(p1)->second.insert(std::make_pair(p2, cost));
+  }
+
+  if (friends.find(p2) == friends.end()) {
+    std::map<Point *, int> forward{};
+    forward.insert(std::make_pair(p1, cost));
+    friends.insert(std::make_pair(p2, forward));
+  } else {
+    friends.find(p2)->second.insert(std::make_pair(p1, cost));
   }
 }
 

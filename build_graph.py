@@ -12,6 +12,9 @@ import distance
 import gpx_tools
 import utils
 
+import cpp.graph.graph as graph_cpp
+import cpp.point.point as point_cpp
+
 
 def debug_graph(map):
     for node, neighbors in map.friends.items():
@@ -171,6 +174,15 @@ def build_map(segments_dict):
     return map
 
 
+def build_map_cpp(segments_dict):
+    map = graph_cpp.Graph()
+    p1 = point_cpp.Point(1.0, 2.0)
+    p2 = point_cpp.Point(3.0, 4.0)
+    map.Add(p1, p2, 100)
+    print(map)
+    return map
+
+
 def collect_all_points(segments_dict):
     all_points = []
     for _, segment in segments_dict.items():
@@ -262,7 +274,10 @@ def load_or_build_map(segments_dict, name, output_dir):
     if config.ALWAYS_GRAPH or not os.path.isfile(pickle_path):
         logging.debug(f"Pickle file {pickle_path} does not exist or is forced ignored, creating map.")
 
-        if config.USE_SMART:
+        if config.USE_CPP:
+            map = build_map_cpp(segments_dict)
+            print(map)
+        elif config.USE_SMART:
             map = build_map_smart(segments_dict)
         else:
             map = build_map(segments_dict)
