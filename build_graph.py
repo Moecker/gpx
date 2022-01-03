@@ -176,10 +176,34 @@ def build_map(segments_dict):
 
 def build_map_cpp(segments_dict):
     map = graph_cpp.Graph()
-    p1 = point_cpp.Point(1.0, 2.0)
-    p2 = point_cpp.Point(3.0, 4.0)
-    map.Add(p1, p2, 100)
-    print(map)
+
+    with tqdm(total=len(segments_dict.items()), disable=logging.getLogger().level > logging.INFO) as pbar:
+        for name, segment in segments_dict.items():
+            pbar.set_description(f"Building {name.ljust(180):.100s}")
+
+            if not len(segment.points):
+                continue
+
+            idx = 0
+            prev_point = None
+            while idx < len(segment.points):
+                point = segment.points[idx]
+                if prev_point:
+                    dis = distance.haversine_gpx(prev_point, point)
+
+                    assert prev_point != point
+
+                    map.add(prev_point, point, max(1, int(dis)))
+
+                prev_point = point
+                # find_and_add_adjacent_nodes(map, segments_dict, segment, point)
+
+                # Jump the step size, but always add the last point, too
+                # Break however, once reached.
+                if idx == len(segment.points) - 1:
+                    break
+                idx = min(idx + max(1, config.PRECISION), max(len(segment.points) - 1, 1))
+            pbar.update(1)
     return map
 
 

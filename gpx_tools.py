@@ -5,6 +5,8 @@ import gpxpy
 import utils
 import gpx_tools
 
+import cpp.point.point as point_cpp
+
 
 class SimplePoint:
     def __init__(self, point):
@@ -42,7 +44,11 @@ class SimpleSegment:
     def __init__(self, segment):
         self.points = []
         for point in segment.points:
-            self.points.append(SimplePoint.from_gpx_point(point))
+            if config.USE_CPP:
+                p = point_cpp.Point(point.latitude, point.longitude)
+                self.points.append(p)
+            else:
+                self.points.append(SimplePoint.from_gpx_point(point))
 
 
 def annotate(point, name, idx):

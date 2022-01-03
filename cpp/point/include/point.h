@@ -5,23 +5,28 @@
 
 class Point {
 public:
-  Point(float lat, float lon) : lat(lat), lon(lon){};
-  std::string String() const {
-    return "GPS(" + std::to_string(lat) + "," + std::to_string(lon) + ")";
+  Point(float latitude, float longitude)
+      : latitude(latitude), longitude(longitude){};
+
+  std::string string() const {
+    std::string post = annotation.size() ? ":" + annotation : "";
+    return "GPS(" + std::to_string(latitude) + "," + std::to_string(longitude) +
+           ")" + post;
   };
-  float lat{};
-  float lon{};
+
+  float latitude{};
+  float longitude{};
+
+  std::string annotation{};
 };
 
-float Haversine(const Point &p1, const Point &p2) {
-  float x = p2.lat - p1.lat;
-  float y = (p2.lon - p1.lon) * std::cos((p2.lat + p1.lat) * 0.00872664626F);
+float haversine(const Point &p1, const Point &p2) {
+  float x = p2.latitude - p1.latitude;
+  float y = (p2.longitude - p1.longitude) *
+            std::cos((p2.latitude + p1.latitude) * 0.00872664626F);
   return 111.319F * std::sqrt(x * x + y * y);
 }
 
-float Distance(const Point &l, const Point &r) { return Haversine(l, r); }
+float distance(const Point &l, const Point &r) { return haversine(l, r); }
 
-bool operator<(const Point &l, const Point &r) {
-  // return (l.lat + l.lon) < (r.lat + r.lon);
-  return &l < &r;
-}
+bool operator<(const Point &l, const Point &r) { return &l < &r; }

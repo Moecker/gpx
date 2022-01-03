@@ -136,7 +136,8 @@ def try_load_pickle(pickle_path):
     if not config.ALWAYS_PARSE and os.path.isfile(pickle_path):
         logging.debug(f"Path '{utils.make_path_clickable(pickle_path)}' exists.")
         logging.debug(f"Loading '{utils.make_path_clickable(pickle_path)}'.")
-        segments_dict = pickle.load(open(pickle_path, "rb"))
+        with open(pickle_path, "rb") as f:
+            segments_dict = pickle.load(f)
         return segments_dict
     else:
         return None

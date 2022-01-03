@@ -8,14 +8,17 @@
 class Graph {
 public:
   Graph() = default;
-  void BuildHeuristic(Point *);
-  void Build(std::map<std::string, std::vector<Point *>>);
 
-  void Add(Point *, Point *, int);
-  void Dump();
+  void build_heuristic(Point *);
+  void build(std::map<std::string, std::vector<Point *>>);
 
-  std::vector<Point *> Find(Point *, Point *);
-  std::string String() const;
+  void add(Point *, Point *, int);
+  void dump();
+
+  std::vector<Point *> keys();
+
+  std::vector<Point *> find(Point *, Point *);
+  std::string string() const;
 
   std::map<Point *, int> heuristic{};
   std::map<Point *, std::map<Point *, int>> friends{};
