@@ -6,23 +6,22 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-void Graph::build_heuristic(Point *end) {
+void Graph::build_heuristic(const Point *end) {
   heuristic.insert(std::make_pair(end, 0));
 }
 
-std::vector<Point *> Graph::keys() {
-  std::vector<Point *> keys;
+std::vector<const Point *> Graph::keys() {
+  std::vector<const Point *> keys;
 
   std::transform(
       friends.begin(), friends.end(), std::back_inserter(keys),
-      [](const std::map<Point *, std::map<Point *, int>>::value_type &pair) {
-        return pair.first;
-      });
+      [](const std::map<const Point *, std::map<const Point *, int>>::value_type
+             &pair) { return pair.first; });
   return keys;
 }
 
-std::vector<Point *> Graph::nodes() {
-  std::vector<Point *> nodes;
+std::vector<const Point *> Graph::nodes() {
+  std::vector<const Point *> nodes;
 
   for (const auto &node : friends) {
     for (const auto &neighbors : node.second) {
@@ -45,14 +44,15 @@ std::vector<int> Graph::weights() {
   return weights;
 };
 
-void Graph::adjust_weight(Point *p1, Point *p2, int cost) { // TODO Implement
+void Graph::adjust_weight(const Point *p1, const Point *p2,
+                          int cost) { // TODO Implement
 }
 
-void Graph::build(std::map<std::string, std::vector<Point *>>) {}
+void Graph::build(std::map<std::string, std::vector<const Point *>>) {}
 
-void Graph::add(Point *p1, Point *p2, int cost) {
+void Graph::add(const Point *p1, const Point *p2, int cost) {
   if (friends.find(p1) == friends.end()) {
-    std::map<Point *, int> forward{};
+    std::map<const Point *, int> forward{};
     forward.insert(std::make_pair(p2, cost));
     friends.insert(std::make_pair(p1, forward));
   } else {
@@ -60,7 +60,7 @@ void Graph::add(Point *p1, Point *p2, int cost) {
   }
 
   if (friends.find(p2) == friends.end()) {
-    std::map<Point *, int> forward{};
+    std::map<const Point *, int> forward{};
     forward.insert(std::make_pair(p1, cost));
     friends.insert(std::make_pair(p2, forward));
   } else {
@@ -68,25 +68,25 @@ void Graph::add(Point *p1, Point *p2, int cost) {
   }
 }
 
-std::tuple<std::vector<Point *>, int> Graph::dijkstra(Point *start,
-                                                      Point *end) {
-  std::map<Point *, std::vector<Point *>> dist{};
-  std::vector<Point *> start_path{};
+std::tuple<std::vector<const Point *>, int> Graph::dijkstra(const Point *start,
+                                                            const Point *end) {
+  std::map<const Point *, std::vector<const Point *>> dist{};
+  std::vector<const Point *> start_path{};
 
   start_path.push_back(start);
   dist.insert(std::make_pair(start, start_path));
 
-  std::deque<Point *> q{};
+  std::deque<const Point *> q{};
   q.push_back(start);
 
   while (q.size() > 0) {
-    Point *at = q.front();
+    const Point *at = q.front();
     q.pop_front();
 
     if (friends.find(at) != friends.end()) {
       for (auto p : friends.find(at)->second) {
         if (dist.find(p.first) == dist.end()) {
-          std::vector<Point *> to_add = dist.find(at)->second;
+          std::vector<const Point *> to_add = dist.find(at)->second;
           to_add.push_back(p.first);
 
           dist.insert(std::make_pair(p.first, to_add));
@@ -99,7 +99,7 @@ std::tuple<std::vector<Point *>, int> Graph::dijkstra(Point *start,
   if (dist.find(end) != dist.end()) {
     return std::make_tuple(dist.find(end)->second, 0);
   } else {
-    return std::make_tuple(std::vector<Point *>{}, 0);
+    return std::make_tuple(std::vector<const Point *>{}, 0);
   }
 }
 
@@ -146,45 +146,39 @@ PYBIND11_MODULE(graph, m) {
       .def(py::pickle(
           [](const Graph &g) {
             // Build map with real points
-            std::map<Point, std::map<Point, int>> all{};
+            std::map<const Point, std::map<const Point, int>> storage{};
 
             for (const auto &node : g.friends) {
-              std::map<Point, int> inner{};
+              std::map<const Point, int> inner{};
 
               for (const auto &neighbors : node.second) {
                 inner.insert(
                     std::make_pair(*(neighbors.first), neighbors.second));
               }
-              all.insert(std::make_pair(*(node.first), inner));
+              storage.insert(std::make_pair(*(node.first), inner));
             }
 
-            return py::make_tuple(g.heuristic, g.friends, all);
+            return py::make_tuple(storage);
           },
           [](py::tuple t) {
-            if (t.size() != 3)
+            if (t.size() != 1)
               throw std::runtime_error("Invalid state");
 
-            Graph g{};
+            auto g = std::make_shared<Graph>();
 
-            g.heuristic = t[0].cast<std::map<Point *, int>>();
-            g.friends = t[1].cast<std::map<Point *, std::map<Point *, int>>>();
-
-            std::map<Point, std::map<Point, int>> all =
-                t[2].cast<std::map<Point, std::map<Point, int>>>();
-
-            g.storage = all;
+            g->storage =
+                t[0].cast<std::map<const Point, std::map<const Point, int>>>();
 
             // Build map with reference points
-            std::map<const Point *, std::map<const Point *, int>> ref{};
-            for (const auto &node : g.storage) {
+            for (const auto &node : g->storage) {
               std::map<const Point *, int> inner{};
               for (const auto &neighbors : node.second) {
                 inner.insert(
                     std::make_pair(&(neighbors.first), neighbors.second));
               }
-              ref.insert(std::make_pair(&(node.first), inner));
+              g->friends.insert(std::make_pair(&(node.first), inner));
             }
 
-            return g;
+            return *g;
           }));
 }

@@ -10,24 +10,25 @@ class Graph {
 public:
   Graph() = default;
 
-  void build_heuristic(Point *);
-  void build(std::map<std::string, std::vector<Point *>>);
+  void build_heuristic(const Point *);
+  void build(std::map<std::string, std::vector<const Point *>>);
 
-  void add(Point *, Point *, int);
+  void add(const Point *, const Point *, int);
   void dump();
   void dump_keys();
 
-  std::vector<Point *> keys();
-  std::vector<Point *> nodes();
+  std::vector<const Point *> keys();
+  std::vector<const Point *> nodes();
   std::vector<int> weights();
 
-  void adjust_weight(Point *, Point *, int);
+  void adjust_weight(const Point *, const Point *, int);
 
-  std::tuple<std::vector<Point *>, int> dijkstra(Point *, Point *);
+  std::tuple<std::vector<const Point *>, int> dijkstra(const Point *,
+                                                       const Point *);
   std::string string() const;
 
-  std::map<Point *, int> heuristic{};
-  std::map<Point *, std::map<Point *, int>> friends{};
+  std::map<const Point *, int> heuristic{};
+  std::map<const Point *, std::map<const Point *, int>> friends{};
 
-  std::map<Point, std::map<Point, int>> storage{};
+  std::map<const Point, std::map<const Point, int>> storage{};
 };

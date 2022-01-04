@@ -71,9 +71,7 @@ path[1].dump()
 
 p21.dump()
 
-print("###")
 g2.dump_keys()
-print("###")
 
 with open(os.path.join("test", "pickle", "graph.p"), "wb") as f:
     pickle.dump(g2, f)
@@ -85,9 +83,7 @@ p21.dump()
 
 path = print(g2.dijkstra(p1, p21))
 
-print("###")
 g2.dump_keys()
-print("###")
 
 g2.build_heuristic(p21)
 
@@ -114,8 +110,16 @@ print(g3.weights())
 
 g3.adjust_weight(p32, p33, 1)
 
+g3.dump_keys()
+print(g3)
 with open(os.path.join("test", "pickle", "graph.p"), "wb") as f:
     pickle.dump(g3, f)
 
 with open(os.path.join("test", "pickle", "graph.p"), "rb") as f:
     g3 = pickle.load(f)
+
+g3.dump_keys()
+print(g3)
+print(g3.weights())
+
+# print(g3.keys())
