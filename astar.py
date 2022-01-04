@@ -124,15 +124,20 @@ class Graph:
         """From https://www.python.org/doc/essays/graphs/"""
         dist = {start: [start]}
         q = deque([start])
+        while_loops = 0
+        for_loops = 0
         while len(q):
+            while_loops += 1
             at = q.popleft()
             for next in self.friends[at]:
+                for_loops += 1
                 next = next  # For the tuple thingy
                 if next not in dist:
                     # Optimal solution would be:
                     # dist[next] = [dist[at], next]
                     dist[next] = dist[at] + [next]
                     q.append(next)
+        print(str(while_loops) + "," + str(for_loops))
         return dist.get(end), 0
 
     def get_neighbors(self, v):

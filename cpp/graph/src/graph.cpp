@@ -96,12 +96,16 @@ GraphHash::find_shortest_path(const Point &start, const Point &end) {
   std::deque<const Hash> q{};
   q.push_back(hash(start));
 
+  int while_loops = 0;
+  int for_loops = 0;
   while (q.size() > 0) {
+    while_loops++;
     const Hash at = q.front();
     q.pop_front();
 
     if (friends.find(at) != friends.end()) {
       for (auto p : friends.find(at)->second) {
+        for_loops++;
         if (dist.find(p.first) == dist.end()) {
           std::vector<const Hash> to_add = dist.find(at)->second;
           to_add.push_back(p.first);
@@ -113,6 +117,9 @@ GraphHash::find_shortest_path(const Point &start, const Point &end) {
       }
     }
   }
+
+  std::cout << while_loops << "," << for_loops << std::endl;
+
   if (dist.find(hash(end)) != dist.end()) {
     std::vector<const Point> path{};
     auto path_hash = dist.find(hash(end))->second;

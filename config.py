@@ -67,7 +67,7 @@ STORAGE_TEMP_DIR = "tmp"
 # Use the C++ binding
 # Note: Impacts Segment Cache
 # Note: Impacts Map Cache
-USE_CPP = True
+USE_CPP = False
 
 # Whether to store result in pickle files.
 # If set to False, segments and maps will always be re-created.
