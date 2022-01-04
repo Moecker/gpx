@@ -27,6 +27,8 @@ public:
                                                        const Point *);
   std::string string() const;
 
+  std::vector<const Point *> mock();
+
   std::map<const Point *, int> heuristic{};
   std::map<const Point *, std::map<const Point *, int>> friends{};
 

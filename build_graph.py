@@ -170,7 +170,11 @@ def collect_all_points(segments_dict):
 def compute_min_dis(map, start_gpx):
     min_dis = math.inf
     min_node = None
-    nodes = map.keys()
+
+    if config.USE_CPP:
+        nodes = map.friends.keys()
+    else:
+        nodes = map.keys()
     for k in nodes:
         dis = distance.haversine_gpx(k, start_gpx)
         if dis < min_dis:
@@ -223,6 +227,11 @@ def find_path(map, start, end, strategy):
     # TODO Implement for CPP
     if not config.USE_CPP:
         logging.debug(f"Starting search strategy using {strategy}.")
+
+    # TODO Remove this
+    if config.USE_CPP:
+        first = list(map.friends.keys())[0]
+        last = list(map.friends.keys())[1]
 
     path, cost = strategy(first, last)
     if not path:

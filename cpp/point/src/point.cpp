@@ -18,9 +18,9 @@ PYBIND11_MODULE(point, m) {
       .def_readwrite("latitude", &Point::latitude)
       .def_readwrite("longitude", &Point::longitude)
       .def_readwrite("annotation", &Point::annotation)
-      .def("dump", &Point::dump)
       .def("__str__", &Point::string)
       .def("__repr__", &Point::string)
+      .def("dump", &Point::dump)
       .def(py::pickle(
           [](const Point &p) {
             return py::make_tuple(p.latitude, p.longitude, p.annotation);

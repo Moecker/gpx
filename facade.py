@@ -107,7 +107,12 @@ def load_map(segments_dict, gpx_path):
     )
     map = build_graph.load_or_build_map(segments_dict, map_file_name, os.path.join(config.STORAGE_TEMP_DIR, "maps"))
 
-    if not len(map.keys()):
+    if config.USE_CPP:
+        number_of_keys = len(map.friends)
+    else:
+        number_of_keys = len(map.keys())
+
+    if not number_of_keys:
         logging.error(f"No keys in map.")
         return None
     return map

@@ -6,6 +6,10 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+std::vector<const Point *> Graph::mock() {
+  return std::vector<const Point *>{};
+}
+
 void Graph::build_heuristic(const Point *end) {
   heuristic.insert(std::make_pair(end, 0));
 }
@@ -28,7 +32,6 @@ std::vector<const Point *> Graph::nodes() {
       nodes.push_back(neighbors.first);
     }
   }
-
   return nodes;
 }
 
@@ -40,7 +43,6 @@ std::vector<int> Graph::weights() {
       weights.push_back(neighbors.second);
     }
   }
-
   return weights;
 };
 
@@ -137,12 +139,13 @@ PYBIND11_MODULE(graph, m) {
       .def("dump", &Graph::dump)
       .def("dump_keys", &Graph::dump_keys)
       .def("dijkstra", &Graph::dijkstra)
-      .def("keys", &Graph::keys)
-      .def("nodes", &Graph::nodes)
+      .def("keys", &Graph::mock)
+      .def("nodes", &Graph::mock)
       .def("weights", &Graph::weights)
       .def("adjust_weight", &Graph::adjust_weight)
       .def("__str__", &Graph::string)
       .def("__repr__", &Graph::string)
+      .def_readwrite("friends", &Graph::friends)
       .def(py::pickle(
           [](const Graph &g) {
             // Build map with real points
@@ -164,21 +167,21 @@ PYBIND11_MODULE(graph, m) {
             if (t.size() != 1)
               throw std::runtime_error("Invalid state");
 
-            auto g = std::make_shared<Graph>();
+            Graph g{};
 
-            g->storage =
+            g.storage =
                 t[0].cast<std::map<const Point, std::map<const Point, int>>>();
 
             // Build map with reference points
-            for (const auto &node : g->storage) {
+            for (const auto &node : g.storage) {
               std::map<const Point *, int> inner{};
               for (const auto &neighbors : node.second) {
                 inner.insert(
                     std::make_pair(&(neighbors.first), neighbors.second));
               }
-              g->friends.insert(std::make_pair(&(node.first), inner));
+              g.friends.insert(std::make_pair(&(node.first), inner));
             }
 
-            return *g;
+            return g;
           }));
 }

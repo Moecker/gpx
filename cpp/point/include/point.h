@@ -12,8 +12,8 @@ public:
 
   std::string string() const {
     std::string post = annotation.size() ? ":" + annotation : "";
-    return "GPS(" + std::to_string(latitude) + "," + std::to_string(longitude) +
-           ")" + post;
+    return "CPP_GPS(" + std::to_string(latitude) + "," +
+           std::to_string(longitude) + ")" + post;
   };
 
   void dump() const;
