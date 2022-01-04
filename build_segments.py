@@ -112,6 +112,7 @@ def load_and_reduce_gpxs(track_file_names, threshold, pickle_path, output_dir):
         if not os.path.isfile(track_file_name_reduced):
             logging.error(f"\nError while packing '{track_file_name_reduced}', file does not exist.")
             continue
+
         setup_segments_dict(segments_dict, track_file_name_reduced)
 
     return segments_dict

@@ -127,13 +127,13 @@ class Graph:
         while len(q):
             at = q.popleft()
             for next in self.friends[at]:
-                next = next[0]  # For the tuple thingy
+                next = next  # For the tuple thingy
                 if next not in dist:
                     # Optimal solution would be:
                     # dist[next] = [dist[at], next]
                     dist[next] = dist[at] + [next]
                     q.append(next)
-        return dist.get(end)
+        return dist.get(end), 0
 
     def get_neighbors(self, v):
         return self.friends[v] if USE_TUPLE_IMPL else [(k, v) for k, v in self.friends[v].items()]

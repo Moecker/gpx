@@ -44,11 +44,12 @@ class SimpleSegment:
     def __init__(self, segment):
         self.points = []
         for point in segment.points:
-            if config.USE_CPP:
-                p = point_cpp.Point(point.latitude, point.longitude)
-                self.points.append(p)
-            else:
-                self.points.append(SimplePoint.from_gpx_point(point))
+            p = (
+                point_cpp.Point(point.latitude, point.longitude)
+                if config.USE_CPP
+                else SimplePoint.from_gpx_point(point)
+            )
+            self.points.append(p)
 
 
 def annotate(point, name, idx):

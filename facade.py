@@ -107,10 +107,7 @@ def load_map(segments_dict, gpx_path):
     )
     map = build_graph.load_or_build_map(segments_dict, map_file_name, os.path.join(config.STORAGE_TEMP_DIR, "maps"))
 
-    if config.USE_CPP:
-        number_of_keys = len(map.friends)
-    else:
-        number_of_keys = len(map.keys())
+    number_of_keys = len(map.keys())
 
     if not number_of_keys:
         logging.error(f"No keys in map.")
@@ -180,6 +177,7 @@ def main(args) -> list:
     logging.debug(f"Loaded {len(cities)} cities.")
 
     segments_dict = load_segments(args.gpx)
+
     if not segments_dict:
         logging.error("Error loading segments.")
         return empty_path()
@@ -202,7 +200,6 @@ def main(args) -> list:
         logging.error("Error loading map.")
         return empty_path()
 
-    # TODO Implement for CPP
     if not config.USE_CPP:
         build_graph.adjust_weight_foreign_segments(map)
 
@@ -225,14 +222,18 @@ def normal_mode(args, cities, segments_dict, background, map, dry):
             logging.info(f"Maximum configured number of {config.NUMBER_OF_PATHS} path(s) found.")
             break
 
+        if loop > 0:
+            logging.debug("Adjusting weights for next run.")
+            build_graph.adjust_weight_of_path(dijkstra, map)
+
         loop += 1
         logging.info(f"Searching path {loop} of {config.NUMBER_OF_PATHS}.")
+
         dijkstra, dijkstra_rescaled = perform_run(cities, args.start, args.end, segments_dict, background, map, dry)
 
         if not dijkstra or not dijkstra_rescaled:
             break
 
-        build_graph.adjust_weight_of_path(dijkstra, map)
         continue
     return dijkstra_rescaled
 
@@ -266,12 +267,13 @@ def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
     logging.debug("Finding dijkstra path.")
     start_time = time.time()
 
-    dijkstra = build_graph.find_path(map, start_gps, end_gps, map.dijkstra)
+    dijkstra = build_graph.find_path(map, start_gps, end_gps, map.find_shortest_path)
 
     if not dijkstra:
         return empty_path_tuple()
 
     dijkstra_rescaled = build_graph.rescale(segments_dict, dijkstra)
+
     logging.info(f"Elapsed time {time.time() - start_time:.2f} s.")
 
     if not dijkstra_rescaled:
@@ -286,12 +288,12 @@ def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
 def perform_run(cities, start_city, end_city, segments_dict, background, map, dry):
     start_gps, end_gps = find_start_and_end(cities, start_city, end_city)
 
+    if not start_gps or not end_gps:
+        return empty_path_tuple()
+
     if config.USE_CPP:
         start_gps = point_cpp.Point(start_gps.latitude, start_gps.longitude)
         end_gps = point_cpp.Point(end_gps.latitude, end_gps.longitude)
-
-    if not start_gps or not end_gps:
-        return empty_path_tuple()
 
     logging.info(f"Start GPS for {start_city}: {start_gps}.")
     logging.info(f"End GPS for {end_city}: {end_gps}.")

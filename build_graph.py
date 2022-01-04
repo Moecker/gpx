@@ -155,7 +155,7 @@ def build_map(segments_dict, map):
 
 
 def build_map_cpp(segments_dict):
-    map = graph_cpp.Graph()
+    map = graph_cpp.GraphHash()
     return build_map(segments_dict, map)
 
 
@@ -171,11 +171,9 @@ def compute_min_dis(map, start_gpx):
     min_dis = math.inf
     min_node = None
 
-    if config.USE_CPP:
-        nodes = map.friends.keys()
-    else:
-        nodes = map.keys()
+    nodes = map.keys()
     for k in nodes:
+        k = map.get(k) if config.USE_CPP else k
         dis = distance.haversine_gpx(k, start_gpx)
         if dis < min_dis:
             min_dis = dis
@@ -216,6 +214,7 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
 
 def find_path(map, start, end, strategy):
     first, last = get_closest_start_and_end(map, start, end)
+
     if not first or not last:
         logging.error(f"Start and/or End GPX positions are invalid.")
         return None
@@ -224,16 +223,9 @@ def find_path(map, start, end, strategy):
         logging.error(f"Start and End GPX positions are identical.")
         return None
 
-    # TODO Implement for CPP
-    if not config.USE_CPP:
-        logging.debug(f"Starting search strategy using {strategy}.")
-
-    # TODO Remove this
-    if config.USE_CPP:
-        first = map.closest(first)
-        last = list(map.friends.keys())[1]
-
+    logging.info("Searching Path.")
     path, cost = strategy(first, last)
+
     if not path:
         logging.error(f"No path found from {first} to {last}.")
         return None

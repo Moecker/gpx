@@ -2,7 +2,8 @@ import pickle
 import os
 
 import cpp.point.point as point
-import cpp.graph.graph as graph
+import cpp.graph_pointer.graph as graph
+import cpp.graph.graph as graph_hash
 import gpx_tools
 
 
@@ -134,3 +135,36 @@ print(g4.friends[p41])
 print(g4.friends)
 
 print(g4.closest(p41))
+
+print("#" * 80)
+
+g5 = graph_hash.GraphHash()
+p51 = point.Point(51.0, 52.0)
+p52 = point.Point(53.0, 54.0)
+g5.add(p51, p52, 50)
+print(g5)
+p51.annotation = "bar"
+print(graph_hash.hash(p51))
+
+with open(os.path.join("test", "pickle", "graph.p"), "wb") as f:
+    pickle.dump(g5, f)
+
+with open(os.path.join("test", "pickle", "graph.p"), "rb") as f:
+    g5 = pickle.load(f)
+print(g5)
+
+p53 = point.Point(55.0, 56.0)
+g5.add(p51, p53, 80)
+g5.add(p52, p53, 80)
+
+print(g5.keys())
+print(g5.nodes())
+
+print(g5.find_shortest_path(p51, p53))
+path = g5.find_shortest_path(p51, p53)
+print(path)
+
+g5.build_heuristic(p51)
+
+print(path[0][0])
+print(path[0][1])
