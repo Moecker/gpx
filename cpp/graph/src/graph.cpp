@@ -2,11 +2,12 @@
 
 #include <iostream>
 #include <sstream>
+#include <unordered_map>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-const Hash hash(const Point &p) {
+Hash hash(const Point &p) {
   std::stringstream s{};
   s << p.latitude << ":" << p.longitude << ":" << p.annotation;
   return s.str();
@@ -14,7 +15,7 @@ const Hash hash(const Point &p) {
 
 Point GraphHash::get(Hash h) { return storage.find(h)->second; }
 
-const Hash GraphHash::closest(const Point p) {
+Hash GraphHash::closest(const Point p) {
   Hash first;
   for (const auto &node : friends) {
     (void)node;
@@ -26,18 +27,19 @@ void GraphHash::build_heuristic(const Point &end) {
   heuristic.insert(std::make_pair(hash(end), 0));
 }
 
-std::vector<const Hash> GraphHash::keys() {
-  std::vector<const Hash> keys;
+std::vector<Hash> GraphHash::keys() {
+  std::vector<Hash> keys;
 
-  std::transform(
-      friends.begin(), friends.end(), std::back_inserter(keys),
-      [](const std::map<const Hash, std::map<const Hash, int>>::value_type
-             &pair) { return pair.first; });
+  std::transform(friends.begin(), friends.end(), std::back_inserter(keys),
+                 [](const std::unordered_map<
+                     Hash, std::unordered_map<Hash, int>>::value_type &pair) {
+                   return pair.first;
+                 });
   return keys;
 }
 
-std::vector<const Hash> GraphHash::nodes() {
-  std::vector<const Hash> nodes;
+std::vector<Hash> GraphHash::nodes() {
+  std::vector<Hash> nodes;
 
   for (const auto &node : friends) {
     for (const auto &neighbors : node.second) {
@@ -62,14 +64,14 @@ void GraphHash::adjust_weight(const Point p1, const Point p2,
                               int cost) { // TODO Implement
 }
 
-void GraphHash::build(std::map<std::string, std::vector<const Hash>>) {}
+void GraphHash::build(std::unordered_map<std::string, std::vector<Hash>>) {}
 
 void GraphHash::add(const Point &p1, const Point &p2, int cost) {
   storage.insert(std::make_pair(hash(p1), p1));
   storage.insert(std::make_pair(hash(p2), p2));
 
   if (friends.find(hash(p1)) == friends.end()) {
-    std::map<const Hash, int> forward{};
+    std::unordered_map<Hash, int> forward{};
     forward.insert(std::make_pair(hash(p2), cost));
     friends.insert(std::make_pair(hash(p1), forward));
   } else {
@@ -77,7 +79,7 @@ void GraphHash::add(const Point &p1, const Point &p2, int cost) {
   }
 
   if (friends.find(hash(p2)) == friends.end()) {
-    std::map<const Hash, int> forward{};
+    std::unordered_map<Hash, int> forward{};
     forward.insert(std::make_pair(hash(p1), cost));
     friends.insert(std::make_pair(hash(p2), forward));
   } else {
@@ -87,27 +89,27 @@ void GraphHash::add(const Point &p1, const Point &p2, int cost) {
 
 std::tuple<std::vector<const Point>, int>
 GraphHash::find_shortest_path(const Point &start, const Point &end) {
-  std::map<const Hash, std::vector<const Hash>> dist{};
-  std::vector<const Hash> start_path{};
+  std::unordered_map<Hash, std::vector<Hash>> dist{};
+  std::vector<Hash> start_path{};
 
   start_path.push_back(hash(start));
   dist.insert(std::make_pair(hash(start), start_path));
 
-  std::deque<const Hash> q{};
+  std::deque<Hash> q{};
   q.push_back(hash(start));
 
   int while_loops = 0;
   int for_loops = 0;
   while (q.size() > 0) {
     while_loops++;
-    const Hash at = q.front();
+    Hash at = q.front();
     q.pop_front();
 
     if (friends.find(at) != friends.end()) {
       for (auto p : friends.find(at)->second) {
         for_loops++;
         if (dist.find(p.first) == dist.end()) {
-          std::vector<const Hash> to_add = dist.find(at)->second;
+          std::vector<Hash> to_add = dist.find(at)->second;
           to_add.push_back(p.first);
 
           dist.insert(std::make_pair(p.first, to_add));
@@ -193,9 +195,9 @@ PYBIND11_MODULE(graph, m) {
 
             GraphHash g{};
 
-            g.friends =
-                t[0].cast<std::map<const Hash, std::map<const Hash, int>>>();
-            g.storage = t[1].cast<std::map<const Hash, const Point>>();
+            g.friends = t[0].cast<
+                std::unordered_map<Hash, std::unordered_map<Hash, int>>>();
+            g.storage = t[1].cast<std::unordered_map<Hash, const Point>>();
 
             return g;
           }));
