@@ -196,7 +196,7 @@ def build_map_cpp(segments_dict):
                     map.add(prev_point, point, max(1, int(dis)))
 
                 prev_point = point
-                # find_and_add_adjacent_nodes(map, segments_dict, segment, point)
+                find_and_add_adjacent_nodes(map, segments_dict, segment, point)
 
                 # Jump the step size, but always add the last point, too
                 # Break however, once reached.
@@ -244,7 +244,7 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
             assert current_point != other_point
 
             if dis < config.GRAPH_CONNECTION_DISTANCE:
-                map.add(current_point, other_point, cost=max(1, int(dis)))
+                map.add(current_point, other_point, max(1, int(dis)))
 
             if config.USE_INEXACT_STEP_DISTANCE:
                 step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
@@ -260,7 +260,6 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
 
 def find_path(map, start, end, strategy):
     first, last = get_closest_start_and_end(map, start, end)
-
     if not first or not last:
         logging.error(f"Start and/or End GPX positions are invalid.")
         return None
@@ -269,7 +268,9 @@ def find_path(map, start, end, strategy):
         logging.error(f"Start and End GPX positions are identical.")
         return None
 
-    logging.debug(f"Starting search strategy using {strategy}.")
+    if not config.USE_CPP:
+        logging.debug(f"Starting search strategy using {strategy}.")
+
     path, cost = strategy(first, last)
     if not path:
         logging.error(f"No path found from {first} to {last}.")
@@ -295,26 +296,27 @@ def get_closest_start_and_end(map, start_gpx, end_gpx):
 
 def load_or_build_map(segments_dict, name, output_dir):
     pickle_path = os.path.join(output_dir, name)
-    if config.ALWAYS_GRAPH or not os.path.isfile(pickle_path):
+    if not config.USE_PICKLE or config.ALWAYS_GRAPH or not os.path.isfile(pickle_path):
         logging.debug(f"Pickle file {pickle_path} does not exist or is forced ignored, creating map.")
 
         if config.USE_CPP:
             map = build_map_cpp(segments_dict)
-            print(map)
         elif config.USE_SMART:
             map = build_map_smart(segments_dict)
         else:
             map = build_map(segments_dict)
 
-        logging.debug(f"Saving pickle file to '{utils.make_path_clickable(pickle_path)}'.")
-        Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)
-        with open(pickle_path, "wb") as f:
-            pickle.dump(map, f)
+        if config.USE_PICKLE:
+            logging.debug(f"Saving pickle file to '{utils.make_path_clickable(pickle_path)}'.")
+            Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)
+            with open(pickle_path, "wb") as f:
+                pickle.dump(map, f)
 
-    logging.debug(f"Pickle file '{utils.make_path_clickable(pickle_path)}' exist.")
-    logging.debug(f"Loading '{utils.make_path_clickable(pickle_path)}'.")
-    with open(pickle_path, "rb") as f:
-        map = pickle.load(f)
+    if config.USE_PICKLE:
+        logging.debug(f"Pickle file '{utils.make_path_clickable(pickle_path)}' exist.")
+        logging.debug(f"Loading '{utils.make_path_clickable(pickle_path)}'.")
+        with open(pickle_path, "rb") as f:
+            map = pickle.load(f)
 
     return map
 

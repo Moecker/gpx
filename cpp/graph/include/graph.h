@@ -3,6 +3,7 @@
 #include "../../point/include/point.h"
 #include <map>
 #include <string>
+#include <tuple>
 #include <vector>
 
 class Graph {
@@ -14,10 +15,15 @@ public:
 
   void add(Point *, Point *, int);
   void dump();
+  void dump_keys();
 
   std::vector<Point *> keys();
+  std::vector<Point *> nodes();
+  std::vector<int> weights();
 
-  std::vector<Point *> find(Point *, Point *);
+  void adjust_weight(Point *, Point *, int);
+
+  std::tuple<std::vector<Point *>, int> dijkstra(Point *, Point *);
   std::string string() const;
 
   std::map<Point *, int> heuristic{};

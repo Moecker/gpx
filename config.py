@@ -64,11 +64,15 @@ SCALE_FACTOR = 100
 # Location for intermediate results, such as maps and segments for caching.
 STORAGE_TEMP_DIR = "tmp"
 
-# Algorithm for building the graph.
-USE_SMART = True
-
 # Use the C++ binding
 USE_CPP = True
+
+# Whether to store result in pickle files.
+# If set to False, segments and maps will always be re-created.
+USE_PICKLE = False
+
+# Algorithm for building the graph.
+USE_SMART = True
 
 # Whether to use a inexact step distance to speed up the graph building process.
 USE_INEXACT_STEP_DISTANCE = True

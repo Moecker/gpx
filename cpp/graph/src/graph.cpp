@@ -21,6 +21,33 @@ std::vector<Point *> Graph::keys() {
   return keys;
 }
 
+std::vector<Point *> Graph::nodes() {
+  std::vector<Point *> nodes;
+
+  for (const auto &node : friends) {
+    for (const auto &neighbors : node.second) {
+      nodes.push_back(neighbors.first);
+    }
+  }
+
+  return nodes;
+}
+
+std::vector<int> Graph::weights() {
+  std::vector<int> weights;
+
+  for (const auto &node : friends) {
+    for (const auto &neighbors : node.second) {
+      weights.push_back(neighbors.second);
+    }
+  }
+
+  return weights;
+};
+
+void Graph::adjust_weight(Point *p1, Point *p2, int cost) { // TODO Implement
+}
+
 void Graph::build(std::map<std::string, std::vector<Point *>>) {}
 
 void Graph::add(Point *p1, Point *p2, int cost) {
@@ -41,9 +68,8 @@ void Graph::add(Point *p1, Point *p2, int cost) {
   }
 }
 
-std::vector<Point *> Graph::find(Point *start, Point *end) {
-  std::vector<Point *> path{};
-
+std::tuple<std::vector<Point *>, int> Graph::dijkstra(Point *start,
+                                                      Point *end) {
   std::map<Point *, std::vector<Point *>> dist{};
   std::vector<Point *> start_path{};
 
@@ -71,9 +97,9 @@ std::vector<Point *> Graph::find(Point *start, Point *end) {
     }
   }
   if (dist.find(end) != dist.end()) {
-    return dist.find(end)->second;
+    return std::make_tuple(dist.find(end)->second, 0);
   } else {
-    return std::vector<Point *>{};
+    return std::make_tuple(std::vector<Point *>{}, 0);
   }
 }
 
@@ -94,6 +120,12 @@ std::string Graph::string() const {
 
 void Graph::dump() { std::cout << string(); }
 
+void Graph::dump_keys() {
+  for (const auto &key : friends) {
+    std::cout << key.first << std::endl;
+  }
+}
+
 namespace py = pybind11;
 
 PYBIND11_MODULE(graph, m) {
@@ -103,8 +135,12 @@ PYBIND11_MODULE(graph, m) {
       .def("build", &Graph::build)
       .def("build_heuristic", &Graph::build_heuristic)
       .def("dump", &Graph::dump)
-      .def("find", &Graph::find)
+      .def("dump_keys", &Graph::dump_keys)
+      .def("dijkstra", &Graph::dijkstra)
       .def("keys", &Graph::keys)
+      .def("nodes", &Graph::nodes)
+      .def("weights", &Graph::weights)
+      .def("adjust_weight", &Graph::adjust_weight)
       .def("__str__", &Graph::string)
       .def("__repr__", &Graph::string)
       .def(py::pickle(

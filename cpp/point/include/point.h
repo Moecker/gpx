@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
+#include <sstream>
 #include <string>
 
 class Point {
@@ -13,6 +15,8 @@ public:
     return "GPS(" + std::to_string(latitude) + "," + std::to_string(longitude) +
            ")" + post;
   };
+
+  void dump() const;
 
   float latitude{};
   float longitude{};

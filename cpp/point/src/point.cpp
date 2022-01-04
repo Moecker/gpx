@@ -2,6 +2,12 @@
 
 #include <pybind11/pybind11.h>
 
+void Point::dump() const {
+  std::stringstream ret{};
+  ret << string() << "@" << this << std::endl;
+  std::cout << ret.str();
+}
+
 namespace py = pybind11;
 
 PYBIND11_MODULE(point, m) {
@@ -12,6 +18,7 @@ PYBIND11_MODULE(point, m) {
       .def_readwrite("latitude", &Point::latitude)
       .def_readwrite("longitude", &Point::longitude)
       .def_readwrite("annotation", &Point::annotation)
+      .def("dump", &Point::dump)
       .def("__str__", &Point::string)
       .def("__repr__", &Point::string)
       .def(py::pickle(

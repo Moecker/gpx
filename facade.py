@@ -18,6 +18,7 @@ import sys
 import time
 import utils
 import webbrowser
+import cpp.point.point as point_cpp
 
 
 def annotate_points(segments_dict):
@@ -192,7 +193,8 @@ def main(args) -> list:
         logging.error("Error loading map.")
         return empty_path()
 
-    build_graph.adjust_weight_foreign_segments(map)
+    if not config.USE_CPP:
+        build_graph.adjust_weight_foreign_segments(map)
 
     dijkstra_rescaled = None
     if args.interactive:
@@ -253,6 +255,7 @@ def parse_args():
 def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
     logging.debug("Finding dijkstra path.")
     start_time = time.time()
+
     dijkstra = build_graph.find_path(map, start_gps, end_gps, map.dijkstra)
 
     if not dijkstra:
@@ -272,6 +275,10 @@ def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
 
 def perform_run(cities, start_city, end_city, segments_dict, background, map, dry):
     start_gps, end_gps = find_start_and_end(cities, start_city, end_city)
+
+    if config.USE_CPP:
+        start_gps = point_cpp.Point(start_gps.latitude, start_gps.longitude)
+        end_gps = point_cpp.Point(end_gps.latitude, end_gps.longitude)
 
     if not start_gps or not end_gps:
         return empty_path_tuple()
@@ -298,6 +305,16 @@ def perform_run(cities, start_city, end_city, segments_dict, background, map, dr
 
 
 def print_important_infos():
+    if not config.USE_PICKLE:
+        logging.warning("Option config.USE_PICKLE is inactive.")
+    if not config.USE_INEXACT_STEP_DISTANCE:
+        logging.warning("Option config.USE_INEXACT_STEP_DISTANCE is inactive.")
+
+    if config.USE_CPP:
+        logging.warning("Option config.USE_CPP is active.")
+    if config.USE_SMART:
+        logging.warning("Option config.USE_SMART is active.")
+
     if config.ALWAYS_REDUCE:
         logging.warning("Option config.ALWAYS_REDUCE is active.")
     if config.ALWAYS_PARSE:
