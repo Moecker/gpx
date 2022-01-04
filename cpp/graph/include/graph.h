@@ -21,6 +21,8 @@ public:
   std::vector<const Point *> nodes();
   std::vector<int> weights();
 
+  const Point *const closest(const Point p);
+
   void adjust_weight(const Point *, const Point *, int);
 
   std::tuple<std::vector<const Point *>, int> dijkstra(const Point *,

@@ -132,3 +132,5 @@ p42 = point.Point(43.0, 44.0)
 g4.add(p41, p42, 4100)
 print(g4.friends[p41])
 print(g4.friends)
+
+print(g4.closest(p41))

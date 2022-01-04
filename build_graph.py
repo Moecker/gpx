@@ -230,7 +230,7 @@ def find_path(map, start, end, strategy):
 
     # TODO Remove this
     if config.USE_CPP:
-        first = list(map.friends.keys())[0]
+        first = map.closest(first)
         last = list(map.friends.keys())[1]
 
     path, cost = strategy(first, last)

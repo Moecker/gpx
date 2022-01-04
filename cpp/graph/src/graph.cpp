@@ -6,6 +6,12 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+const Point *const Graph::closest(const Point p) {
+  for (const auto &node : friends) {
+    return node.first;
+  }
+}
+
 std::vector<const Point *> Graph::mock() {
   return std::vector<const Point *>{};
 }
@@ -143,6 +149,7 @@ PYBIND11_MODULE(graph, m) {
       .def("nodes", &Graph::mock)
       .def("weights", &Graph::weights)
       .def("adjust_weight", &Graph::adjust_weight)
+      .def("closest", &Graph::closest)
       .def("__str__", &Graph::string)
       .def("__repr__", &Graph::string)
       .def_readwrite("friends", &Graph::friends)
