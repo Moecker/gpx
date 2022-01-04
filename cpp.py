@@ -2,8 +2,7 @@ import pickle
 import os
 
 import cpp.point.point as point
-import cpp.graph_pointer.graph as graph
-import cpp.graph.graph as graph_hash
+import cpp.graph.graph as graph
 import gpx_tools
 
 
@@ -72,8 +71,6 @@ path[1].dump()
 
 p21.dump()
 
-g2.dump_keys()
-
 with open(os.path.join("test", "pickle", "graph.p"), "wb") as f:
     pickle.dump(g2, f)
 
@@ -83,8 +80,6 @@ with open(os.path.join("test", "pickle", "graph.p"), "rb") as f:
 p21.dump()
 
 path = print(g2.dijkstra(p1, p21))
-
-g2.dump_keys()
 
 g2.build_heuristic(p21)
 
@@ -111,7 +106,6 @@ print(g3.weights())
 
 g3.adjust_weight(p32, p33, 1)
 
-g3.dump_keys()
 print(g3)
 with open(os.path.join("test", "pickle", "graph.p"), "wb") as f:
     pickle.dump(g3, f)
@@ -119,32 +113,24 @@ with open(os.path.join("test", "pickle", "graph.p"), "wb") as f:
 with open(os.path.join("test", "pickle", "graph.p"), "rb") as f:
     g3 = pickle.load(f)
 
-g3.dump_keys()
 print(g3)
 print(g3.weights())
 
 print(g3.nodes())
 print(g3.keys())
-print(g3.friends)
 
 g4 = graph.Graph()
 p41 = point.Point(41.0, 42.0)
 p42 = point.Point(43.0, 44.0)
 g4.add(p41, p42, 4100)
-print(g4.friends[p41])
-print(g4.friends)
 
-print(g4.closest(p41))
-
-print("#" * 80)
-
-g5 = graph_hash.GraphHash()
+g5 = graph.Graph()
 p51 = point.Point(51.0, 52.0)
 p52 = point.Point(53.0, 54.0)
 g5.add(p51, p52, 50)
 print(g5)
 p51.annotation = "bar"
-print(graph_hash.hash(p51))
+print(graph.hash(p51))
 
 with open(os.path.join("test", "pickle", "graph.p"), "wb") as f:
     pickle.dump(g5, f)
@@ -168,3 +154,8 @@ g5.build_heuristic(p51)
 
 print(path[0][0])
 print(path[0][1])
+
+g5.adjust_weight(p51, p53, 998877)
+print(g5)
+g5.adjust_weight(p51, p53, 778800)
+print(g5)

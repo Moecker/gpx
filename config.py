@@ -1,6 +1,4 @@
 import astar
-import graph
-
 
 # Controls whether to always re-create the graph.
 ALWAYS_GRAPH = False
@@ -27,9 +25,6 @@ COST_ALREADY_VISITED_PENALTY = 100
 # Note: Impacts Map Cache
 GRAPH_CONNECTION_DISTANCE = 1
 
-# The used module which implements the graph.
-GRAPH_MODUL = astar
-
 # A factor applied to the heuristic of A-Star which helps finding
 # the shortest path to other nodes quicker.
 HEURISTIC_SCALE_FACTOR = 10
@@ -42,12 +37,13 @@ MAX_POINTS_OVERVIEW = 100
 
 # The number of paths to find.
 NUMBER_OF_PATHS = 1
+
 # Every nth point is part of the graph or evaluated as an adjacent point.
 # If increased, some points are skipped during evaluation of distances to other points,
 # but they are also ignored and not part of the actual graph.
 # Note: Impacts Map Cache
-
 PRECISION = 10
+
 # The distance betwen two GPS points during reduction phase, in meter.
 # This determines the minimal possible distance which can be later represented as a GPX track.
 # Note: Impacts Reduction Cache
@@ -67,14 +63,14 @@ STORAGE_TEMP_DIR = "tmp"
 # Use the C++ binding
 # Note: Impacts Segment Cache
 # Note: Impacts Map Cache
-USE_CPP = True
+USE_CPP = False
 
 # Whether to store result in pickle files.
 # If set to False, segments and maps will always be re-created.
 USE_PICKLE = True
 
 # Algorithm for building the graph.
-USE_SMART = False
+USE_SMART = True
 
 # Whether to use a inexact step distance to speed up the graph building process.
 USE_INEXACT_STEP_DISTANCE = True

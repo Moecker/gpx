@@ -23,6 +23,7 @@ def default_adjusted_params():
     config.PRECISION = 1
     config.REDUCTION_DISTANCE = 1
     config.USE_INEXACT_STEP_DISTANCE = False
+    config.USE_SMART = True
 
 
 AUGSBURG = (48.3717, 10.8983)

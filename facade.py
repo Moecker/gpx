@@ -98,10 +98,10 @@ def load_map(segments_dict, gpx_path):
         [
             str(int(config.REDUCTION_DISTANCE)),
             "cpp" if config.USE_CPP else "py",
+            "smart" if config.USE_SMART else "default",
             utils.replace_os_separator(gpx_path),
             str(int(config.GRAPH_CONNECTION_DISTANCE)),
             str(int(config.PRECISION)),
-            str(config.GRAPH_MODUL.__name__),
             "map.p",
         ]
     )
@@ -267,7 +267,7 @@ def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
     logging.debug("Finding dijkstra path.")
     start_time = time.time()
 
-    dijkstra = build_graph.find_path(map, start_gps, end_gps, map.find_shortest_path)
+    dijkstra = build_graph.find_path(map, start_gps, end_gps, map.dijkstra)
 
     if not dijkstra:
         return empty_path_tuple()
@@ -334,7 +334,6 @@ def print_important_infos():
     if config.ALWAYS_GRAPH:
         logging.warning("Option config.ALWAYS_GRAPH is active.")
 
-    logging.debug(f"Using graph version '{config.GRAPH_MODUL.__name__}'.")
     logging.debug(
         f"Minimum possible distance between points: {config.REDUCTION_DISTANCE * config.PRECISION / 1000:.2f} km."
     )

@@ -7,13 +7,13 @@ from pprint import pformat
 
 from tqdm import tqdm
 
+import astar
 import config
+import cpp.graph.graph as graph_cpp
+import cpp.point.point as point_cpp
 import distance
 import gpx_tools
 import utils
-
-import cpp.graph.graph as graph_cpp
-import cpp.point.point as point_cpp
 
 
 def debug_graph(map):
@@ -44,9 +44,7 @@ def adjust_weight_of_path(path, map):
         prev_point = point
 
 
-def build_map_smart(segments_dict):
-    map = config.GRAPH_MODUL.Graph()
-
+def build_map_smart(segments_dict, map):
     with tqdm(total=len(segments_dict.items()), disable=logging.getLogger().level > logging.INFO) as pbar:
         for cur_name, cur_segment in segments_dict.items():
             pbar.set_description(f"Building {cur_name.ljust(180):.100s}")
@@ -63,64 +61,54 @@ def build_map_smart(segments_dict):
 
                 for oth_name, oth_segment in segments_dict.items():
                     if cur_name != oth_name:
-                        if True:
-                            idx = 0
-                            while idx < len(oth_segment.points):
-                                oth_point = oth_segment.points[idx]
-                                dis = distance.haversine_gpx(cur_point, oth_point)
+                        idx = 0
+                        while idx < len(oth_segment.points):
+                            oth_point = oth_segment.points[idx]
+                            dis = distance.haversine_gpx(cur_point, oth_point)
 
-                                if dis < config.GRAPH_CONNECTION_DISTANCE:
+                            if dis < config.GRAPH_CONNECTION_DISTANCE:
+                                logging.trace(f"Segment change adding {cur_point} to {oth_point} with {dis:.2f} km")
+                                map.add(cur_point, oth_point, max(1, int(dis)))
+
+                                has_connection = True
+
+                                if not intersection_point and first_point != cur_point:
+                                    needs_intra = True
+                                    dis = distance.haversine_gpx(first_point, cur_point)
                                     logging.trace(
-                                        f"Segment change adding {cur_point.short()} to {oth_point.short()} with {dis:.2f} km"
+                                        f"First inter segment adding {first_point} to {cur_point} with {dis:.2f} km"
                                     )
-                                    map.add(cur_point, oth_point, dis)
+                                    map.add(first_point, cur_point, max(1, int(dis)))
+                                    intersection_point = cur_point
 
-                                    has_connection = True
+                            if config.USE_INEXACT_STEP_DISTANCE:
+                                step_distance = int(
+                                    dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE
+                                )
+                            else:
+                                step_distance = 1
 
-                                    if not intersection_point and first_point != cur_point:
-                                        needs_intra = True
-                                        intra_dis = distance.haversine_gpx(first_point, cur_point)
-                                        logging.trace(
-                                            f"First inter segment adding {first_point.short()} to {cur_point.short()} with {intra_dis:.2f} km"
-                                        )
-                                        map.add(first_point, cur_point, intra_dis)
-                                        intersection_point = cur_point
-
-                                if config.USE_INEXACT_STEP_DISTANCE:
-                                    step_distance = int(
-                                        dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE
-                                    )
-                                else:
-                                    step_distance = 1
-
-                                # Jump the step size, but always add the last point, too.
-                                # Break however, once reached.
-                                if idx == len(oth_segment.points) - 1:
-                                    break
-                                idx = min(idx + max(1, step_distance), max(len(oth_segment.points) - 1, 1))
+                            # Jump the step size, but always add the last point, too.
+                            # Break however, once reached.
+                            if idx == len(oth_segment.points) - 1:
+                                break
+                            idx = min(idx + max(1, step_distance), max(len(oth_segment.points) - 1, 1))
 
                 if needs_intra:
                     if intersection_point != cur_point:
-                        intra_dis = distance.haversine_gpx(intersection_point, cur_point)
-                        logging.trace(
-                            f"Inter segment adding {intersection_point.short()} to {cur_point.short()} with {intra_dis:.2f} km"
-                        )
-                        map.add(intersection_point, cur_point, intra_dis)
+                        dis = distance.haversine_gpx(intersection_point, cur_point)
+                        logging.trace(f"Inter segment adding {intersection_point} to {cur_point} with {dis:.2f} km")
+                        map.add(intersection_point, cur_point, max(1, int(dis)))
                         intersection_point = cur_point
 
             if not has_connection:
                 dis = distance.haversine_gpx(first_point, cur_point)
-                logging.trace(f"No intersection adding {first_point.short()} to {cur_point.short()} with {dis:.2f} km")
-                map.add(first_point, cur_point, dis)
+                logging.trace(f"No intersection adding {first_point} to {cur_point} with {dis:.2f} km")
+                map.add(first_point, cur_point, max(1, int(dis)))
 
             pbar.update(1)
 
     return map
-
-
-def build_map_python(segments_dict):
-    map = config.GRAPH_MODUL.Graph()
-    return build_map(segments_dict, map)
 
 
 def build_map(segments_dict, map):
@@ -137,13 +125,11 @@ def build_map(segments_dict, map):
                 point = segment.points[idx]
                 if prev_point:
                     dis = distance.haversine_gpx(prev_point, point)
-
-                    assert prev_point != point
-
                     map.add(prev_point, point, max(1, int(dis)))
 
-                prev_point = point
                 find_and_add_adjacent_nodes(map, segments_dict, segment, point)
+
+                prev_point = point
 
                 # Jump the step size, but always add the last point, too
                 # Break however, once reached.
@@ -155,7 +141,7 @@ def build_map(segments_dict, map):
 
 
 def build_map_cpp(segments_dict):
-    map = graph_cpp.GraphHash()
+    map = graph_cpp.Graph()
     return build_map(segments_dict, map)
 
 
@@ -253,12 +239,8 @@ def load_or_build_map(segments_dict, name, output_dir):
     if not config.USE_PICKLE or config.ALWAYS_GRAPH or not os.path.isfile(pickle_path):
         logging.debug(f"Pickle file {pickle_path} does not exist or is forced ignored, creating map.")
 
-        if config.USE_CPP:
-            map = build_map_cpp(segments_dict)
-        elif config.USE_SMART:
-            map = build_map_smart(segments_dict)
-        else:
-            map = build_map_python(segments_dict)
+        map = graph_cpp.Graph() if config.USE_CPP else astar.Graph()
+        map = build_map_smart(segments_dict, map) if config.USE_SMART else build_map(segments_dict, map)
 
         if config.USE_PICKLE:
             logging.debug(f"Saving pickle file to '{utils.make_path_clickable(pickle_path)}'.")
