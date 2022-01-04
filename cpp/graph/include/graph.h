@@ -28,4 +28,6 @@ public:
 
   std::map<Point *, int> heuristic{};
   std::map<Point *, std::map<Point *, int>> friends{};
+
+  std::map<Point, std::map<Point, int>> storage{};
 };

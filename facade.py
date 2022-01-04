@@ -1,24 +1,22 @@
-from collections import defaultdict
-from pickle import FALSE
-from posixpath import split
-from pprint import pprint
 import argparse
-import build_graph
-import build_segments
-import config
-import display
-import distance
-import gpx_display
-import gpx_tools
 import logging
 import math
 import os
 import statistics
 import sys
 import time
-import utils
 import webbrowser
+from collections import defaultdict
+
+import build_graph
+import build_segments
+import config
 import cpp.point.point as point_cpp
+import display
+import distance
+import gpx_display
+import gpx_tools
+import utils
 
 
 def annotate_points(segments_dict):
@@ -99,6 +97,7 @@ def load_map(segments_dict, gpx_path):
     map_file_name = "_".join(
         [
             str(int(config.REDUCTION_DISTANCE)),
+            "cpp" if config.USE_CPP else "py",
             utils.replace_os_separator(gpx_path),
             str(int(config.GRAPH_CONNECTION_DISTANCE)),
             str(int(config.PRECISION)),
@@ -116,7 +115,12 @@ def load_map(segments_dict, gpx_path):
 
 def load_segments(gpx_path):
     pickle_file_name = "_".join(
-        [str(int(config.REDUCTION_DISTANCE)), utils.replace_os_separator(gpx_path), "segments.p"]
+        [
+            str(int(config.REDUCTION_DISTANCE)),
+            "cpp" if config.USE_CPP else "py",
+            utils.replace_os_separator(gpx_path),
+            "segments.p",
+        ]
     )
 
     pickle_path = os.path.join(config.STORAGE_TEMP_DIR, "segments", pickle_file_name)
@@ -193,6 +197,7 @@ def main(args) -> list:
         logging.error("Error loading map.")
         return empty_path()
 
+    # TODO Implement for CPP
     if not config.USE_CPP:
         build_graph.adjust_weight_foreign_segments(map)
 

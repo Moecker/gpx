@@ -6,7 +6,7 @@ import graph
 ALWAYS_GRAPH = True
 
 # Controls whether to always re-create cached segments dicts.
-ALWAYS_PARSE = True
+ALWAYS_PARSE = False
 
 # Controls whether to always re-create reduced gpx files.
 ALWAYS_REDUCE = False
@@ -65,14 +65,16 @@ SCALE_FACTOR = 100
 STORAGE_TEMP_DIR = "tmp"
 
 # Use the C++ binding
+# Note: Impacts Segment Cache
+# Note: Impacts Map Cache
 USE_CPP = True
 
 # Whether to store result in pickle files.
 # If set to False, segments and maps will always be re-created.
-USE_PICKLE = False
+USE_PICKLE = True
 
 # Algorithm for building the graph.
-USE_SMART = True
+USE_SMART = False
 
 # Whether to use a inexact step distance to speed up the graph building process.
 USE_INEXACT_STEP_DISTANCE = True

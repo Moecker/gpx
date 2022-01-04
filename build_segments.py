@@ -134,7 +134,7 @@ def setup_segments_dict(segments_dict, track_file_name_reduced):
 
 
 def try_load_pickle(pickle_path):
-    if not config.USE_PICKLE or not config.ALWAYS_PARSE and os.path.isfile(pickle_path):
+    if config.USE_PICKLE and not config.ALWAYS_PARSE and os.path.isfile(pickle_path):
         logging.debug(f"Path '{utils.make_path_clickable(pickle_path)}' exists.")
         logging.debug(f"Loading '{utils.make_path_clickable(pickle_path)}'.")
         with open(pickle_path, "rb") as f:

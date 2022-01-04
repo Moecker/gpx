@@ -102,11 +102,20 @@ g3 = graph.Graph()
 p31 = point.Point(31.0, 32.0)
 p32 = point.Point(33.0, 34.0)
 p33 = point.Point(35.0, 36.0)
+p34 = point.Point(37.0, 38.0)
 g3.add(p31, p32, 3100)
 g3.add(p31, p33, 3500)
+g3.add(p32, p33, 3700)
+g3.add(p34, p33, 3800)
 
 print(g3.keys())
 print(g3.nodes())
 print(g3.weights())
 
 g3.adjust_weight(p32, p33, 1)
+
+with open(os.path.join("test", "pickle", "graph.p"), "wb") as f:
+    pickle.dump(g3, f)
+
+with open(os.path.join("test", "pickle", "graph.p"), "rb") as f:
+    g3 = pickle.load(f)

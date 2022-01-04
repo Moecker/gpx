@@ -25,9 +25,9 @@ def debug_graph(map):
 
 def adjust_weight_foreign_segments(map):
     for node, neighbors in map.friends.items():
-        key, idx = gpx_tools.deannotate(node)
+        key, _ = gpx_tools.deannotate(node)
         for other_node, cost in neighbors.items():
-            other_key, other_idx = gpx_tools.deannotate(other_node)
+            other_key, _ = gpx_tools.deannotate(other_node)
             if key != other_key:
                 map.adjust_weight(node, other_node, cost * config.COST_SWITCH_SEGMENT_PENALTY)
             else:
@@ -63,7 +63,6 @@ def build_map_smart(segments_dict):
 
                 for oth_name, oth_segment in segments_dict.items():
                     if cur_name != oth_name:
-                        # TODO Remove the else branch
                         if True:
                             idx = 0
                             while idx < len(oth_segment.points):
@@ -99,26 +98,6 @@ def build_map_smart(segments_dict):
                                 if idx == len(oth_segment.points) - 1:
                                     break
                                 idx = min(idx + max(1, step_distance), max(len(oth_segment.points) - 1, 1))
-                        else:
-                            for oth_point in oth_segment.points:
-                                dis = distance.haversine_gpx(cur_point, oth_point)
-
-                                if dis < config.GRAPH_CONNECTION_DISTANCE:
-                                    logging.trace(
-                                        f"Segment change adding {cur_point.short()} to {oth_point.short()} with {dis:.2f} km"
-                                    )
-                                    map.add(cur_point, oth_point, dis)
-
-                                    has_connection = True
-
-                                    if not intersection_point and first_point != cur_point:
-                                        needs_intra = True
-                                        intra_dis = distance.haversine_gpx(first_point, cur_point)
-                                        logging.trace(
-                                            f"First inter segment adding {first_point.short()} to {cur_point.short()} with {intra_dis:.2f} km"
-                                        )
-                                        map.add(first_point, cur_point, intra_dis)
-                                        intersection_point = cur_point
 
                 if needs_intra:
                     if intersection_point != cur_point:
@@ -136,47 +115,15 @@ def build_map_smart(segments_dict):
 
             pbar.update(1)
 
-    debug_graph(map)
-
     return map
 
 
-def build_map(segments_dict):
+def build_map_python(segments_dict):
     map = config.GRAPH_MODUL.Graph()
-
-    with tqdm(total=len(segments_dict.items()), disable=logging.getLogger().level > logging.INFO) as pbar:
-        for name, segment in segments_dict.items():
-            pbar.set_description(f"Building {name.ljust(180):.100s}")
-
-            if not len(segment.points):
-                continue
-
-            idx = 0
-            prev_point = None
-            while idx < len(segment.points):
-                point = segment.points[idx]
-                if prev_point:
-                    dis = distance.haversine_gpx(prev_point, point)
-
-                    assert prev_point != point
-
-                    map.add(prev_point, point, cost=max(1, int(dis)))
-
-                prev_point = point
-                find_and_add_adjacent_nodes(map, segments_dict, segment, point)
-
-                # Jump the step size, but always add the last point, too
-                # Break however, once reached.
-                if idx == len(segment.points) - 1:
-                    break
-                idx = min(idx + max(1, config.PRECISION), max(len(segment.points) - 1, 1))
-            pbar.update(1)
-    return map
+    return build_map(segments_dict, map)
 
 
-def build_map_cpp(segments_dict):
-    map = graph_cpp.Graph()
-
+def build_map(segments_dict, map):
     with tqdm(total=len(segments_dict.items()), disable=logging.getLogger().level > logging.INFO) as pbar:
         for name, segment in segments_dict.items():
             pbar.set_description(f"Building {name.ljust(180):.100s}")
@@ -205,6 +152,11 @@ def build_map_cpp(segments_dict):
                 idx = min(idx + max(1, config.PRECISION), max(len(segment.points) - 1, 1))
             pbar.update(1)
     return map
+
+
+def build_map_cpp(segments_dict):
+    map = graph_cpp.Graph()
+    return build_map(segments_dict, map)
 
 
 def collect_all_points(segments_dict):
@@ -268,6 +220,7 @@ def find_path(map, start, end, strategy):
         logging.error(f"Start and End GPX positions are identical.")
         return None
 
+    # TODO Implement for CPP
     if not config.USE_CPP:
         logging.debug(f"Starting search strategy using {strategy}.")
 
@@ -304,7 +257,7 @@ def load_or_build_map(segments_dict, name, output_dir):
         elif config.USE_SMART:
             map = build_map_smart(segments_dict)
         else:
-            map = build_map(segments_dict)
+            map = build_map_python(segments_dict)
 
         if config.USE_PICKLE:
             logging.debug(f"Saving pickle file to '{utils.make_path_clickable(pickle_path)}'.")

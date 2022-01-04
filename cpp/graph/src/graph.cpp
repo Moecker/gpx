@@ -129,7 +129,7 @@ void Graph::dump_keys() {
 namespace py = pybind11;
 
 PYBIND11_MODULE(graph, m) {
-  py::class_<Graph>(m, "Graph")
+  py::class_<Graph>(m, "Graph", py::dynamic_attr())
       .def(py::init())
       .def("add", &Graph::add)
       .def("build", &Graph::build)
@@ -144,14 +144,46 @@ PYBIND11_MODULE(graph, m) {
       .def("__str__", &Graph::string)
       .def("__repr__", &Graph::string)
       .def(py::pickle(
-          [](const Graph &g) { return py::make_tuple(g.heuristic, g.friends); },
+          [](const Graph &g) {
+            // Build map with real points
+            std::map<Point, std::map<Point, int>> all{};
+
+            for (const auto &node : g.friends) {
+              std::map<Point, int> inner{};
+
+              for (const auto &neighbors : node.second) {
+                inner.insert(
+                    std::make_pair(*(neighbors.first), neighbors.second));
+              }
+              all.insert(std::make_pair(*(node.first), inner));
+            }
+
+            return py::make_tuple(g.heuristic, g.friends, all);
+          },
           [](py::tuple t) {
-            if (t.size() != 2)
+            if (t.size() != 3)
               throw std::runtime_error("Invalid state");
 
             Graph g{};
+
             g.heuristic = t[0].cast<std::map<Point *, int>>();
             g.friends = t[1].cast<std::map<Point *, std::map<Point *, int>>>();
+
+            std::map<Point, std::map<Point, int>> all =
+                t[2].cast<std::map<Point, std::map<Point, int>>>();
+
+            g.storage = all;
+
+            // Build map with reference points
+            std::map<const Point *, std::map<const Point *, int>> ref{};
+            for (const auto &node : g.storage) {
+              std::map<const Point *, int> inner{};
+              for (const auto &neighbors : node.second) {
+                inner.insert(
+                    std::make_pair(&(neighbors.first), neighbors.second));
+              }
+              ref.insert(std::make_pair(&(node.first), inner));
+            }
 
             return g;
           }));
