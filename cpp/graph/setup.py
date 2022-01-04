@@ -7,7 +7,7 @@ graph_module = Pybind11Extension(
     "graph",
     [str(fname) for fname in Path("src").glob("*.cpp")],
     include_dirs=["include"],
-    extra_compile_args=["-g"],
+    extra_compile_args=["-O2"],
 )
 
 setup(

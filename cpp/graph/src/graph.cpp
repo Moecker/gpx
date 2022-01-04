@@ -116,7 +116,7 @@ GraphHash::find_shortest_path(const Point &start, const Point &end) {
   if (dist.find(hash(end)) != dist.end()) {
     std::vector<const Point> path{};
     auto path_hash = dist.find(hash(end))->second;
-    for (const auto &p : path_hash) {
+    for (auto p : path_hash) {
       path.push_back(get(p));
     }
     return std::make_tuple(path, 0);

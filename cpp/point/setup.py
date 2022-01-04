@@ -7,8 +7,7 @@ point_module = Pybind11Extension(
     "point",
     [str(fname) for fname in Path("src").glob("*.cpp")],
     include_dirs=["include"],
-    extra_compile_args=["-g"],
-    debug=1,
+    extra_compile_args=["-O3"],
 )
 
 setup(
