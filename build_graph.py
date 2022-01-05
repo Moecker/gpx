@@ -4,6 +4,8 @@ import os
 import pickle
 from pathlib import Path
 from pprint import pformat
+import networkx as nx
+
 
 from tqdm import tqdm
 
@@ -14,6 +16,21 @@ import cpp.point.point as point_cpp
 import distance
 import gpx_tools
 import utils
+
+
+def nx_adjust_weight(g, n1, n2, cost):
+    g.adj[n1][n2]["weight"] = cost
+    g.adj[n2][n1]["weight"] = cost
+
+
+nx.Graph.keys = lambda g: g.nodes()
+# TODO Implement
+nx.Graph.weights = lambda g: [0, 1]
+# TODO Implement
+nx.Graph.build_heuristic = lambda p1, p2: None
+nx.Graph.dijkstra = lambda g, p1, p2: (nx.astar_path(g, p1, p2), 0)
+nx.Graph.adjust_weight = nx_adjust_weight
+nx.Graph.friends = nx.Graph.adj
 
 
 def debug_graph(map):
@@ -28,6 +45,7 @@ def adjust_weight_foreign_segments(map):
         key, _ = gpx_tools.deannotate(node)
         for other_node, cost in neighbors.items():
             other_key, _ = gpx_tools.deannotate(other_node)
+            cost = cost["weight"] if config.USE_NETWORK_X else cost
             if key != other_key:
                 map.adjust_weight(node, other_node, cost * config.COST_SWITCH_SEGMENT_PENALTY)
             else:
@@ -218,7 +236,7 @@ def find_path(map, start, end, strategy):
 
     logging.debug(f"Path found, length of path: {len(path)}.")
     logging.debug(f"Path found, cost of path: {cost}.")
-    logging.info(f"Found Path of (node-)length {len(path)} and (graph-)cost {cost}.")
+    logging.info(f"Found Path of length {len(path)} and cost {cost}.")
     return path
 
 
@@ -241,6 +259,9 @@ def load_or_build_map(segments_dict, name, output_dir):
 
         map = graph_cpp.Graph() if config.USE_CPP else astar.Graph()
         map = build_map_smart(segments_dict, map) if config.USE_SMART else build_map(segments_dict, map)
+
+        if config.USE_NETWORK_X:
+            map = nx.Graph((k, v, {"weight": weight}) for k, vs in map.friends.items() for v, weight in vs.items())
 
         if config.USE_PICKLE:
             logging.debug(f"Saving pickle file to '{utils.make_path_clickable(pickle_path)}'.")
@@ -315,14 +336,17 @@ def rescale(segments_dict, path):
 
         # Last point.
         if i == len(path) - 1:
-            if not is_reversed:
-                if prev_point:
-                    rescaled_path.append(prev_point)
-                rescaled_path.extend(batch_points)
+            if config.IS_TEST:
+                if not is_reversed:
+                    if prev_point:
+                        rescaled_path.append(prev_point)
+                    rescaled_path.extend(batch_points)
+                else:
+                    rescaled_path.extend(batch_points)
+                    if prev_point:
+                        rescaled_path.append(prev_point)
             else:
                 rescaled_path.extend(batch_points)
-                if prev_point:
-                    rescaled_path.append(prev_point)
 
     if not len(rescaled_path):
         logging.error(f"Rescaling failed, could not determine points.")

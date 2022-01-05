@@ -36,7 +36,7 @@ IS_TEST = False
 MAX_POINTS = 10000
 
 # Maximum points to export overview results into GPX and HTML.
-MAX_POINTS_OVERVIEW = 10000
+MAX_POINTS_OVERVIEW = 1000
 
 # The number of paths to find.
 NUMBER_OF_PATHS = 1
@@ -67,6 +67,10 @@ STORAGE_TEMP_DIR = "tmp"
 # Note: Impacts Segment Cache
 # Note: Impacts Map Cache
 USE_CPP = False
+
+# Use python module network x.
+# Note: Impacts Map Cache
+USE_NETWORK_X = True
 
 # Whether to store result in pickle files.
 # If set to False, segments and maps will always be re-created.
