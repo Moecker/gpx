@@ -29,6 +29,9 @@ GRAPH_CONNECTION_DISTANCE = 1
 # the shortest path to other nodes quicker.
 HEURISTIC_SCALE_FACTOR = 10
 
+# For test mode
+IS_TEST = False
+
 # Maximum points to export into GPX and HTML.
 MAX_POINTS = 10000
 
@@ -70,7 +73,7 @@ USE_CPP = False
 USE_PICKLE = True
 
 # Algorithm for building the graph.
-USE_SMART = False
+USE_SMART = True
 
 # Whether to use a inexact step distance to speed up the graph building process.
 USE_INEXACT_STEP_DISTANCE = True

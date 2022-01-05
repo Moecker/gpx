@@ -18,9 +18,9 @@ import utils
 
 def debug_graph(map):
     for node, neighbors in map.friends.items():
-        logging.debug(node)
+        logging.trace(node)
         for other_node, cost in neighbors.items():
-            logging.debug(f"|- {other_node} at {cost:.2f} km")
+            logging.trace(f"|- {other_node} at {cost:.2f} km")
 
 
 def adjust_weight_foreign_segments(map):
@@ -284,10 +284,18 @@ def rescale(segments_dict, path):
             used_segments.append(key)
             previous_key = key
 
-            if prev_point:
-                batch_points.append(prev_point)
-
-            rescaled_path.extend(batch_points)
+            # TODO Unclear why this is producing artifacts in "normal" mode
+            if config.IS_TEST:
+                if not is_reversed:
+                    if prev_point:
+                        rescaled_path.append(prev_point)
+                    rescaled_path.extend(batch_points)
+                else:
+                    rescaled_path.extend(batch_points)
+                    if prev_point:
+                        rescaled_path.append(prev_point)
+            else:
+                rescaled_path.extend(batch_points)
 
             batch_points = []
             prev_point = segments_dict[key].points[idx]

@@ -13,6 +13,7 @@ def default_test_setup():
     config.ALWAYS_REDUCE = True
     config.RESULTS_FOLDER = os.path.join("test", "results")
     config.STORAGE_TEMP_DIR = os.path.join("test", "tmp")
+    config.IS_TEST = True
 
 
 def default_adjusted_params():
@@ -164,6 +165,7 @@ class TestFacade(unittest.TestCase):
 
     def test_example(self):
         config.GRAPH_CONNECTION_DISTANCE = 10
+        config.USE_SMART = False
         args = argparse.Namespace(
             start="Munich",
             end="Augsburg",
