@@ -1,9 +1,9 @@
-import facade
-
-import unittest
 import argparse
 import os
+import unittest
+
 import config
+import facade
 
 
 def default_test_setup():
@@ -129,6 +129,23 @@ class TestFacade(unittest.TestCase):
         self.compare_points(dijkstra_rescaled[1], DACHAU)
         self.compare_points(dijkstra_rescaled[2], FREISING)
 
+    def test_munich_augsburg_intersection(self):
+        config.COST_SWITCH_SEGMENT_PENALTY = 100
+        args = argparse.Namespace(
+            start="Munich",
+            end="Augsburg",
+            gpx=os.path.join("test", "gpx", "test_munich_augsburg_intersection"),
+            interactive=False,
+            verbose=True,
+            dry=False,
+        )
+        dijkstra_rescaled = facade.main(args)
+        self.assertEqual(len(dijkstra_rescaled), 4)
+        self.compare_points(dijkstra_rescaled[0], MUNICH)
+        self.compare_points(dijkstra_rescaled[1], FURSTENFELDBRUCK)
+        self.compare_points(dijkstra_rescaled[2], FURSTENFELDBRUCK)
+        self.compare_points(dijkstra_rescaled[3], AUGSBURG)
+
     def test_long(self):
         args = argparse.Namespace(
             start="Munich",
@@ -144,6 +161,18 @@ class TestFacade(unittest.TestCase):
         self.compare_points(dijkstra_rescaled[1], FURSTENFELDBRUCK)
         self.compare_points(dijkstra_rescaled[2], FURSTENFELDBRUCK)
         self.compare_points(dijkstra_rescaled[3], AUGSBURG)
+
+    def test_example(self):
+        config.GRAPH_CONNECTION_DISTANCE = 10
+        args = argparse.Namespace(
+            start="Munich",
+            end="Augsburg",
+            gpx=os.path.join("test", "gpx", "example"),
+            interactive=False,
+            verbose=True,
+            dry=False,
+        )
+        dijkstra_rescaled = facade.main(args)
 
 
 if __name__ == "__main__":

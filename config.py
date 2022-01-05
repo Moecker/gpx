@@ -33,7 +33,7 @@ HEURISTIC_SCALE_FACTOR = 10
 MAX_POINTS = 10000
 
 # Maximum points to export overview results into GPX and HTML.
-MAX_POINTS_OVERVIEW = 100
+MAX_POINTS_OVERVIEW = 10000
 
 # The number of paths to find.
 NUMBER_OF_PATHS = 1
@@ -42,7 +42,7 @@ NUMBER_OF_PATHS = 1
 # If increased, some points are skipped during evaluation of distances to other points,
 # but they are also ignored and not part of the actual graph.
 # Note: Impacts Map Cache
-PRECISION = 100
+PRECISION = 10
 
 # The distance betwen two GPS points during reduction phase, in meter.
 # This determines the minimal possible distance which can be later represented as a GPX track.
@@ -55,7 +55,7 @@ REDUCTION_DISTANCE = 100
 RESULTS_FOLDER = "results"
 
 # How "big" the map is as ASCI art output, the larger the more downsacling takes place.
-SCALE_FACTOR = 100
+SCALE_FACTOR = 50
 
 # Location for intermediate results, such as maps and segments for caching.
 STORAGE_TEMP_DIR = "tmp"

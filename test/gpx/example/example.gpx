@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1" creator="gpx.py -- https://github.com/tkrajina/gpxpy">
+  <trk>
+    <name>track.gpx</name>
+    <trkseg>
+      <trkpt lat="51.1" lon="11.1">
+        <src>A1</src>
+      </trkpt>
+      <trkpt lat="51.2" lon="11.2">
+        <src>A2</src>
+      </trkpt>
+      <trkpt lat="51.3" lon="11.3">
+        <src>A3</src>
+      </trkpt>
+    </trkseg>
+    <trkseg>
+      <trkpt lat="52.1" lon="12.1">
+        <src>B1</src>
+      </trkpt>
+      <trkpt lat="52.2" lon="12.2">
+        <src>B2</src>
+      </trkpt>
+      <trkpt lat="52.3" lon="12.3">
+        <src>B3</src>
+      </trkpt>
+      <trkpt lat="52.4" lon="12.4">
+        <src>B4</src>
+      </trkpt>
+    </trkseg>
+    <trkseg>
+      <trkpt lat="53.1" lon="13.1">
+        <src>C1</src>
+      </trkpt>
+      <trkpt lat="53.2" lon="13.2">
+        <src>C2</src>
+      </trkpt>
+    </trkseg>
+    <trkseg>
+      <trkpt lat="53.3" lon="13.3">
+        <src>D1</src>
+      </trkpt>
+      <trkpt lat="53.2" lon="13.2">
+        <src>D2</src>
+      </trkpt>
+      <trkpt lat="53.4" lon="13.4">
+        <src>D3</src>
+      </trkpt>
+    </trkseg>
+    <trkseg>
+      <trkpt lat="52.5" lon="12.5">
+        <src>E1</src>
+      </trkpt>
+      <trkpt lat="52.2" lon="12.2">
+        <src>E2</src>
+      </trkpt>
+      <trkpt lat="52.6" lon="12.6">
+        <src>E3</src>
+      </trkpt>
+      <trkpt lat="52.4" lon="12.4">
+        <src>E4</src>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>
