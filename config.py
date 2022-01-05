@@ -39,7 +39,7 @@ MAX_POINTS = 10000
 MAX_POINTS_OVERVIEW = 1000
 
 # The number of paths to find.
-NUMBER_OF_PATHS = 1
+NUMBER_OF_PATHS = 5
 
 # Every nth point is part of the graph or evaluated as an adjacent point.
 # If increased, some points are skipped during evaluation of distances to other points,

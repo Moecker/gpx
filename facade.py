@@ -17,6 +17,7 @@ import distance
 import gpx_display
 import gpx_tools
 import utils
+from pathlib import Path
 
 
 def annotate_points(segments_dict):
@@ -78,7 +79,7 @@ def interactive_mode(cities, segments_dict, background, map, dry):
                 if not check_city(cities, end_city):
                     continue
                 break
-            perform_run(cities, start_city, end_city, segments_dict, background, map, dry)
+            perform_run(cities, start_city, end_city, segments_dict, background, map, dry, 0)
     except (KeyboardInterrupt):
         sys.exit(0)
 
@@ -174,6 +175,8 @@ def main(args) -> list:
 
     print_important_infos()
 
+    Path(config.RESULTS_FOLDER).mkdir(parents=True, exist_ok=True)
+
     cities = load_worldcities()
     logging.debug(f"Loaded {len(cities)} cities.")
 
@@ -230,7 +233,9 @@ def normal_mode(args, cities, segments_dict, background, map, dry):
         loop += 1
         logging.info(f"Searching path {loop} of {config.NUMBER_OF_PATHS}.")
 
-        dijkstra, dijkstra_rescaled = perform_run(cities, args.start, args.end, segments_dict, background, map, dry)
+        dijkstra, dijkstra_rescaled = perform_run(
+            cities, args.start, args.end, segments_dict, background, map, dry, loop
+        )
 
         if not dijkstra or not dijkstra_rescaled:
             break
@@ -286,7 +291,7 @@ def perform_dijksra(start_gps, end_gps, segments_dict, background, map):
     return dijkstra, dijkstra_rescaled
 
 
-def perform_run(cities, start_city, end_city, segments_dict, background, map, dry):
+def perform_run(cities, start_city, end_city, segments_dict, background, map, dry, run):
     start_gps, end_gps = find_start_and_end(cities, start_city, end_city)
 
     if not start_gps or not end_gps:
@@ -309,10 +314,12 @@ def perform_run(cities, start_city, end_city, segments_dict, background, map, dr
     dijkstra, dijkstra_rescaled = perform_dijksra(start_gps, end_gps, segments_dict, background, map)
 
     if not dry:
-        gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, "dijkstra.gpx", config.MAX_POINTS_OVERVIEW)
-        gpx_tools.save_as_gpx_file(dijkstra_rescaled, config.RESULTS_FOLDER, "dijkstra_rescaled.gpx", config.MAX_POINTS)
-        display.save_gpx_as_html("dijkstra", config.RESULTS_FOLDER)
-        display.save_gpx_as_html("dijkstra_rescaled", config.RESULTS_FOLDER)
+        gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, f"{run}_dijkstra.gpx", config.MAX_POINTS_OVERVIEW)
+        gpx_tools.save_as_gpx_file(
+            dijkstra_rescaled, config.RESULTS_FOLDER, f"{run}_dijkstra_rescaled.gpx", config.MAX_POINTS
+        )
+        display.save_gpx_as_html(f"{run}_dijkstra", config.RESULTS_FOLDER)
+        display.save_gpx_as_html(f"{run}_dijkstra_rescaled", config.RESULTS_FOLDER)
 
     return dijkstra, dijkstra_rescaled
 
