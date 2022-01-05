@@ -18,9 +18,9 @@ import utils
 
 def debug_graph(map):
     for node, neighbors in map.friends.items():
-        logging.trace(node)
+        logging.debug(node)
         for other_node, cost in neighbors.items():
-            logging.trace(f"|- {other_node} at {cost:.2f} km")
+            logging.debug(f"|- {other_node} at {cost:.2f} km")
 
 
 def adjust_weight_foreign_segments(map):
@@ -107,7 +107,7 @@ def build_map_smart(segments_dict, map):
                 map.add(first_point, cur_point, max(1, int(dis)))
 
             pbar.update(1)
-
+        debug_graph(map)
     return map
 
 

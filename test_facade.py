@@ -129,11 +129,11 @@ class TestFacade(unittest.TestCase):
         self.compare_points(dijkstra_rescaled[1], DACHAU)
         self.compare_points(dijkstra_rescaled[2], FREISING)
 
-    def test_munich_augsburg_via_ffb(self):
+    def test_long(self):
         args = argparse.Namespace(
             start="Munich",
             end="Augsburg",
-            gpx=os.path.join("test", "gpx", "test_munich_augsburg_intersection"),
+            gpx=os.path.join("test", "gpx", "long"),
             interactive=False,
             verbose=True,
             dry=False,

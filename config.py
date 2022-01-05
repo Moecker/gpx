@@ -42,7 +42,7 @@ NUMBER_OF_PATHS = 1
 # If increased, some points are skipped during evaluation of distances to other points,
 # but they are also ignored and not part of the actual graph.
 # Note: Impacts Map Cache
-PRECISION = 10
+PRECISION = 100
 
 # The distance betwen two GPS points during reduction phase, in meter.
 # This determines the minimal possible distance which can be later represented as a GPX track.
@@ -70,7 +70,7 @@ USE_CPP = False
 USE_PICKLE = True
 
 # Algorithm for building the graph.
-USE_SMART = True
+USE_SMART = False
 
 # Whether to use a inexact step distance to speed up the graph building process.
 USE_INEXACT_STEP_DISTANCE = True
