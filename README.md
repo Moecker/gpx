@@ -1,7 +1,7 @@
 # GPX Bike Path Creator
 ##
 ```
-usage: facade.py [-h] [--start START] [--end END] --gpx GPX [--verbose] [--interactive] [--dry]
+usage: facade.py [-h] [--start START] [--end END] --gpx GPX [--verbose] [--interactive] [--dry] [--web_app]
 
 GPX Path Planner.
 
@@ -13,6 +13,7 @@ optional arguments:
   --verbose      Log out more details.
   --interactive  Interactively to allow for multiple queries.
   --dry          Do not create any output artifacts.
+  --web_app      Use the facade to prepare the web app.
 ```
 
 ## Example

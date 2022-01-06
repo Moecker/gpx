@@ -169,6 +169,7 @@ def main(args) -> list:
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(asctime)s:%(msecs)03d %(levelname)s: %(message)s",
         datefmt="%H:%M:%S",
+        handlers=[logging.FileHandler(os.path.join("tmp", "log.txt"), mode="w"), logging.StreamHandler()],
     )
 
     if args.interactive and (args.start or args.end):
@@ -214,6 +215,8 @@ def main(args) -> list:
     dijkstra_rescaled = None
     if args.interactive:
         interactive_mode(cities, segments_dict, background, map, args.dry)
+    elif args.web_app:
+        return cities, segments_dict, background, map
     else:
         dijkstra_rescaled = normal_mode(args, cities, segments_dict, background, map, args.dry)
     return dijkstra_rescaled
@@ -264,6 +267,7 @@ def parse_args():
     parser.add_argument("--verbose", action="store_true", help="Log out more details.")
     parser.add_argument("--interactive", action="store_true", help="Interactively to allow for multiple queries.")
     parser.add_argument("--dry", action="store_true", help="Do not create any output artifacts.")
+    parser.add_argument("--web_app", action="store_true", help="Use the facade to prepare the web app.")
 
     args = parser.parse_args()
 

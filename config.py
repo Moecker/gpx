@@ -75,7 +75,7 @@ USE_NETWORK_X = True
 USE_PICKLE = True
 
 # Algorithm for building the graph.
-USE_SMART = True
+USE_SMART = False
 
 # Whether to use a inexact step distance to speed up the graph building process.
 USE_INEXACT_STEP_DISTANCE = True

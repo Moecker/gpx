@@ -143,3 +143,5 @@ dmypy.json
 /test/tmp/**/*.gpx
 *.stackdump
 /.vscode
+/tmp/log.txt
+/tmp/web_app_log.txt

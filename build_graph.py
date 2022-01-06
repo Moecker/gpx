@@ -6,6 +6,7 @@ from pathlib import Path
 from pprint import pformat
 
 import networkx as nx
+from networkx.algorithms.shortest_paths.astar import astar_path
 from tqdm import tqdm
 
 import astar
@@ -15,6 +16,9 @@ import cpp.point.point as point_cpp
 import distance
 import gpx_tools
 import utils
+
+import multiprocessing
+from joblib import Parallel, delayed
 
 
 def debug_graph(map):
@@ -142,6 +146,33 @@ def build_map(segments_dict, map):
     return map
 
 
+def do(segment):
+    map = astar.Graph()
+    idx = 0
+    prev_point = None
+    while idx < len(segment.points):
+        point = segment.points[idx]
+        if prev_point:
+            dis = distance.haversine_gpx(prev_point, point)
+            map.add(prev_point, point, max(1, int(dis)))
+
+        prev_point = point
+
+        # Jump the step size, but always add the last point, too
+        # Break however, once reached.
+        if idx == len(segment.points) - 1:
+            break
+        idx = min(idx + max(1, config.PRECISION), max(len(segment.points) - 1, 1))
+    return map
+
+
+def build_map_parallel(segments_dict):
+    the_map = astar.Graph()
+    maps = Parallel(n_jobs=-1, backend="threading")(map(delayed(do), list(segments_dict.values())))
+    for m in maps:
+        the_map.friends.update(m.friends)
+
+
 def build_map_cpp(segments_dict):
     map = graph_cpp.Graph()
     return build_map(segments_dict, map)
@@ -232,6 +263,8 @@ def load_or_build_map(segments_dict, name, output_dir):
     pickle_path = os.path.join(output_dir, name)
     if not config.USE_PICKLE or config.ALWAYS_GRAPH or not os.path.isfile(pickle_path):
         logging.debug(f"Pickle file {pickle_path} does not exist or is forced ignored, creating map.")
+
+        map = build_map_parallel(segments_dict)
 
         map = graph_cpp.Graph() if config.USE_CPP else astar.Graph()
         map = build_map_smart(segments_dict, map) if config.USE_SMART else build_map(segments_dict, map)
