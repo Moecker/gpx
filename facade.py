@@ -169,7 +169,7 @@ def main(args) -> list:
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(asctime)s:%(msecs)03d %(levelname)s: %(message)s",
         datefmt="%H:%M:%S",
-        handlers=[logging.FileHandler(os.path.join("tmp", "log.txt"), mode="w"), logging.StreamHandler()],
+        handlers=[logging.StreamHandler()],
     )
 
     if args.interactive and (args.start or args.end):

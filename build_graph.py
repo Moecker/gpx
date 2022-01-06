@@ -122,32 +122,16 @@ def build_map(segments_dict, map):
         for name, segment in segments_dict.items():
             pbar.set_description(f"Building {name.ljust(180):.100s}")
 
-            if not len(segment.points):
-                continue
+            inner(segment, segments_dict, map)
 
-            idx = 0
-            prev_point = None
-            while idx < len(segment.points):
-                point = segment.points[idx]
-                if prev_point:
-                    dis = distance.haversine_gpx(prev_point, point)
-                    map.add(prev_point, point, max(1, int(dis)))
-
-                find_and_add_adjacent_nodes(map, segments_dict, segment, point)
-
-                prev_point = point
-
-                # Jump the step size, but always add the last point, too
-                # Break however, once reached.
-                if idx == len(segment.points) - 1:
-                    break
-                idx = min(idx + max(1, config.PRECISION), max(len(segment.points) - 1, 1))
             pbar.update(1)
     return map
 
 
-def do(segment):
-    map = astar.Graph()
+def inner(segment, segments_dict, map):
+    if not len(segment.points):
+        return
+
     idx = 0
     prev_point = None
     while idx < len(segment.points):
@@ -156,6 +140,8 @@ def do(segment):
             dis = distance.haversine_gpx(prev_point, point)
             map.add(prev_point, point, max(1, int(dis)))
 
+        find_and_add_adjacent_nodes(map, segments_dict, segment, point)
+
         prev_point = point
 
         # Jump the step size, but always add the last point, too
@@ -163,15 +149,45 @@ def do(segment):
         if idx == len(segment.points) - 1:
             break
         idx = min(idx + max(1, config.PRECISION), max(len(segment.points) - 1, 1))
+
+
+def inner_smart(segment, segments_dict, map):
+    return inner(segment, segments_dict, map)
+
+def do_parallel(segment):
+    global GLOBAL_SEGMENTS_DICT
+    # Possible this could also be a CPP Graph.
+    map = astar.Graph()
+    inner(segment, GLOBAL_SEGMENTS_DICT, map)
     return map
 
 
-def build_map_parallel(segments_dict):
-    the_map = astar.Graph()
-    maps = Parallel(n_jobs=-1, backend="threading")(map(delayed(do), list(segments_dict.values())))
-    for m in maps:
-        the_map.friends.update(m.friends)
+def build_map_parallel(segments_dict, the_map):
+    # Due to not knowing how to hand over arguments to the parallel function.
+    global GLOBAL_SEGMENTS_DICT
+    GLOBAL_SEGMENTS_DICT = segments_dict
 
+    maps = Parallel(n_jobs=-1, backend="threading")(map(delayed(do_parallel), list(segments_dict.values())))
+    for single_map in maps:
+        the_map.friends.update(single_map.friends)
+    return the_map
+
+def do_smart_parallel(segment):
+    global GLOBAL_SEGMENTS_DICT
+    # Possible this could also be a CPP Graph.
+    map = astar.Graph()
+    inner_smart(segment, GLOBAL_SEGMENTS_DICT, map)
+    return map
+
+def build_map_smart_parallel(segments_dict, the_map):
+    # Due to not knowing how to hand over arguments to the parallel function.
+    global GLOBAL_SEGMENTS_DICT
+    GLOBAL_SEGMENTS_DICT = segments_dict
+
+    maps = Parallel(n_jobs=-1, backend="threading")(map(delayed(do_smart_parallel), list(segments_dict.values())))
+    for single_map in maps:
+        the_map.friends.update(single_map.friends)
+    return the_map
 
 def build_map_cpp(segments_dict):
     map = graph_cpp.Graph()
@@ -264,10 +280,14 @@ def load_or_build_map(segments_dict, name, output_dir):
     if not config.USE_PICKLE or config.ALWAYS_GRAPH or not os.path.isfile(pickle_path):
         logging.debug(f"Pickle file {pickle_path} does not exist or is forced ignored, creating map.")
 
-        map = build_map_parallel(segments_dict)
-
+        # Decide which graph implementation to use.
         map = graph_cpp.Graph() if config.USE_CPP else astar.Graph()
-        map = build_map_smart(segments_dict, map) if config.USE_SMART else build_map(segments_dict, map)
+
+        # Decide which graph build algo to use.
+        if config.USE_PARALLEL:
+            map = build_map_smart_parallel(segments_dict, map) if config.USE_SMART else build_map_parallel(segments_dict, map)
+        else:
+            map = build_map_smart(segments_dict, map) if config.USE_SMART else build_map(segments_dict, map)
 
         if config.USE_NETWORK_X:
             map = nx.Graph((k, v, {"weight": weight}) for k, vs in map.friends.items() for v, weight in vs.items())

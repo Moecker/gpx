@@ -35,6 +35,7 @@ def reset_config():
     config.USE_PICKLE = True
     config.USE_SMART = True
     config.USE_INEXACT_STEP_DISTANCE = False
+    config.USE_PARALLEL = False
 
 
 AUGSBURG = (48.3717, 10.8983)
@@ -61,6 +62,7 @@ class TestFacade(unittest.TestCase):
             interactive=False,
             verbose=True,
             dry=False,
+            web_app=False,
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 2)
@@ -75,6 +77,7 @@ class TestFacade(unittest.TestCase):
             interactive=False,
             verbose=True,
             dry=False,
+            web_app=False,
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 3)
@@ -90,6 +93,7 @@ class TestFacade(unittest.TestCase):
             interactive=False,
             verbose=True,
             dry=False,
+            web_app=False,
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 2)
@@ -104,6 +108,7 @@ class TestFacade(unittest.TestCase):
             interactive=False,
             verbose=True,
             dry=False,
+            web_app=False,
         )
         if config.USE_NETWORK_X:
             self.assertRaises(nx.exception.NetworkXNoPath, facade.main, args)
@@ -120,6 +125,7 @@ class TestFacade(unittest.TestCase):
             interactive=False,
             verbose=True,
             dry=False,
+            web_app=False,
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 2)
@@ -136,6 +142,7 @@ class TestFacade(unittest.TestCase):
             interactive=False,
             verbose=True,
             dry=False,
+            web_app=False,
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 3)
@@ -152,6 +159,7 @@ class TestFacade(unittest.TestCase):
             interactive=False,
             verbose=True,
             dry=False,
+            web_app=False,
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 4)
@@ -168,6 +176,7 @@ class TestFacade(unittest.TestCase):
             interactive=False,
             verbose=True,
             dry=False,
+            web_app=False,
         )
         dijkstra_rescaled = facade.main(args)
         self.assertEqual(len(dijkstra_rescaled), 4)
@@ -186,18 +195,15 @@ class TestFacade(unittest.TestCase):
             interactive=False,
             verbose=True,
             dry=False,
+            web_app=False,
         )
-        dijkstra_rescaled = facade.main(args)
+        _ = facade.main(args)
 
 
 class TestFacadeNetworkX(TestFacade):
     def setUp(self):
         reset_config()
         config.USE_NETWORK_X = True
-
-
-def main():
-    unittest.main()
 
 
 if __name__ == "__main__":

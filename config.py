@@ -1,5 +1,5 @@
 # Controls whether to always re-create the graph.
-ALWAYS_GRAPH = False
+ALWAYS_GRAPH = True
 
 # Controls whether to always re-create cached segments dicts.
 ALWAYS_PARSE = False
@@ -80,6 +80,6 @@ USE_SMART = False
 # Whether to use a inexact step distance to speed up the graph building process.
 USE_INEXACT_STEP_DISTANCE = True
 
+# Whether to use parallel mode or not.
+USE_PARALLEL = True
 
-def main():
-    pass
