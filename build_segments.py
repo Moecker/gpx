@@ -17,6 +17,14 @@ import reducer
 import utils
 
 
+def collect_all_points(segments_dict):
+    all_points = []
+    for _, segment in segments_dict.items():
+        for point in segment.points:
+            all_points.append(point)
+    return all_points
+
+
 def build_segments_dict(reduction_threshold, pickle_path, pattern, output_dir):
     segments_dict = try_load_pickle(pickle_path)
 

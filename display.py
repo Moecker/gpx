@@ -7,10 +7,11 @@ import utils
 
 
 def overlay_gpx(gpx_data_file, zoom):
+    # Import only when using, improves runtime.
     import folium
 
     """
-    overlay a gpx route on top of an OSM map using Folium
+    Overlay a gpx route on top of an OSM map using Folium
     some portions of this function were adapted
     from this post: https://stackoverflow.com/questions/54455657/
     how-can-i-plot-a-map-using-latitude-and-longitude-data-in-python-highlight-few
@@ -29,6 +30,7 @@ def overlay_gpx(gpx_data_file, zoom):
 
     map = folium.Map(location=[latitude, longitude], zoom_start=zoom)
     folium.PolyLine(points, color="red", weight=2.5, opacity=1).add_to(map)
+
     return map
 
 
@@ -48,7 +50,3 @@ def save_gpx_as_html(map_name, dir):
 
     map = overlay_gpx(gpx_file_path, zoom=8)
     map.save(f"{html_file_path}")
-
-
-def ascii_map(map):
-    pass

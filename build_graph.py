@@ -4,9 +4,8 @@ import os
 import pickle
 from pathlib import Path
 from pprint import pformat
+
 import networkx as nx
-
-
 from tqdm import tqdm
 
 import astar
@@ -16,31 +15,6 @@ import cpp.point.point as point_cpp
 import distance
 import gpx_tools
 import utils
-
-
-def nx_adjust_weight(g, n1, n2, cost):
-    g.adj[n1][n2]["weight"] = cost
-    g.adj[n2][n1]["weight"] = cost
-
-
-def nx_build_heuristic(p1, p2):
-    return distance.haversine_gpx(p1, p2) * config.HEURISTIC_SCALE_FACTOR
-
-
-def nx_cost(g, p1, p2):
-    path = nx.astar_path(g, p1, p2, nx_build_heuristic)
-    weight_fn = lambda u, v, data: data.get("weight", 1)
-    cost = sum(weight_fn(u, v, g[u][v]) for u, v in zip(path[:-1], path[1:]))
-    return path, cost
-
-
-nx.Graph.keys = lambda g: g.nodes()
-# TODO Implement
-nx.Graph.weights = lambda g: [0, 0]
-nx.Graph.build_heuristic = lambda p1, p2: None
-nx.Graph.dijkstra = nx_cost
-nx.Graph.adjust_weight = nx_adjust_weight
-nx.Graph.friends = nx.Graph.adj
 
 
 def debug_graph(map):
@@ -173,14 +147,6 @@ def build_map_cpp(segments_dict):
     return build_map(segments_dict, map)
 
 
-def collect_all_points(segments_dict):
-    all_points = []
-    for _, segment in segments_dict.items():
-        for point in segment.points:
-            all_points.append(point)
-    return all_points
-
-
 def compute_min_dis(map, start_gpx):
     min_dis = math.inf
     min_node = None
@@ -234,14 +200,14 @@ def find_path(map, start, end, strategy):
         return None
 
     if first == last:
-        logging.error(f"Start and End GPX positions are identical.")
+        logging.warning(f"Start and End GPX positions are identical.")
         return None
 
     logging.info("Searching Path.")
     path, cost = strategy(first, last)
 
     if not path:
-        logging.error(f"No path found from {first} to {last}.")
+        logging.warning(f"No path found from {first} to {last}.")
         return None
 
     logging.debug(f"Path found, length of path: {len(path)}.")

@@ -18,6 +18,7 @@ import gpx_display
 import gpx_tools
 import utils
 from pathlib import Path
+import networkx_adapter
 
 
 def annotate_points(segments_dict):
@@ -175,6 +176,9 @@ def main(args) -> list:
 
     print_important_infos()
 
+    if config.USE_NETWORK_X:
+        networkx_adapter.patch()
+
     Path(config.RESULTS_FOLDER).mkdir(parents=True, exist_ok=True)
 
     cities = load_worldcities()
@@ -188,7 +192,7 @@ def main(args) -> list:
 
     annotate_points(segments_dict)
 
-    all_points = build_graph.collect_all_points(segments_dict)
+    all_points = build_segments.collect_all_points(segments_dict)
     logging.debug(f"Number of points in segments {str(len(all_points))}.")
 
     if not args.dry:
@@ -313,7 +317,8 @@ def perform_run(cities, start_city, end_city, segments_dict, background, map, dr
 
     dijkstra, dijkstra_rescaled = perform_dijksra(start_gps, end_gps, segments_dict, background, map)
 
-    if not dry:
+    # Do not save if in dry mode or no path has been found
+    if not dry and dijkstra and dijkstra_rescaled:
         gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, f"{run}_dijkstra.gpx", config.MAX_POINTS_OVERVIEW)
         gpx_tools.save_as_gpx_file(
             dijkstra_rescaled, config.RESULTS_FOLDER, f"{run}_dijkstra_rescaled.gpx", config.MAX_POINTS
@@ -325,6 +330,7 @@ def perform_run(cities, start_city, end_city, segments_dict, background, map, dr
 
 
 def print_important_infos():
+    # Notify on "non default" options.
     if not config.USE_PICKLE:
         logging.warning("Option config.USE_PICKLE is inactive.")
     if not config.USE_INEXACT_STEP_DISTANCE:
@@ -334,6 +340,8 @@ def print_important_infos():
         logging.warning("Option config.USE_CPP is active.")
     if config.USE_SMART:
         logging.warning("Option config.USE_SMART is active.")
+    if config.USE_NETWORK_X:
+        logging.warning("Option config.USE_NETWORK_X is active.")
 
     if config.ALWAYS_REDUCE:
         logging.warning("Option config.ALWAYS_REDUCE is active.")
