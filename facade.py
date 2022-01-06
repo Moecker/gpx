@@ -101,6 +101,7 @@ def load_map(segments_dict, gpx_path):
             str(int(config.REDUCTION_DISTANCE)),
             "cpp" if config.USE_CPP else "py",
             "smart" if config.USE_SMART else "default",
+            "parallel" if config.USE_PARALLEL else "single",
             "networkx" if config.USE_NETWORK_X else "astar",
             utils.replace_os_separator(gpx_path),
             str(int(config.GRAPH_CONNECTION_DISTANCE)),

@@ -1,5 +1,5 @@
 # Controls whether to always re-create the graph.
-ALWAYS_GRAPH = True
+ALWAYS_GRAPH = False
 
 # Controls whether to always re-create cached segments dicts.
 ALWAYS_PARSE = False
@@ -50,7 +50,7 @@ PRECISION = 10
 # Note: Impacts Reduction Cache
 # Note: Impacts Segment Cache
 # Note: Impacts Map Cache
-REDUCTION_DISTANCE = 100
+REDUCTION_DISTANCE = 1000
 
 # Location for the final results, GPX track files and HTML map views.
 RESULTS_FOLDER = "results"
@@ -75,11 +75,10 @@ USE_NETWORK_X = True
 USE_PICKLE = True
 
 # Algorithm for building the graph.
-USE_SMART = False
+USE_SMART = True
 
 # Whether to use a inexact step distance to speed up the graph building process.
 USE_INEXACT_STEP_DISTANCE = True
 
 # Whether to use parallel mode or not.
-USE_PARALLEL = True
-
+USE_PARALLEL = False

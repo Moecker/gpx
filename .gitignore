@@ -145,3 +145,4 @@ dmypy.json
 /.vscode
 /tmp/log.txt
 /tmp/web_app_log.txt
+.DS_Store

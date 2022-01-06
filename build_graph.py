@@ -16,9 +16,12 @@ import cpp.point.point as point_cpp
 import distance
 import gpx_tools
 import utils
+from functools import partial
 
 import multiprocessing
 from joblib import Parallel, delayed
+
+global GLOBAL_SEGMENTS_DICT
 
 
 def debug_graph(map):
@@ -129,8 +132,10 @@ def build_map(segments_dict, map):
 
 
 def inner(segment, segments_dict, map):
+    additions = []
     if not len(segment.points):
-        return
+        logging.error("No points in segment")
+        return additions
 
     idx = 0
     prev_point = None
@@ -139,8 +144,10 @@ def inner(segment, segments_dict, map):
         if prev_point:
             dis = distance.haversine_gpx(prev_point, point)
             map.add(prev_point, point, max(1, int(dis)))
+            additions.append((prev_point, point, max(1, int(dis))))
 
-        find_and_add_adjacent_nodes(map, segments_dict, segment, point)
+        adjacent_additions = find_and_add_adjacent_nodes(map, segments_dict, segment, point)
+        additions.extend(adjacent_additions)
 
         prev_point = point
 
@@ -149,45 +156,33 @@ def inner(segment, segments_dict, map):
         if idx == len(segment.points) - 1:
             break
         idx = min(idx + max(1, config.PRECISION), max(len(segment.points) - 1, 1))
+    return additions
 
 
 def inner_smart(segment, segments_dict, map):
     return inner(segment, segments_dict, map)
 
-def do_parallel(segment):
-    global GLOBAL_SEGMENTS_DICT
-    # Possible this could also be a CPP Graph.
-    map = astar.Graph()
-    inner(segment, GLOBAL_SEGMENTS_DICT, map)
-    return map
+
+def do_parallel(segment, segments_dict):
+    additions = inner(segment, segments_dict, astar.Graph())
+    return additions
 
 
 def build_map_parallel(segments_dict, the_map):
-    # Due to not knowing how to hand over arguments to the parallel function.
-    global GLOBAL_SEGMENTS_DICT
-    GLOBAL_SEGMENTS_DICT = segments_dict
+    args = [(k, segments_dict) for k in list(segments_dict.values())]
 
-    maps = Parallel(n_jobs=-1, backend="threading")(map(delayed(do_parallel), list(segments_dict.values())))
-    for single_map in maps:
-        the_map.friends.update(single_map.friends)
+    parallel_calls = tqdm([partial(do_parallel, segment, segments_dict) for segment, segments_dict in args])
+    additions = Parallel(n_jobs=1)(delayed(f)() for f in parallel_calls)
+
+    for addition_group in additions:
+        for addition in addition_group:
+            the_map.add(addition[0], addition[1], addition[2])
     return the_map
 
-def do_smart_parallel(segment):
-    global GLOBAL_SEGMENTS_DICT
-    # Possible this could also be a CPP Graph.
-    map = astar.Graph()
-    inner_smart(segment, GLOBAL_SEGMENTS_DICT, map)
-    return map
 
 def build_map_smart_parallel(segments_dict, the_map):
-    # Due to not knowing how to hand over arguments to the parallel function.
-    global GLOBAL_SEGMENTS_DICT
-    GLOBAL_SEGMENTS_DICT = segments_dict
+    return build_map_parallel(segments_dict, the_map)
 
-    maps = Parallel(n_jobs=-1, backend="threading")(map(delayed(do_smart_parallel), list(segments_dict.values())))
-    for single_map in maps:
-        the_map.friends.update(single_map.friends)
-    return the_map
 
 def build_map_cpp(segments_dict):
     map = graph_cpp.Graph()
@@ -209,6 +204,7 @@ def compute_min_dis(map, start_gpx):
 
 
 def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_point):
+    additions = []
     for _, other_segment in segments_dict.items():
         # Do no connect points which would skip intermediate, intra segment points
         if other_segment == current_segment:
@@ -226,6 +222,7 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
 
             if dis < config.GRAPH_CONNECTION_DISTANCE:
                 map.add(current_point, other_point, max(1, int(dis)))
+                additions.append((current_point, other_point, max(1, int(dis))))
 
             if config.USE_INEXACT_STEP_DISTANCE:
                 step_distance = int(dis * 1000 / config.REDUCTION_DISTANCE / config.GRAPH_CONNECTION_DISTANCE)
@@ -237,6 +234,7 @@ def find_and_add_adjacent_nodes(map, segments_dict, current_segment, current_poi
             if idx == len(other_segment.points) - 1:
                 break
             idx = min(idx + max(1, step_distance), max(len(other_segment.points) - 1, 1))
+    return additions
 
 
 def find_path(map, start, end, strategy):
@@ -285,7 +283,11 @@ def load_or_build_map(segments_dict, name, output_dir):
 
         # Decide which graph build algo to use.
         if config.USE_PARALLEL:
-            map = build_map_smart_parallel(segments_dict, map) if config.USE_SMART else build_map_parallel(segments_dict, map)
+            map = (
+                build_map_smart_parallel(segments_dict, map)
+                if config.USE_SMART
+                else build_map_parallel(segments_dict, map)
+            )
         else:
             map = build_map_smart(segments_dict, map) if config.USE_SMART else build_map(segments_dict, map)
 
