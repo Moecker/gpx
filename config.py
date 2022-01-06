@@ -1,5 +1,3 @@
-import astar
-
 # Controls whether to always re-create the graph.
 ALWAYS_GRAPH = False
 

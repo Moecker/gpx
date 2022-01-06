@@ -13,4 +13,4 @@ pushd cpp/point
 pip3 install -e .
 popd
 
-python3 cpp.py
+python3 test_cpp.py

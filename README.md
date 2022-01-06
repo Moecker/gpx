@@ -20,9 +20,14 @@ optional arguments:
 python3 facade.py  --start Basel --end Zurich --gpx bikeline\\ch
 ```
 
+## Tests
+```
+python3 test_facade.py
+```
+
 ## Runnables
 * `facade.py`: The main entry point to find paths. Does everything, reducing GPS points, parsing and building a graph, and searching paths between start and end points.
-* `web_app.py`: A web app using he facade API.  
+* `web_app.py`: A web app using he facade API.
 
 ## Tests
 All files starting with `test_` are considered tests.
@@ -73,3 +78,6 @@ All files starting with `test_` are considered tests.
 
 
 ```
+
+# Other
+* Create requirements.txt with `python3 -m  pipreqs.pipreqs . --force`

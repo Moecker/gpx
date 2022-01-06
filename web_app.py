@@ -43,7 +43,7 @@ def run(start, end):
     if not path:
         return "Error during path finding."
 
-    with open("results/dijkstra_rescaled.html") as f:
+    with open("results/1_dijkstra_rescaled.html") as f:
         return f.read()
 
 

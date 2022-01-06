@@ -10,6 +10,6 @@
 * ID4:
   * (DONE) Select multiple possible path: https://softwareengineering.stackexchange.com/questions/232305/a-with-possible-multiple-paths
 * ID5:
-  * Use python C++ binding to speed up
+  * (DONE) Use python C++ binding to speed up
 * ID6:
-  * Only use those nodes which are possible segment change (or shortcuts) into the map
+  * (DONE) Only use those nodes which are possible segment change (or shortcuts) into the map
