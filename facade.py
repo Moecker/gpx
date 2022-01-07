@@ -243,6 +243,7 @@ def empty_path_tuple():
 def normal_mode(cities, start, end, segments_dict, background, map, dry):
     loop = 0
     old_weights_data = []
+    success = True
     while True:
         if loop >= config.NUMBER_OF_PATHS:
             logging.info(f"Maximum configured number of {config.NUMBER_OF_PATHS} path(s) found.")
@@ -259,13 +260,17 @@ def normal_mode(cities, start, end, segments_dict, background, map, dry):
         dijkstra, dijkstra_rescaled = perform_run(cities, start, end, segments_dict, background, map, dry, loop)
 
         if not dijkstra or not dijkstra_rescaled:
+            success = False
             break
 
         continue
 
-    display.save_gpx_as_html(
-        [f"{run}_dijkstra_rescaled" for run in range(1, config.NUMBER_OF_PATHS + 1)], config.RESULTS_FOLDER, "path.html"
-    )
+    if success:
+        display.save_gpx_as_html(
+            [f"{run}_dijkstra_rescaled" for run in range(1, config.NUMBER_OF_PATHS + 1)],
+            config.RESULTS_FOLDER,
+            "path.html",
+        )
 
     return dijkstra_rescaled, old_weights_data
 
