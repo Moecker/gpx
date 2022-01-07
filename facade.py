@@ -199,7 +199,7 @@ def main(args) -> list:
 
     if not args.dry:
         gpx_tools.save_as_gpx_file(all_points, config.RESULTS_FOLDER, "all_points.gpx", config.MAX_POINTS_OVERVIEW)
-        display.save_gpx_as_html(["all_points"], config.RESULTS_FOLDER)
+        display.save_gpx_as_html(["all_points"], config.RESULTS_FOLDER, "all_points.html")
 
     background = load_background()
 
@@ -213,22 +213,36 @@ def main(args) -> list:
     if not config.USE_CPP:
         build_graph.adjust_weight_foreign_segments(map)
 
-    dijkstra_rescaled = None
+    dijkstra_rescaled_runs = []
     if args.interactive:
         interactive_mode(cities, segments_dict, background, map, args.dry)
     elif args.web_app:
         return cities, segments_dict, background, map
     else:
-        dijkstra_rescaled = normal_mode(args, cities, segments_dict, background, map, args.dry)
-    return dijkstra_rescaled
+        dijkstra_rescaled, old_weights_data = normal_mode(
+            cities, args.start, args.end, segments_dict, background, map, args.dry
+        )
+        dijkstra_rescaled_runs.append(dijkstra_rescaled)
+
+    readjust_weights(old_weights_data, map)
+
+    return dijkstra_rescaled_runs
+
+
+def readjust_weights(old_weights_data, map):
+    for old_weights in reversed(old_weights_data):
+        for k1, v1 in old_weights.items():
+            for k2, v2 in v1.items():
+                map.adjust_weight(k1, k2, v2)
 
 
 def empty_path_tuple():
     return [], []
 
 
-def normal_mode(args, cities, segments_dict, background, map, dry):
+def normal_mode(cities, start, end, segments_dict, background, map, dry):
     loop = 0
+    old_weights_data = []
     while True:
         if loop >= config.NUMBER_OF_PATHS:
             logging.info(f"Maximum configured number of {config.NUMBER_OF_PATHS} path(s) found.")
@@ -236,20 +250,24 @@ def normal_mode(args, cities, segments_dict, background, map, dry):
 
         if loop > 0:
             logging.debug("Adjusting weights for next run.")
-            build_graph.adjust_weight_of_path(dijkstra, map)
+            old_weights = build_graph.adjust_weight_of_path(dijkstra, map)
+            old_weights_data.append(old_weights)
 
         loop += 1
         logging.info(f"Searching path {loop} of {config.NUMBER_OF_PATHS}.")
 
-        dijkstra, dijkstra_rescaled = perform_run(
-            cities, args.start, args.end, segments_dict, background, map, dry, loop
-        )
+        dijkstra, dijkstra_rescaled = perform_run(cities, start, end, segments_dict, background, map, dry, loop)
 
         if not dijkstra or not dijkstra_rescaled:
             break
 
         continue
-    return dijkstra_rescaled
+
+    display.save_gpx_as_html(
+        [f"{run}_dijkstra_rescaled" for run in range(1, config.NUMBER_OF_PATHS + 1)], config.RESULTS_FOLDER, "path.html"
+    )
+
+    return dijkstra_rescaled, old_weights_data
 
 
 def open_web_browser():
@@ -328,9 +346,8 @@ def perform_run(cities, start_city, end_city, segments_dict, background, map, dr
         gpx_tools.save_as_gpx_file(
             dijkstra_rescaled, config.RESULTS_FOLDER, f"{run}_dijkstra_rescaled.gpx", config.MAX_POINTS
         )
-        display.save_gpx_as_html([f"{run}_dijkstra"], config.RESULTS_FOLDER)
-        display.save_gpx_as_html([f"{run}_dijkstra_rescaled"], config.RESULTS_FOLDER)
-        display.save_gpx_as_html([f"{run}_dijkstra", f"{run}_dijkstra_rescaled"], config.RESULTS_FOLDER)
+        display.save_gpx_as_html([f"{run}_dijkstra"], config.RESULTS_FOLDER, f"{run}_dijkstra.html")
+        display.save_gpx_as_html([f"{run}_dijkstra_rescaled"], config.RESULTS_FOLDER, f"{run}_dijkstra_rescaled.html")
 
     return dijkstra, dijkstra_rescaled
 

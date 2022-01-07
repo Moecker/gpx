@@ -5,10 +5,10 @@ import gpxpy
 
 import utils
 
-COLORS = ["blue", "red"]
+COLORS = ["blue", "red", "green", "yellow", "brown"]
 
 
-def overlay_gpx(gpx_data_files, zoom):
+def overlay_gpx(gpx_data_files, zoom, name=None):
     # Import only when using, improves runtime.
     import folium
 
@@ -18,7 +18,10 @@ def overlay_gpx(gpx_data_files, zoom):
     from this post: https://stackoverflow.com/questions/54455657/
     how-can-i-plot-a-map-using-latitude-and-longitude-data-in-python-highlight-few
     """
-    for idx, gpx_data_file in enumerate(gpx_data_files):
+    polylines = []
+    all_points = []
+
+    for idx, gpx_data_file in enumerate(reversed(gpx_data_files)):
         with open(gpx_data_file, "r") as gpx_file:
             gpx = gpxpy.parse(gpx_file)
 
@@ -27,24 +30,24 @@ def overlay_gpx(gpx_data_files, zoom):
             for segment in track.segments:
                 for point in segment.points:
                     points.append(tuple([point.latitude, point.longitude]))
+        all_points.extend(points)
 
-        latitude = sum(p[0] for p in points) / len(points)
-        longitude = sum(p[1] for p in points) / len(points)
+        polylines.append(folium.PolyLine(points, color=COLORS[len(gpx_data_files) - idx - 1], weight=2.5, opacity=1))
 
-        map = folium.Map(location=[latitude, longitude], zoom_start=zoom)
-        folium.PolyLine(points, color=COLORS[idx], weight=2.5, opacity=1).add_to(map)
+    latitude = sum(p[0] for p in all_points) / len(all_points)
+    longitude = sum(p[1] for p in all_points) / len(all_points)
+
+    map = folium.Map(location=[latitude, longitude], zoom_start=zoom)
+    for polyline in polylines:
+        polyline.add_to(map)
 
     return map
 
 
-def save_gpx_as_html(map_names, dir):
+def save_gpx_as_html(map_names, dir, name):
     gpx_file_paths = []
 
-    if len(map_names) > 1:
-        html_file_path = os.path.join(dir, f"paths.html")
-    else:
-        # Backwards compatibility for a single path
-        html_file_path = os.path.join(dir, f"{map_names[0]}.html")
+    html_file_path = os.path.join(dir, f"{name}")
 
     for map_name in map_names:
         gpx_file_path = os.path.join(dir, f"{map_name}.gpx")
@@ -60,5 +63,5 @@ def save_gpx_as_html(map_names, dir):
             )
             return
 
-    map = overlay_gpx(gpx_file_paths, zoom=8)
+    map = overlay_gpx(gpx_file_paths, 8, html_file_path)
     map.save(f"{html_file_path}")

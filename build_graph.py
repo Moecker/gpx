@@ -17,6 +17,7 @@ import distance
 import gpx_tools
 import utils
 from functools import partial
+from collections import defaultdict
 
 import multiprocessing
 from joblib import Parallel, delayed
@@ -44,13 +45,16 @@ def adjust_weight_foreign_segments(map):
 
 
 def adjust_weight_of_path(path, map):
+    old_weights = defaultdict(partial(defaultdict, int))
     prev_point = None
     for point in path:
         if prev_point == None:
             prev_point = point
             continue
+        old_weights[prev_point][point] = map.get_weight(prev_point, point)
         map.adjust_weight(prev_point, point, config.COST_ALREADY_VISITED_PENALTY)
         prev_point = point
+    return old_weights
 
 
 def build_map_smart(segments_dict, map):

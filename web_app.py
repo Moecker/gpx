@@ -7,6 +7,7 @@ from flask import request
 
 import config
 import facade
+import copy
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
@@ -48,6 +49,7 @@ def api_id():
 
 
 def load():
+    logging.debug("Setting up web app globals.")
     args = argparse.Namespace(gpx=config.WEB_APP_SOURCE, interactive=False, verbose=True, dry=False, web_app=True)
     Globals.cities, Globals.segments_dict, Globals.background, Globals.map = facade.main(args)
 
@@ -75,15 +77,16 @@ def build_html(map_html, start, end):
 
 
 def run(start, end):
-    logging.info("")
-    dijkstra, dijkstra_rescaled = facade.perform_run(
-        Globals.cities, start, end, Globals.segments_dict, Globals.background, Globals.map, False, 0
+    logging.info("New web app run.")
+    dijkstra_rescaled, old_weights_data = facade.normal_mode(
+        Globals.cities, start, end, Globals.segments_dict, Globals.background, Globals.map, False
     )
+    facade.readjust_weights(old_weights_data, Globals.map)
 
-    if not dijkstra or not dijkstra_rescaled:
+    if not dijkstra_rescaled:
         return read_and_show_log()
 
-    return build_html("results/0_dijkstra_rescaled.html", start, end)
+    return build_html("results/path.html", start, end)
 
 
 if __name__ == "__main__":

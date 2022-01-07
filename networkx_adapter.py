@@ -8,6 +8,10 @@ def nx_adjust_weight(g, n1, n2, cost):
     g.adj[n2][n1]["weight"] = cost
 
 
+def nx_get_weight(g, n1, n2):
+    return g.adj[n1][n2]["weight"]
+
+
 def nx_build_heuristic(p1, p2):
     return distance.haversine_gpx(p1, p2) * config.HEURISTIC_SCALE_FACTOR
 
@@ -27,4 +31,5 @@ def patch():
     nx.Graph.build_heuristic = lambda p1, p2: None
     nx.Graph.dijkstra = nx_cost
     nx.Graph.adjust_weight = nx_adjust_weight
+    nx.Graph.get_weight = nx_get_weight
     nx.Graph.friends = nx.Graph.adj

@@ -64,7 +64,7 @@ class TestFacade(unittest.TestCase):
             dry=False,
             web_app=False,
         )
-        dijkstra_rescaled = facade.main(args)
+        dijkstra_rescaled = facade.main(args)[0]
         self.assertEqual(len(dijkstra_rescaled), 2)
         self.compare_points(dijkstra_rescaled[0], MUNICH)
         self.compare_points(dijkstra_rescaled[-1], DACHAU)
@@ -79,7 +79,7 @@ class TestFacade(unittest.TestCase):
             dry=False,
             web_app=False,
         )
-        dijkstra_rescaled = facade.main(args)
+        dijkstra_rescaled = facade.main(args)[0]
         self.assertEqual(len(dijkstra_rescaled), 3)
         self.compare_points(dijkstra_rescaled[0], MUNICH)
         self.compare_points(dijkstra_rescaled[1], FURSTENFELDBRUCK)
@@ -95,7 +95,7 @@ class TestFacade(unittest.TestCase):
             dry=False,
             web_app=False,
         )
-        dijkstra_rescaled = facade.main(args)
+        dijkstra_rescaled = facade.main(args)[0]
         self.assertEqual(len(dijkstra_rescaled), 2)
         self.compare_points(dijkstra_rescaled[0], MUNICH)
         self.compare_points(dijkstra_rescaled[1], DACHAU)
@@ -113,7 +113,7 @@ class TestFacade(unittest.TestCase):
         if config.USE_NETWORK_X:
             self.assertRaises(nx.exception.NetworkXNoPath, facade.main, args)
         else:
-            dijkstra_rescaled = facade.main(args)
+            dijkstra_rescaled = facade.main(args)[0]
             self.assertEqual(dijkstra_rescaled, [])
 
     def test_munich_dachau_detour_big_segment_distance(self):
@@ -127,7 +127,7 @@ class TestFacade(unittest.TestCase):
             dry=False,
             web_app=False,
         )
-        dijkstra_rescaled = facade.main(args)
+        dijkstra_rescaled = facade.main(args)[0]
         self.assertEqual(len(dijkstra_rescaled), 2)
         self.compare_points(dijkstra_rescaled[0], MUNICH)
         self.compare_points(dijkstra_rescaled[1], FREISING)
@@ -144,7 +144,7 @@ class TestFacade(unittest.TestCase):
             dry=False,
             web_app=False,
         )
-        dijkstra_rescaled = facade.main(args)
+        dijkstra_rescaled = facade.main(args)[0]
         self.assertEqual(len(dijkstra_rescaled), 3)
         self.compare_points(dijkstra_rescaled[0], MUNICH)
         self.compare_points(dijkstra_rescaled[1], DACHAU)
@@ -161,7 +161,7 @@ class TestFacade(unittest.TestCase):
             dry=False,
             web_app=False,
         )
-        dijkstra_rescaled = facade.main(args)
+        dijkstra_rescaled = facade.main(args)[0]
         self.assertEqual(len(dijkstra_rescaled), 4)
         self.compare_points(dijkstra_rescaled[0], MUNICH)
         self.compare_points(dijkstra_rescaled[1], FURSTENFELDBRUCK)
@@ -178,7 +178,7 @@ class TestFacade(unittest.TestCase):
             dry=False,
             web_app=False,
         )
-        dijkstra_rescaled = facade.main(args)
+        dijkstra_rescaled = facade.main(args)[0]
         self.assertEqual(len(dijkstra_rescaled), 4)
         self.compare_points(dijkstra_rescaled[0], MUNICH)
         self.compare_points(dijkstra_rescaled[1], FURSTENFELDBRUCK)
