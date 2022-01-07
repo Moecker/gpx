@@ -1,9 +1,11 @@
 import argparse
+import logging
 import os
 
 import flask
 from flask import request
-import logging
+
+import config
 import facade
 
 app = flask.Flask(__name__)
@@ -17,13 +19,22 @@ class Globals:
     map = None
 
 
+def get_form(start, end):
+    return f"""
+    <form action="/path">
+        <input name="start" value="{start}">
+        <input name="end" value="{end}">
+        <button>Search</button>
+    </form>
+    """.strip()
+
+
 @app.route("/", methods=["GET"])
 def home():
-    with open("form.html") as f:
-        return f.read()
+    return build_html(os.path.join("data", "map_template.html"), "Bern", "Chur")
 
 
-@app.route("/api/path", methods=["GET"])
+@app.route("/path", methods=["GET"])
 def api_id():
     if not "start" in request.args:
         return "No 'start' field provided."
@@ -37,7 +48,7 @@ def api_id():
 
 
 def load():
-    args = argparse.Namespace(gpx=os.path.join("adfc"), interactive=False, verbose=True, dry=False, web_app=True)
+    args = argparse.Namespace(gpx=config.WEB_APP_SOURCE, interactive=False, verbose=True, dry=False, web_app=True)
     Globals.cities, Globals.segments_dict, Globals.background, Globals.map = facade.main(args)
 
 
@@ -52,6 +63,17 @@ def read_and_show_log():
     return "<br>".join(filtered)
 
 
+def build_html(map_html, start, end):
+    with open(map_html) as f:
+        content = f.readlines()
+        result = []
+        for c in content:
+            result.append(c)
+            if c.startswith("<body>"):
+                result.append(get_form(start, end))
+        return "\n".join(result)
+
+
 def run(start, end):
     logging.info("")
     dijkstra, dijkstra_rescaled = facade.perform_run(
@@ -61,8 +83,7 @@ def run(start, end):
     if not dijkstra or not dijkstra_rescaled:
         return read_and_show_log()
 
-    with open("results/0_dijkstra_rescaled.html") as f:
-        return f.read()
+    return build_html("results/0_dijkstra_rescaled.html", start, end)
 
 
 if __name__ == "__main__":
@@ -73,4 +94,4 @@ if __name__ == "__main__":
         handlers=[logging.FileHandler(os.path.join("tmp", "web_app_log.txt"), mode="w"), logging.StreamHandler()],
     )
     load()
-    app.run(port=8080)
+    app.run(port=8080, use_reloader=False)

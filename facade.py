@@ -199,7 +199,7 @@ def main(args) -> list:
 
     if not args.dry:
         gpx_tools.save_as_gpx_file(all_points, config.RESULTS_FOLDER, "all_points.gpx", config.MAX_POINTS_OVERVIEW)
-        display.save_gpx_as_html("all_points", config.RESULTS_FOLDER)
+        display.save_gpx_as_html(["all_points"], config.RESULTS_FOLDER)
 
     background = load_background()
 
@@ -328,8 +328,9 @@ def perform_run(cities, start_city, end_city, segments_dict, background, map, dr
         gpx_tools.save_as_gpx_file(
             dijkstra_rescaled, config.RESULTS_FOLDER, f"{run}_dijkstra_rescaled.gpx", config.MAX_POINTS
         )
-        display.save_gpx_as_html(f"{run}_dijkstra", config.RESULTS_FOLDER)
-        display.save_gpx_as_html(f"{run}_dijkstra_rescaled", config.RESULTS_FOLDER)
+        display.save_gpx_as_html([f"{run}_dijkstra"], config.RESULTS_FOLDER)
+        display.save_gpx_as_html([f"{run}_dijkstra_rescaled"], config.RESULTS_FOLDER)
+        display.save_gpx_as_html([f"{run}_dijkstra", f"{run}_dijkstra_rescaled"], config.RESULTS_FOLDER)
 
     return dijkstra, dijkstra_rescaled
 

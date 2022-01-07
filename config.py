@@ -1,3 +1,5 @@
+import os
+
 # Controls whether to always re-create the graph.
 ALWAYS_GRAPH = False
 
@@ -82,3 +84,6 @@ USE_INEXACT_STEP_DISTANCE = True
 
 # Whether to use parallel mode or not.
 USE_PARALLEL = False
+
+# Database used for web app
+WEB_APP_SOURCE = os.path.join("adfc")
