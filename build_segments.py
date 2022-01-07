@@ -1,14 +1,14 @@
-from pathlib import Path
-from pprint import pformat
 import glob
 import logging
 import math
 import os
 import pickle
+from pathlib import Path
+from pprint import pformat
 
-from tqdm import tqdm
 import gpxpy
 import gpxpy.gpx
+from tqdm import tqdm
 
 import config
 import distance
@@ -40,6 +40,7 @@ def build_segments_dict(reduction_threshold, pickle_path, pattern, output_dir):
         if config.USE_PICKLE:
             logging.debug(f"Saving pickle file to '{utils.make_path_clickable(pickle_path)}'.")
             Path(pickle_path).resolve().parent.mkdir(parents=True, exist_ok=True)
+
             with open(pickle_path, "wb") as f:
                 pickle.dump(segments_dict, f)
 
@@ -55,6 +56,7 @@ def compute_distances(start_gps, segments_dict):
             dis = distance.haversine_gpx(point, start_gps)
             if dis < min_distance:
                 min_distance = dis
+
         logging.debug(f"Minimum Distance: {min_distance:.2f} km.")
         distances[name] = min_distance
     return distances
@@ -117,6 +119,7 @@ def load_and_reduce_gpxs(track_file_names, threshold, pickle_path, output_dir):
     for track_file_name in pbar:
         track_file_name_reduced = get_reduced_name(dir_name, threshold_string, track_file_name)
         pbar.set_description(f"Packing {track_file_name_reduced.ljust(180):.100s}")
+
         if not os.path.isfile(track_file_name_reduced):
             logging.error(f"\nError while packing '{track_file_name_reduced}', file does not exist.")
             continue
@@ -136,6 +139,7 @@ def setup_segments_dict(segments_dict, track_file_name_reduced):
 
         for track in gpx.tracks:
             segment_id = 0
+
             for segment in track.segments:
                 key = track_file_name_reduced + ":" + track.name + ":" + str(segment_id)
                 segments_dict[key] = gpx_tools.simplify_segment(segment)
@@ -146,6 +150,7 @@ def try_load_pickle(pickle_path):
     if config.USE_PICKLE and not config.ALWAYS_PARSE and os.path.isfile(pickle_path):
         logging.debug(f"Path '{utils.make_path_clickable(pickle_path)}' exists.")
         logging.debug(f"Loading '{utils.make_path_clickable(pickle_path)}'.")
+
         with open(pickle_path, "rb") as f:
             segments_dict = pickle.load(f)
         return segments_dict

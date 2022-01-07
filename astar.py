@@ -127,7 +127,6 @@ class Graph:
         while len(q):
             at = q.popleft()
             for next in self.friends[at]:
-                next = next  # For the tuple thingy
                 if next not in dist:
                     # Optimal solution would be:
                     # dist[next] = [dist[at], next]

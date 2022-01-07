@@ -27,7 +27,10 @@ def patch():
     # Monkey Patches to avoid creating a own class.
     # Consider using a real class.
     nx.Graph.keys = lambda g: g.nodes()
+
+    # Needs implementation
     nx.Graph.weights = lambda g: [0, 0]
+
     nx.Graph.build_heuristic = lambda p1, p2: None
     nx.Graph.dijkstra = nx_cost
     nx.Graph.adjust_weight = nx_adjust_weight

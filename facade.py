@@ -7,6 +7,7 @@ import sys
 import time
 import webbrowser
 from collections import defaultdict
+from pathlib import Path
 
 import build_graph
 import build_segments
@@ -16,9 +17,8 @@ import display
 import distance
 import gpx_display
 import gpx_tools
-import utils
-from pathlib import Path
 import networkx_adapter
+import utils
 
 
 def annotate_points(segments_dict):

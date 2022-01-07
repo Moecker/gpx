@@ -2,11 +2,13 @@ import logging
 import math
 import os
 import pickle
+from collections import defaultdict
+from functools import partial
 from pathlib import Path
 from pprint import pformat
 
 import networkx as nx
-from networkx.algorithms.shortest_paths.astar import astar_path
+from joblib import Parallel, delayed
 from tqdm import tqdm
 
 import astar
@@ -16,11 +18,6 @@ import cpp.point.point as point_cpp
 import distance
 import gpx_tools
 import utils
-from functools import partial
-from collections import defaultdict
-
-import multiprocessing
-from joblib import Parallel, delayed
 
 global GLOBAL_SEGMENTS_DICT
 
@@ -138,7 +135,7 @@ def build_map(segments_dict, map):
 def inner(segment, segments_dict, map):
     additions = []
     if not len(segment.points):
-        logging.error("No points in segment")
+        logging.error("No points in segment.")
         return additions
 
     idx = 0
@@ -163,16 +160,14 @@ def inner(segment, segments_dict, map):
     return additions
 
 
-def inner_smart(segment, segments_dict, map):
-    return inner(segment, segments_dict, map)
-
-
 def do_parallel(segment, segments_dict):
     additions = inner(segment, segments_dict, astar.Graph())
     return additions
 
 
 def build_map_parallel(segments_dict, the_map):
+    # This does not work (yet) as expected. Goal is to parallelize the
+    # graph building proess.
     args = [(k, segments_dict) for k in list(segments_dict.values())]
 
     parallel_calls = tqdm([partial(do_parallel, segment, segments_dict) for segment, segments_dict in args])
@@ -340,7 +335,8 @@ def rescale(segments_dict, path):
             used_segments.append(key)
             previous_key = key
 
-            # TODO Unclear why this is producing artifacts in "normal" mode
+            # Unclear why this is producing artifacts in "normal" mode.
+            # The edge cases seem to not work correctly (first, last point of segment and entire path)
             if config.IS_TEST:
                 if not is_reversed:
                     if prev_point:
@@ -391,4 +387,5 @@ def rescale(segments_dict, path):
 
     logging.info(f"Path uses {len(used_segments)} different segments.")
     logging.debug(f"Used segments: \n{pformat(used_segments)}.")
+
     return rescaled_path
