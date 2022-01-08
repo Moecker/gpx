@@ -51,7 +51,17 @@ def api_id():
 def load():
     logging.debug("Setting up web app globals.")
     args = argparse.Namespace(gpx=config.WEB_APP_SOURCE, interactive=False, verbose=True, dry=False, web_app=True)
-    Globals.cities, Globals.segments_dict, Globals.background, Globals.map = facade.main(args)
+    facade_ret = facade.main(args)
+
+    if len(facade_ret) != 4:
+        logging.error("Error during preloading phase.")
+        exit()
+
+    Globals.cities, Globals.segments_dict, Globals.background, Globals.map = facade_ret
+
+    if not Globals.cities or not Globals.segments_dict or not Globals.background or not Globals.map:
+        logging.error("Error during loading phase.")
+        exit()
 
 
 def read_and_show_log():

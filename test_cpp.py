@@ -6,6 +6,7 @@ import cpp.graph.graph as graph
 import gpx_tools
 
 from pathlib import Path
+
 Path("test/pickle").mkdir(parents=True, exist_ok=True)
 
 

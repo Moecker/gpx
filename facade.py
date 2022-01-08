@@ -216,6 +216,7 @@ def main(args) -> list:
     dijkstra_rescaled_runs = []
     if args.interactive:
         interactive_mode(cities, segments_dict, background, map, args.dry)
+    # In web app mode return a state which can be used to perform normal runs.
     elif args.web_app:
         return cities, segments_dict, background, map
     else:
