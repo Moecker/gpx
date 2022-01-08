@@ -20,7 +20,8 @@ The project is a playground project to dive into a set of topics:
 1. Clone this repo `git clone https://github.com/Moecker/gpx.git/`
 2. Change into root `cd gpx`
 3. Install the python deps `python3 -m pip install --user -r requirements.txt`
-4. Build CPP bindings `./build.sh`
+4. Build CPP bindings `chmod +x build.sh && ./build.sh`
+5. (Optional) Run the tests `python3 test_facade.py`
 
 ## Usage
 ```
@@ -46,9 +47,11 @@ python3 facade.py  --start Basel --end Zurich --gpx bikelin/ch
 
 ## Web App
 With `python3 web_app.py` a local server is spawned which acts as a user interface to the path finder.
+
 ![Path Example](img/web.png)
 
 ## Tests
+The main test runner is the one testing the facade.
 ```
 python3 test_facade.py
 ```
