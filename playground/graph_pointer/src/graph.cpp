@@ -52,9 +52,7 @@ std::vector<int> Graph::weights() {
   return weights;
 };
 
-void Graph::adjust_weight(const Point *p1, const Point *p2,
-                          int cost) {
-}
+void Graph::adjust_weight(const Point *p1, const Point *p2, int cost) {}
 
 void Graph::build(std::map<std::string, std::vector<const Point *>>) {}
 
