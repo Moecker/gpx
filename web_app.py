@@ -1,13 +1,13 @@
 import argparse
 import logging
 import os
+from pathlib import Path
 
 import flask
 from flask import request
 
 import config
 import facade
-import copy
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
@@ -90,6 +90,7 @@ def run(start, end):
 
 
 if __name__ == "__main__":
+    Path("tmp").mkdir(parents=True, exist_ok=True)
     logging.basicConfig(
         level=logging.DEBUG,
         format="%(asctime)s:%(msecs)03d %(levelname)s: %(message)s",

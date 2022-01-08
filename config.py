@@ -86,4 +86,4 @@ USE_INEXACT_STEP_DISTANCE = True
 USE_PARALLEL = False
 
 # Database used for web app
-WEB_APP_SOURCE = os.path.join("bikeline", "de")
+WEB_APP_SOURCE = os.path.join("adfc")

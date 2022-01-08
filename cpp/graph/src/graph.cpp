@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <unordered_map>
+#include <algorithm>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -77,7 +78,7 @@ void Graph::add(Point p1, Point p2, int cost) {
   }
 }
 
-std::tuple<std::vector<const Point>, int>
+std::tuple<std::vector<Point>, int>
 Graph::find_shortest_path(const Point &start, const Point &end) {
   std::unordered_map<Hash, std::vector<Hash>> dist{};
   std::vector<Hash> start_path{};
@@ -107,18 +108,18 @@ Graph::find_shortest_path(const Point &start, const Point &end) {
   }
 
   if (dist.find(hash(end)) != dist.end()) {
-    std::vector<const Point> path{};
+    std::vector<Point> path{};
     auto path_hash = dist.find(hash(end))->second;
     for (auto p : path_hash) {
       path.push_back(get(p));
     }
     return std::make_tuple(path, 0);
   } else {
-    return std::make_tuple(std::vector<const Point>{}, 0);
+    return std::make_tuple(std::vector<Point>{}, 0);
   }
 }
 
-std::tuple<std::vector<const Point>, int> Graph::dijkstra(const Point &start,
+std::tuple<std::vector<Point>, int> Graph::dijkstra(const Point &start,
                                                           const Point &end) {
   return find_shortest_path(start, end);
 }
