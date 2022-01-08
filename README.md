@@ -16,6 +16,12 @@ The project is a playground project to dive into a set of topics:
 * Optimizations to improve runtime.
 * Exploring already available modules.
 
+## Installation
+1. Clone this repo `git clone https://github.com/Moecker/gpx.git/`
+2. Change into root `cd gpx`
+3. Install the python deps `python3 -m pip install --user -r requirements.txt`
+4. Build CPP bindings `./build.sh`
+
 ## Usage
 ```
 usage: facade.py [-h] [--start START] [--end END] --gpx GPX [--verbose] [--interactive] [--dry] [--web_app]
