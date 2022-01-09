@@ -2,7 +2,7 @@ import logging
 import os
 
 import gpxpy
-
+import config
 import utils
 
 COLORS = ["blue", "red", "green", "yellow", "brown"]
@@ -20,6 +20,10 @@ def overlay_gpx(gpx_data_files, zoom, name=None):
     """
     polylines = []
     all_points = []
+
+    # Append as many "black" paths as needed
+    for i in range(len(COLORS), config.NUMBER_OF_PATHS + 1):
+        COLORS.append("grey")
 
     for idx, gpx_data_file in enumerate(reversed(gpx_data_files)):
         with open(gpx_data_file, "r") as gpx_file:

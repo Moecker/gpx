@@ -347,12 +347,14 @@ def perform_run(cities, start_city, end_city, segments_dict, background, map, dr
 
     dijkstra, dijkstra_rescaled = perform_dijksra(start_gps, end_gps, segments_dict, background, map)
 
-    # Do not save if in dry mode or no path has been found
-    if not dry and dijkstra and dijkstra_rescaled:
+    # Always save the GPX files.
+    if dijkstra and dijkstra_rescaled:
         gpx_tools.save_as_gpx_file(dijkstra, config.RESULTS_FOLDER, f"{run}_dijkstra.gpx", config.MAX_POINTS_OVERVIEW)
         gpx_tools.save_as_gpx_file(
             dijkstra_rescaled, config.RESULTS_FOLDER, f"{run}_dijkstra_rescaled.gpx", config.MAX_POINTS
         )
+    # Do not save the HTML files if in dry mode or no path has been found.
+    if not dry and dijkstra and dijkstra_rescaled:
         display.save_gpx_as_html([f"{run}_dijkstra"], config.RESULTS_FOLDER, f"{run}_dijkstra.html")
         display.save_gpx_as_html([f"{run}_dijkstra_rescaled"], config.RESULTS_FOLDER, f"{run}_dijkstra_rescaled.html")
 
