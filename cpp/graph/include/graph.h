@@ -24,11 +24,10 @@ public:
 
   void adjust_weight(const Point, const Point, int);
 
-  std::tuple<std::vector<Point>, int> dijkstra(const Point &,
-                                                     const Point &);
+  std::tuple<std::vector<Point>, int> dijkstra(const Point &, const Point &);
 
   std::tuple<std::vector<Point>, int> find_shortest_path(const Point &,
-                                                               const Point &);
+                                                         const Point &);
 
   std::string string() const;
   Point get(Hash);

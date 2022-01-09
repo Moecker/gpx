@@ -32,7 +32,7 @@ def get_form(start, end):
 
 @app.route("/", methods=["GET"])
 def home():
-    return build_html(os.path.join("data", "map_template.html"), "Bern", "Chur")
+    return build_html(os.path.join("data", "map_template.html"), "Dachau", "Frankfurt")
 
 
 @app.route("/path", methods=["GET"])

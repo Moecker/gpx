@@ -1,9 +1,9 @@
 #include "graph.h"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <unordered_map>
-#include <algorithm>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -120,7 +120,7 @@ Graph::find_shortest_path(const Point &start, const Point &end) {
 }
 
 std::tuple<std::vector<Point>, int> Graph::dijkstra(const Point &start,
-                                                          const Point &end) {
+                                                    const Point &end) {
   return find_shortest_path(start, end);
 }
 
