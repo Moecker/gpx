@@ -8,7 +8,7 @@ import utils
 COLORS = ["blue", "red", "green", "yellow", "brown"]
 
 
-def overlay_gpx(gpx_data_files, zoom, name=None):
+def overlay_gpx(gpx_data_files, zoom, colors):
     # Import only when using, improves runtime.
     import folium
 
@@ -22,21 +22,23 @@ def overlay_gpx(gpx_data_files, zoom, name=None):
     all_points = []
 
     # Append as many "black" paths as needed
-    for i in range(len(COLORS), config.NUMBER_OF_PATHS + 1):
-        COLORS.append("grey")
+    for i in range(len(colors), config.NUMBER_OF_PATHS + 1):
+        colors.append("grey")
 
     for idx, gpx_data_file in enumerate(reversed(gpx_data_files)):
         with open(gpx_data_file, "r") as gpx_file:
             gpx = gpxpy.parse(gpx_file)
 
-        points = []
         for track in gpx.tracks:
             for segment in track.segments:
+                points = []
                 for point in segment.points:
                     points.append(tuple([point.latitude, point.longitude]))
-        all_points.extend(points)
+                polylines.append(
+                    folium.PolyLine(points, color=colors[len(gpx_data_files) - idx - 1], weight=2.5, opacity=1)
+                )
 
-        polylines.append(folium.PolyLine(points, color=COLORS[len(gpx_data_files) - idx - 1], weight=2.5, opacity=1))
+        all_points.extend(points)
 
     latitude = sum(p[0] for p in all_points) / len(all_points)
     longitude = sum(p[1] for p in all_points) / len(all_points)
@@ -48,7 +50,7 @@ def overlay_gpx(gpx_data_files, zoom, name=None):
     return map
 
 
-def save_gpx_as_html(map_names, dir, name):
+def save_gpx_as_html(map_names, dir, name, colors=COLORS):
     gpx_file_paths = []
 
     html_file_path = os.path.join(dir, f"{name}")
@@ -67,5 +69,5 @@ def save_gpx_as_html(map_names, dir, name):
             )
             return
 
-    map = overlay_gpx(gpx_file_paths, 8, html_file_path)
+    map = overlay_gpx(gpx_file_paths, 8, colors)
     map.save(f"{html_file_path}")
