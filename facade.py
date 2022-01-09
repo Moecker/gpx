@@ -203,7 +203,8 @@ def main(args) -> list:
 
     background = load_background()
 
-    gpx_display.create_and_display_map(all_points, "Map of all points in database", background)
+    if not args.dry:
+        gpx_display.create_and_display_map(all_points, "Map of all points in database", background)
 
     map = load_map(segments_dict, args.gpx)
     if not map:
