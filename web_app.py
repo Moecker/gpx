@@ -108,4 +108,4 @@ if __name__ == "__main__":
         handlers=[logging.FileHandler(os.path.join("tmp", "web_app_log.txt"), mode="w"), logging.StreamHandler()],
     )
     load()
-    app.run(port=8080, use_reloader=False)
+    app.run(host="0.0.0.0", port=8090, use_reloader=False)
