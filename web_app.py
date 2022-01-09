@@ -89,7 +89,7 @@ def build_html(map_html, start, end):
 def run(start, end):
     logging.info("New web app run.")
     dijkstra_rescaled, old_weights_data = facade.normal_mode(
-        Globals.cities, start, end, Globals.segments_dict, Globals.background, Globals.map, False
+        Globals.cities, start, end, Globals.segments_dict, Globals.background, Globals.map, True
     )
     facade.readjust_weights(old_weights_data, Globals.map)
 
