@@ -4,7 +4,7 @@ gpxpy==1.5.0
 joblib==1.1.0
 matplotlib==3.3.3
 networkx==2.6.2
-numpy==1.19.5
+numpy==1.21.0
 pybind11==2.9.0
 setuptools==58.1.0
 tqdm==4.61.0
