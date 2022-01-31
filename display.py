@@ -35,7 +35,7 @@ def overlay_gpx(gpx_data_files, zoom, colors):
                 for point in segment.points:
                     points.append(tuple([point.latitude, point.longitude]))
                 polylines.append(
-                    folium.PolyLine(points, color=colors[len(gpx_data_files) - idx - 1], weight=2.5, opacity=1)
+                    folium.PolyLine(points, color=colors[len(gpx_data_files) - idx - 1], weight=3.5, opacity=1)
                 )
 
         all_points.extend(points)
@@ -43,7 +43,7 @@ def overlay_gpx(gpx_data_files, zoom, colors):
     latitude = sum(p[0] for p in all_points) / len(all_points)
     longitude = sum(p[1] for p in all_points) / len(all_points)
 
-    map = folium.Map(location=[latitude, longitude], zoom_start=zoom)
+    map = folium.Map(location=[latitude, longitude], zoom_start=zoom, tiles="openstreetmap")
     for polyline in polylines:
         polyline.add_to(map)
 

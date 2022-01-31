@@ -19,4 +19,4 @@ def visualize_gpx_files(pattern, name):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    visualize_gpx_files("tmp/1000/1000_bikeline_de*", "bikeline_de.html")
+    visualize_gpx_files("tmp/100/100_rennrad*", "100_rennrad.html")

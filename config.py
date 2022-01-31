@@ -52,7 +52,7 @@ PRECISION = 10
 # Note: Impacts Reduction Cache
 # Note: Impacts Segment Cache
 # Note: Impacts Map Cache
-REDUCTION_DISTANCE = 1000
+REDUCTION_DISTANCE = 100
 
 # Location for the final results, GPX track files and HTML map views.
 RESULTS_FOLDER = "results"
